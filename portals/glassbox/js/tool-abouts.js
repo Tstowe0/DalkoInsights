@@ -27,6 +27,10 @@ export const TOOL_ABOUTS = {
     about: "Ops load form that BCCs A. Stucki carriers with a quote-request email built from origin, destination, and shipment fields.",
     technical: "See the tool workspace instructions after opening.",
   },
+  "Currency Converter": {
+    about: "Convert invoice lines (Freight, Fuel, GST/HST, plus extras) with markup, fuel surcharge, and FX.",
+    technical: "Left = invoice amounts. Middle = Markup %, Fuel Surcharge %, and From→To rate (default CAD→USD). Right = converted lines with copy.\n\nMath:\n- Freight and Additional: amount × (1 + Markup %) × rate\n- Fuel: amount × (1 + Fuel Surcharge %) × rate\n- GST/HST: amount × rate\n\nRate loads from open.er-api.com and can be typed over.",
+  },
   "Batch Mapper": {
     about: "Map an input file into the BatchRate template — via a saved Profile or Manual column mapping.",
     technical: "Concept:\nMap any incoming customer data file into the BatchRateSampleFile format.\n\nWorkflow:\n1. Upload — choose your Excel or CSV file.\n2. Profile — default Manual unlocks column mapping; pick a saved format to lock Manual and use profile rules.\n3. Manual — map columns when Profile is Manual.\n4. Export — follows the selected profile or Manual mapping.",

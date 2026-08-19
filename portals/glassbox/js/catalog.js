@@ -71,6 +71,7 @@ export const SECTIONS = [
     label: "Data Tools",
     tools: [
       makeTool("Data Tools/Batch Mapper.js"),
+      makeTool("Data Tools/Currency Converter.js"),
       makeTool("Data Tools/Value Standardizer.js"),
       makeTool("Data Tools/Data Dump Merger.js"),
       makeTool("Data Tools/Email Grouper.js"),

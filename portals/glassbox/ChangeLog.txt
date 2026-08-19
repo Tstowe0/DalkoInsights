@@ -1,4 +1,5 @@
 Change Log (HTML portal)
+- Data Tools: Added Currency Converter — invoice lines (Freight, Fuel, GST/HST, additional) with markup, fuel surcharge, and CAD→USD conversion.
 - Client Reports: second mirror pass — pandas-style duplicate headers (.1), blank-row keep, tracking dtype=str + NA blanking, openpyxl date formats, Phinia/Miraclon/Quality/CPKC/Carrier On Time cell-level parity. Prior pass: numeric types, freeze panes, A1 confirms. Removed LoadSync from Tracking Apps.
 
 Change Log 7.6.5

@@ -21,6 +21,9 @@ export function menuIconUrl(label) {
  * @param {string} label
  */
 export function tileIconUrl(label) {
+  if (label === "Currency Converter") {
+    return new URL("../../../shared/images/currencyconverter.png", import.meta.url).href;
+  }
   /** @type {Record<string, string>} */
   const aliases = {
     "DATs Weekly": "DATS Weekly.png",

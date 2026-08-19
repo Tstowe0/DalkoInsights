@@ -1,6 +1,6 @@
-import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20260803-align";
-import { menuIconUrl, tileIconUrl } from "./icons.js?v=20260803-align";
-import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20260803-align";
+import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20260819-fxicon";
+import { menuIconUrl, tileIconUrl } from "./icons.js?v=20260819-fxicon";
+import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20260819-fxicon";
 
 /**
  * @param {HTMLElement} container

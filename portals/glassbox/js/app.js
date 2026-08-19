@@ -1,7 +1,7 @@
-import { NAV_ITEMS } from "./catalog.js?v=20260804-todotitle";
-import { launchTool } from "./tool-loader.js?v=20260804-todotitle";
-import { mountSidebarCalendar } from "./calendar.js?v=20260804-todotitle";
-import { mountSidebarTodo } from "./todo.js?v=20260804-todotitle";
+import { NAV_ITEMS } from "./catalog.js?v=20260819-fxsweep";
+import { launchTool } from "./tool-loader.js?v=20260819-fxsweep";
+import { mountSidebarCalendar } from "./calendar.js?v=20260819-fxsweep";
+import { mountSidebarTodo } from "./todo.js?v=20260819-fxsweep";
 import {
   renderGlassNav,
   renderHome,
@@ -9,7 +9,7 @@ import {
   renderClientReports,
   renderChangelog,
   renderThemes,
-} from "./views.js?v=20260804-todotitle";
+} from "./views.js?v=20260819-fxsweep";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;
 
