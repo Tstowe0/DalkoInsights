@@ -1,0 +1,956 @@
+/**
+ * Dalko Insights — theme tokens + UI kit
+ *
+ * Add a theme: copy a [data-theme="…"] block, change the palette + component
+ * tokens, then register it in shared/js/theme.js.
+ *
+ * Rule: colors for chrome (buttons, panels, inputs, borders) must use these
+ * variables — never hardcode hex/rgba in feature CSS or inline styles.
+ */
+
+/* —— Default theme (also applied when data-theme is missing) —— */
+:root,
+[data-theme="midnight-gold"] {
+  /* Palette */
+  --bg: #030508;
+  --bg-elevated: #080e1a;
+  --bg-main: #050910;
+  --card: #0c1322;
+  --card-elevated: #101a2e;
+  --card-hover: #152238;
+  --card-border: rgba(255, 255, 255, 0.07);
+  --card-border-gold: rgba(217, 174, 66, 0.22);
+  --card-border-strong: #1e2d4a;
+  --accent: #d9ae42;
+  --accent-bright: #f0c14a;
+  --accent-deep: #b8922a;
+  --accent-orange: #e8a045;
+  --accent-dim: rgba(217, 174, 66, 0.14);
+  --accent-glow: rgba(240, 193, 74, 0.4);
+  --accent-hover: #f5cc5c;
+  --accent-muted: #9a8450;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #d9ae42;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #0a1018;
+  --text: #ffffff;
+  --text-muted: #8b9cb8;
+  --text-soft: #d1d5db;
+  --gold-trim: #030508;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 rgba(3, 5, 8, 0.92),
+    -1px 0 0 rgba(3, 5, 8, 0.92),
+    0 1px 0 rgba(3, 5, 8, 0.92),
+    0 -1px 0 rgba(3, 5, 8, 0.92);
+  --gold-trim-shadow-soft:
+    0 0 1px rgba(3, 5, 8, 0.75),
+    1px 0 0 rgba(3, 5, 8, 0.65),
+    -1px 0 0 rgba(3, 5, 8, 0.65),
+    0 1px 0 rgba(3, 5, 8, 0.65),
+    0 -1px 0 rgba(3, 5, 8, 0.65);
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(240, 193, 74, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(139, 156, 184, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(139, 156, 184, 0.72);
+  --type-gold-soft: rgba(139, 156, 184, 0.85);
+
+  /* Layout tokens (theme-aware) */
+  --sidebar-w: 260px;
+  --radius: 12px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.75rem;
+  --page-gutter: 1.5rem;
+  --stack-gap: 1.35rem;
+
+  /* Semantic surfaces / borders */
+  --surface-0: var(--bg);
+  --surface-1: var(--bg-main);
+  --surface-2: var(--card);
+  --surface-3: var(--card-elevated);
+  --surface-hover: var(--card-hover);
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(217, 174, 66, 0.28);
+  --divider: rgba(32, 60, 97, 0.55);
+  --row-alt: rgba(21, 26, 34, 0.85);
+  --overlay: rgba(3, 5, 8, 0.72);
+  --sidebar-bg: linear-gradient(180deg, #0a101c 0%, #050910 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  /* Panels */
+  --panel-bg: rgba(10, 16, 28, 0.55);
+  --panel-bg-quiet: rgba(8, 13, 24, 0.4);
+  --panel-bg-focus: linear-gradient(160deg, rgba(18, 30, 52, 0.72) 0%, rgba(10, 16, 28, 0.85) 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(217, 174, 66, 0.14);
+  --panel-rail: rgba(217, 174, 66, 0.35);
+  --panel-rail-quiet: rgba(139, 156, 184, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(240, 193, 74, 0.75), rgba(217, 174, 66, 0.25));
+  --panel-title: rgba(217, 174, 66, 0.85);
+  --panel-title-quiet: rgba(168, 184, 208, 0.9);
+
+  /* Forms */
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #1f2937;
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-fg: var(--text);
+  --toolbar-bg: rgba(0, 0, 0, 0.18);
+  --drop-bg: rgba(240, 193, 74, 0.03);
+  --result-bg: rgba(240, 193, 74, 0.06);
+  --result-border: rgba(217, 174, 66, 0.25);
+
+  /* Status */
+  --danger: var(--accent-red);
+  --danger-bg: rgba(239, 107, 107, 0.1);
+  --danger-border: rgba(239, 107, 107, 0.45);
+  --danger-fg: #ffb4b4;
+  --success: var(--accent-green);
+
+  /* Buttons — every .btn* variant reads these */
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(228, 188, 74, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(255, 213, 106, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(228, 188, 74, 0.55);
+  --btn-secondary-bg-hover: rgba(228, 188, 74, 0.1);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(255, 213, 106, 0.12);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.06);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  /* Theme picker preview swatches */
+  --theme-swatch-1: #030508;
+  --theme-swatch-2: #0c1322;
+  --theme-swatch-3: #d9ae42;
+  --theme-swatch-4: #f0c14a;
+}
+
+/* —— Alternate: cool steel / ocean —— */
+[data-theme="ocean-steel"] {
+  --bg: #041018;
+  --bg-elevated: #071820;
+  --bg-main: #06141c;
+  --card: #0b1c28;
+  --card-elevated: #102636;
+  --card-hover: #163246;
+  --card-border: rgba(180, 220, 240, 0.1);
+  --card-border-gold: rgba(94, 184, 210, 0.35);
+  --card-border-strong: #1a3a4c;
+  --accent: #5eb8d2;
+  --accent-bright: #8fd4e8;
+  --accent-deep: #3a8eaa;
+  --accent-orange: #6ec4c0;
+  --accent-dim: rgba(94, 184, 210, 0.14);
+  --accent-glow: rgba(143, 212, 232, 0.35);
+  --accent-hover: #a8e0f0;
+  --accent-muted: #6a9aab;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #5eb8d2;
+  --accent-blue: #5a9fc4;
+  --accent-purple: #6a8a9a;
+  --on-accent: #041018;
+  --text: #f2f8fb;
+  --text-muted: #8eafc0;
+  --text-soft: #c5d8e2;
+  --gold-trim: #041018;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 rgba(4, 16, 24, 0.92),
+    -1px 0 0 rgba(4, 16, 24, 0.92),
+    0 1px 0 rgba(4, 16, 24, 0.92),
+    0 -1px 0 rgba(4, 16, 24, 0.92);
+  --gold-trim-shadow-soft:
+    0 0 1px rgba(4, 16, 24, 0.75),
+    1px 0 0 rgba(4, 16, 24, 0.65),
+    -1px 0 0 rgba(4, 16, 24, 0.65),
+    0 1px 0 rgba(4, 16, 24, 0.65),
+    0 -1px 0 rgba(4, 16, 24, 0.65);
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(143, 212, 232, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(142, 175, 192, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(142, 175, 192, 0.72);
+  --type-gold-soft: rgba(142, 175, 192, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(94, 184, 210, 0.32);
+  --divider: rgba(30, 70, 90, 0.55);
+  --row-alt: rgba(12, 32, 42, 0.85);
+  --overlay: rgba(2, 10, 14, 0.72);
+  --sidebar-bg: linear-gradient(180deg, #071820 0%, #041018 100%);
+  --hairline: rgba(180, 220, 240, 0.08);
+
+  --panel-bg: rgba(8, 24, 34, 0.55);
+  --panel-bg-quiet: rgba(6, 18, 26, 0.4);
+  --panel-bg-focus: linear-gradient(160deg, rgba(16, 40, 54, 0.75) 0%, rgba(8, 22, 32, 0.88) 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(180, 220, 240, 0.05);
+  --panel-border-focus: rgba(94, 184, 210, 0.2);
+  --panel-rail: rgba(94, 184, 210, 0.4);
+  --panel-rail-quiet: rgba(142, 175, 192, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(143, 212, 232, 0.8), rgba(94, 184, 210, 0.25));
+  --panel-title: rgba(143, 212, 232, 0.9);
+  --panel-title-quiet: rgba(168, 196, 208, 0.9);
+
+  --input-bg: rgba(180, 220, 240, 0.05);
+  --input-bg-solid: #123040;
+  --input-border: rgba(180, 220, 240, 0.14);
+  --toolbar-bg: rgba(0, 0, 0, 0.22);
+  --drop-bg: rgba(94, 184, 210, 0.05);
+  --result-bg: rgba(94, 184, 210, 0.08);
+  --result-border: rgba(94, 184, 210, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(94, 184, 210, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(143, 212, 232, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(94, 184, 210, 0.55);
+  --btn-secondary-bg-hover: rgba(94, 184, 210, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(143, 212, 232, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --theme-swatch-1: #041018;
+  --theme-swatch-2: #0b1c28;
+  --theme-swatch-3: #5eb8d2;
+  --theme-swatch-4: #8fd4e8;
+}
+
+
+/* —— Night Void —— */
+[data-theme="night-void"] {
+  --bg: #000000;
+  --bg-elevated: #0a0a0a;
+  --bg-main: #050505;
+  --card: #121212;
+  --card-elevated: #1a1a1a;
+  --card-hover: #242424;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-gold: rgba(200, 200, 200, 0.35);
+  --card-border-strong: #2a2a2a;
+  --accent: #c8c8c8;
+  --accent-bright: #f0f0f0;
+  --accent-deep: #8a8a8a;
+  --accent-orange: #d0d0d0;
+  --accent-dim: rgba(200, 200, 200, 0.14);
+  --accent-glow: rgba(240, 240, 240, 0.35);
+  --accent-hover: #f0f0f0;
+  --accent-muted: #8a8a8a;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #c8c8c8;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #050505;
+  --text: #f5f5f5;
+  --text-muted: #9a9a9a;
+  --text-soft: #d0d0d0;
+  --gold-trim: #000000;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #000000eb,
+    -1px 0 0 #000000eb,
+    0 1px 0 #000000eb,
+    0 -1px 0 #000000eb;
+  --gold-trim-shadow-soft:
+    0 0 1px #000000bf,
+    1px 0 0 #000000a6,
+    -1px 0 0 #000000a6,
+    0 1px 0 #000000a6,
+    0 -1px 0 #000000a6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(240, 240, 240, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(154, 154, 154, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(154, 154, 154, 0.72);
+  --type-gold-soft: rgba(154, 154, 154, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(200, 200, 200, 0.32);
+  --divider: rgba(200, 200, 200, 0.22);
+  --row-alt: #0a0a0ad9;
+  --overlay: #000000b8;
+  --sidebar-bg: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  --panel-bg: #1212128c;
+  --panel-bg-quiet: #05050566;
+  --panel-bg-focus: linear-gradient(160deg, #1a1a1abf 0%, #121212e0 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(200, 200, 200, 0.2);
+  --panel-rail: rgba(200, 200, 200, 0.4);
+  --panel-rail-quiet: rgba(154, 154, 154, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(240, 240, 240, 0.8), rgba(200, 200, 200, 0.25));
+  --panel-title: rgba(240, 240, 240, 0.9);
+  --panel-title-quiet: rgba(208, 208, 208, 0.9);
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #1a1a1a;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --toolbar-bg: rgba(0, 0, 0, 0.28);
+  --drop-bg: rgba(200, 200, 200, 0.05);
+  --result-bg: rgba(200, 200, 200, 0.08);
+  --result-border: rgba(200, 200, 200, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(200, 200, 200, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(240, 240, 240, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(200, 200, 200, 0.55);
+  --btn-secondary-bg-hover: rgba(200, 200, 200, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(240, 240, 240, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --theme-swatch-1: #000000;
+  --theme-swatch-2: #121212;
+  --theme-swatch-3: #c8c8c8;
+  --theme-swatch-4: #f0f0f0;
+}
+
+
+/* —— Forest Pine —— */
+[data-theme="forest-pine"] {
+  --bg: #041008;
+  --bg-elevated: #06140c;
+  --bg-main: #071810;
+  --card: #0d2418;
+  --card-elevated: #143322;
+  --card-hover: #1a3e2a;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-gold: rgba(76, 175, 122, 0.35);
+  --card-border-strong: #1e4a32;
+  --accent: #4caf7a;
+  --accent-bright: #8fd4a8;
+  --accent-deep: #2f8a55;
+  --accent-orange: #6bc48f;
+  --accent-dim: rgba(76, 175, 122, 0.14);
+  --accent-glow: rgba(143, 212, 168, 0.35);
+  --accent-hover: #8fd4a8;
+  --accent-muted: #2f8a55;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #4caf7a;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #041008;
+  --text: #eef8f1;
+  --text-muted: #8fb89c;
+  --text-soft: #c5e0d0;
+  --gold-trim: #041008;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #041008eb,
+    -1px 0 0 #041008eb,
+    0 1px 0 #041008eb,
+    0 -1px 0 #041008eb;
+  --gold-trim-shadow-soft:
+    0 0 1px #041008bf,
+    1px 0 0 #041008a6,
+    -1px 0 0 #041008a6,
+    0 1px 0 #041008a6,
+    0 -1px 0 #041008a6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(143, 212, 168, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(143, 184, 156, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(143, 184, 156, 0.72);
+  --type-gold-soft: rgba(143, 184, 156, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(76, 175, 122, 0.32);
+  --divider: rgba(76, 175, 122, 0.22);
+  --row-alt: #06140cd9;
+  --overlay: #041008b8;
+  --sidebar-bg: linear-gradient(180deg, #06140c 0%, #041008 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  --panel-bg: #0d24188c;
+  --panel-bg-quiet: #07181066;
+  --panel-bg-focus: linear-gradient(160deg, #143322bf 0%, #0d2418e0 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(76, 175, 122, 0.2);
+  --panel-rail: rgba(76, 175, 122, 0.4);
+  --panel-rail-quiet: rgba(143, 184, 156, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(143, 212, 168, 0.8), rgba(76, 175, 122, 0.25));
+  --panel-title: rgba(143, 212, 168, 0.9);
+  --panel-title-quiet: rgba(197, 224, 208, 0.9);
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #143322;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --toolbar-bg: rgba(0, 0, 0, 0.28);
+  --drop-bg: rgba(76, 175, 122, 0.05);
+  --result-bg: rgba(76, 175, 122, 0.08);
+  --result-border: rgba(76, 175, 122, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(76, 175, 122, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(143, 212, 168, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(76, 175, 122, 0.55);
+  --btn-secondary-bg-hover: rgba(76, 175, 122, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(143, 212, 168, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --theme-swatch-1: #06140c;
+  --theme-swatch-2: #0d2418;
+  --theme-swatch-3: #4caf7a;
+  --theme-swatch-4: #8fd4a8;
+}
+
+
+/* —— Ember Forge —— */
+[data-theme="ember-forge"] {
+  --bg: #0c0704;
+  --bg-elevated: #120a06;
+  --bg-main: #160c08;
+  --card: #241610;
+  --card-elevated: #2e1c14;
+  --card-hover: #3a2418;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-gold: rgba(224, 138, 69, 0.35);
+  --card-border-strong: #4a3020;
+  --accent: #e08a45;
+  --accent-bright: #f0b078;
+  --accent-deep: #b86830;
+  --accent-orange: #e8a045;
+  --accent-dim: rgba(224, 138, 69, 0.14);
+  --accent-glow: rgba(240, 176, 120, 0.35);
+  --accent-hover: #f0b078;
+  --accent-muted: #b86830;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #e08a45;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #140804;
+  --text: #fff4ec;
+  --text-muted: #c4a08a;
+  --text-soft: #e8d0bc;
+  --gold-trim: #0c0704;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #0c0704eb,
+    -1px 0 0 #0c0704eb,
+    0 1px 0 #0c0704eb,
+    0 -1px 0 #0c0704eb;
+  --gold-trim-shadow-soft:
+    0 0 1px #0c0704bf,
+    1px 0 0 #0c0704a6,
+    -1px 0 0 #0c0704a6,
+    0 1px 0 #0c0704a6,
+    0 -1px 0 #0c0704a6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(240, 176, 120, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(196, 160, 138, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(196, 160, 138, 0.72);
+  --type-gold-soft: rgba(196, 160, 138, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(224, 138, 69, 0.32);
+  --divider: rgba(224, 138, 69, 0.22);
+  --row-alt: #120a06d9;
+  --overlay: #0c0704b8;
+  --sidebar-bg: linear-gradient(180deg, #120a06 0%, #0c0704 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  --panel-bg: #2416108c;
+  --panel-bg-quiet: #160c0866;
+  --panel-bg-focus: linear-gradient(160deg, #2e1c14bf 0%, #241610e0 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(224, 138, 69, 0.2);
+  --panel-rail: rgba(224, 138, 69, 0.4);
+  --panel-rail-quiet: rgba(196, 160, 138, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(240, 176, 120, 0.8), rgba(224, 138, 69, 0.25));
+  --panel-title: rgba(240, 176, 120, 0.9);
+  --panel-title-quiet: rgba(232, 208, 188, 0.9);
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #2e1c14;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --toolbar-bg: rgba(0, 0, 0, 0.28);
+  --drop-bg: rgba(224, 138, 69, 0.05);
+  --result-bg: rgba(224, 138, 69, 0.08);
+  --result-border: rgba(224, 138, 69, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(224, 138, 69, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(240, 176, 120, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(224, 138, 69, 0.55);
+  --btn-secondary-bg-hover: rgba(224, 138, 69, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(240, 176, 120, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --theme-swatch-1: #120a06;
+  --theme-swatch-2: #241610;
+  --theme-swatch-3: #e08a45;
+  --theme-swatch-4: #f0b078;
+}
+
+
+/* —— Graphite Lime —— */
+[data-theme="graphite-lime"] {
+  --bg: #080a07;
+  --bg-elevated: #0b0d0a;
+  --bg-main: #0e100c;
+  --card: #171a14;
+  --card-elevated: #1f241c;
+  --card-hover: #2a3024;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-gold: rgba(168, 216, 74, 0.35);
+  --card-border-strong: #343c2c;
+  --accent: #a8d84a;
+  --accent-bright: #c8f06a;
+  --accent-deep: #7aaa30;
+  --accent-orange: #b8e050;
+  --accent-dim: rgba(168, 216, 74, 0.14);
+  --accent-glow: rgba(200, 240, 106, 0.35);
+  --accent-hover: #c8f06a;
+  --accent-muted: #7aaa30;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #a8d84a;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #101408;
+  --text: #f4f8ec;
+  --text-muted: #a0b088;
+  --text-soft: #d4e0c0;
+  --gold-trim: #080a07;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #080a07eb,
+    -1px 0 0 #080a07eb,
+    0 1px 0 #080a07eb,
+    0 -1px 0 #080a07eb;
+  --gold-trim-shadow-soft:
+    0 0 1px #080a07bf,
+    1px 0 0 #080a07a6,
+    -1px 0 0 #080a07a6,
+    0 1px 0 #080a07a6,
+    0 -1px 0 #080a07a6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(200, 240, 106, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(160, 176, 136, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(160, 176, 136, 0.72);
+  --type-gold-soft: rgba(160, 176, 136, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(168, 216, 74, 0.32);
+  --divider: rgba(168, 216, 74, 0.22);
+  --row-alt: #0b0d0ad9;
+  --overlay: #080a07b8;
+  --sidebar-bg: linear-gradient(180deg, #0b0d0a 0%, #080a07 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  --panel-bg: #171a148c;
+  --panel-bg-quiet: #0e100c66;
+  --panel-bg-focus: linear-gradient(160deg, #1f241cbf 0%, #171a14e0 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(168, 216, 74, 0.2);
+  --panel-rail: rgba(168, 216, 74, 0.4);
+  --panel-rail-quiet: rgba(160, 176, 136, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(200, 240, 106, 0.8), rgba(168, 216, 74, 0.25));
+  --panel-title: rgba(200, 240, 106, 0.9);
+  --panel-title-quiet: rgba(212, 224, 192, 0.9);
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #1f241c;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --toolbar-bg: rgba(0, 0, 0, 0.28);
+  --drop-bg: rgba(168, 216, 74, 0.05);
+  --result-bg: rgba(168, 216, 74, 0.08);
+  --result-border: rgba(168, 216, 74, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(168, 216, 74, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(200, 240, 106, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(168, 216, 74, 0.55);
+  --btn-secondary-bg-hover: rgba(168, 216, 74, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(200, 240, 106, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --theme-swatch-1: #0b0d0a;
+  --theme-swatch-2: #171a14;
+  --theme-swatch-3: #a8d84a;
+  --theme-swatch-4: #c8f06a;
+}
+
+
+/* —— Slate Coral —— */
+[data-theme="slate-coral"] {
+  --bg: #080b0e;
+  --bg-elevated: #0c1014;
+  --bg-main: #10151a;
+  --card: #171e26;
+  --card-elevated: #1e2832;
+  --card-hover: #273340;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-gold: rgba(232, 137, 122, 0.35);
+  --card-border-strong: #334050;
+  --accent: #e8897a;
+  --accent-bright: #f0b0a4;
+  --accent-deep: #c05e52;
+  --accent-orange: #e8a090;
+  --accent-dim: rgba(232, 137, 122, 0.14);
+  --accent-glow: rgba(240, 176, 164, 0.35);
+  --accent-hover: #f0b0a4;
+  --accent-muted: #c05e52;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #e8897a;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #180c0a;
+  --text: #f6f2f0;
+  --text-muted: #a8b0b8;
+  --text-soft: #d4d8dc;
+  --gold-trim: #080b0e;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #080b0eeb,
+    -1px 0 0 #080b0eeb,
+    0 1px 0 #080b0eeb,
+    0 -1px 0 #080b0eeb;
+  --gold-trim-shadow-soft:
+    0 0 1px #080b0ebf,
+    1px 0 0 #080b0ea6,
+    -1px 0 0 #080b0ea6,
+    0 1px 0 #080b0ea6,
+    0 -1px 0 #080b0ea6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(240, 176, 164, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(168, 176, 184, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(168, 176, 184, 0.72);
+  --type-gold-soft: rgba(168, 176, 184, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(232, 137, 122, 0.32);
+  --divider: rgba(232, 137, 122, 0.22);
+  --row-alt: #0c1014d9;
+  --overlay: #080b0eb8;
+  --sidebar-bg: linear-gradient(180deg, #0c1014 0%, #080b0e 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  --panel-bg: #171e268c;
+  --panel-bg-quiet: #10151a66;
+  --panel-bg-focus: linear-gradient(160deg, #1e2832bf 0%, #171e26e0 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(232, 137, 122, 0.2);
+  --panel-rail: rgba(232, 137, 122, 0.4);
+  --panel-rail-quiet: rgba(168, 176, 184, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(240, 176, 164, 0.8), rgba(232, 137, 122, 0.25));
+  --panel-title: rgba(240, 176, 164, 0.9);
+  --panel-title-quiet: rgba(212, 216, 220, 0.9);
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #1e2832;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --toolbar-bg: rgba(0, 0, 0, 0.28);
+  --drop-bg: rgba(232, 137, 122, 0.05);
+  --result-bg: rgba(232, 137, 122, 0.08);
+  --result-border: rgba(232, 137, 122, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(232, 137, 122, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(240, 176, 164, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(232, 137, 122, 0.55);
+  --btn-secondary-bg-hover: rgba(232, 137, 122, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(240, 176, 164, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --theme-swatch-1: #0c1014;
+  --theme-swatch-2: #171e26;
+  --theme-swatch-3: #e8897a;
+  --theme-swatch-4: #f0b0a4;
+}
+
+/* ================================================================== */
+/* UI kit — use these classes for new chrome; themes restyle them all  */
+/* ================================================================== */
+
+.ui-panel {
+  position: relative;
+  padding: 1.15rem 1.25rem 1.2rem 1.35rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+}
+
+.ui-panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.85rem;
+  bottom: 0.85rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--panel-rail);
+}
+
+.ui-panel--quiet {
+  background: var(--panel-bg-quiet);
+  border-color: var(--panel-border-quiet);
+}
+
+.ui-panel--quiet::before {
+  background: var(--panel-rail-quiet);
+}
+
+.ui-panel--focus {
+  background: var(--panel-bg-focus);
+  border-color: var(--panel-border-focus);
+}
+
+.ui-panel--focus::before {
+  background: var(--panel-rail-focus);
+}
+
+.ui-panel-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--panel-title);
+}
+
+.ui-panel--quiet .ui-panel-title {
+  color: var(--panel-title-quiet);
+}
+
+.ui-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.85rem;
+  padding: 0.7rem 0.75rem;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline);
+  background: var(--toolbar-bg);
+}
+
+.ui-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ui-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ui-field-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.ui-input--sm {
+  width: auto;
+  min-width: 6rem;
+}
+
+.ui-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.25rem 1.15rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-dashed);
+  background: var(--drop-bg);
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.ui-result {
+  margin-top: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--result-border);
+  background: var(--result-bg);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.ui-banner-danger {
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-soft {
+  color: var(--text-soft);
+}
+
+.text-accent {
+  color: var(--accent-bright);
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+/* Auto-theme native form controls inside portals (unless classed otherwise) */
+.gb-app input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+.gb-app select,
+.gb-app textarea,
+.app input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+.app select,
+.app textarea {
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-fg);
+  font: inherit;
+  accent-color: var(--accent);
+}
+
+.gb-app input[type="checkbox"],
+.gb-app input[type="radio"],
+.app input[type="checkbox"],
+.app input[type="radio"] {
+  accent-color: var(--accent);
+}

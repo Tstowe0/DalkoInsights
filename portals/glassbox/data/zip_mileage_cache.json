@@ -1,0 +1,156 @@
+{
+  "16150_60606": {
+    "zip1": "16150",
+    "zip2": "60606",
+    "straight_distance": 373.0968806506444,
+    "truck_distance": 409.96505152500004,
+    "city1": "Sharpsville",
+    "state1": "Pennsylvania",
+    "city2": "Chicago",
+    "state2": "Illinois"
+  },
+  "16150_44450": {
+    "zip1": "16150",
+    "zip2": "44450",
+    "straight_distance": 22.003459523644498,
+    "truck_distance": 29.275894665,
+    "city1": "Sharpsville",
+    "state1": "Pennsylvania",
+    "city2": "North Bloomfield",
+    "state2": "Ohio"
+  },
+  "15090_60606": {
+    "zip1": "60606",
+    "zip2": "15090",
+    "straight_distance": 403.0310389235388,
+    "truck_distance": 447.193252248,
+    "city1": "Chicago",
+    "state1": "Illinois",
+    "city2": "Wexford",
+    "state2": "Pennsylvania"
+  },
+  "16146_16148": {
+    "zip1": "16148",
+    "zip2": "16146",
+    "straight_distance": 2.406828865746716,
+    "truck_distance": 4.5186099120000005,
+    "city1": "Hermitage",
+    "state1": "Pennsylvania",
+    "city2": "Sharon",
+    "state2": "Pennsylvania"
+  },
+  "16143_16146": {
+    "zip1": "16143",
+    "zip2": "16146",
+    "straight_distance": 9.627765547231443,
+    "truck_distance": 14.254872111000001,
+    "city1": "Pulaski",
+    "state1": "Pennsylvania",
+    "city2": "Sharon",
+    "state2": "Pennsylvania"
+  },
+  "16146_16510": {
+    "zip1": "16146",
+    "zip2": "16510",
+    "straight_distance": 66.82922928305021,
+    "truck_distance": null,
+    "city1": "Sharon",
+    "state1": "Pennsylvania",
+    "city2": "Erie",
+    "state2": "Pennsylvania"
+  },
+  "16148_16510": {
+    "zip1": "16148",
+    "zip2": "16510",
+    "straight_distance": 65.79402063733765,
+    "truck_distance": 83.936658793,
+    "city1": "Hermitage",
+    "state1": "Pennsylvania",
+    "city2": "Erie",
+    "state2": "Pennsylvania"
+  },
+  "16150_auto_60606_auto": {
+    "zip1": "16150",
+    "zip2": "60606",
+    "country1": "auto",
+    "country2": "auto",
+    "straight_distance": 373.0968806506444,
+    "truck_distance": 409.96505152500004,
+    "city1": "Sharpsville",
+    "state1": "Pennsylvania",
+    "city2": "Chicago",
+    "state2": "Illinois"
+  },
+  "16150_auto_35020_auto": {
+    "zip1": "35020",
+    "zip2": "16150",
+    "country1": "auto",
+    "country2": "auto",
+    "straight_distance": 648.8660506640133,
+    "truck_distance": 769.832066175,
+    "city1": "Bessemer",
+    "state1": "Alabama",
+    "city2": "Sharpsville",
+    "state2": "Pennsylvania"
+  },
+  "25900_mx_78045_us": {
+    "zip1": "25900",
+    "zip2": "78045",
+    "country1": "mx",
+    "country2": "us",
+    "straight_distance": 166.1535834373231,
+    "truck_distance": null,
+    "city1": "Ramos Arizpe Centro",
+    "state1": "Coahuila de Zaragoza",
+    "city2": "Laredo",
+    "state2": "Texas"
+  },
+  "44450_auto_60606_auto": {
+    "zip1": "44450",
+    "zip2": "60606",
+    "country1": "auto",
+    "country2": "auto",
+    "straight_distance": 353.74919375365744,
+    "truck_distance": 391.606023959,
+    "city1": "North Bloomfield",
+    "state1": "Ohio",
+    "city2": "Chicago",
+    "state2": "Illinois"
+  },
+  "16150_auto_44450_auto": {
+    "zip1": "16150",
+    "zip2": "44450",
+    "country1": "auto",
+    "country2": "auto",
+    "straight_distance": 22.003459523644498,
+    "truck_distance": 29.275894665,
+    "city1": "Sharpsville",
+    "state1": "Pennsylvania",
+    "city2": "North Bloomfield",
+    "state2": "Ohio"
+  },
+  "60606_auto_60606_auto": {
+    "zip1": "60606",
+    "zip2": "60606",
+    "country1": "auto",
+    "country2": "auto",
+    "straight_distance": 0.0,
+    "truck_distance": 0.0,
+    "city1": "Chicago",
+    "state1": "Illinois",
+    "city2": "Chicago",
+    "state2": "Illinois"
+  },
+  "16150_us_60606_auto": {
+    "zip1": "60606",
+    "zip2": "16150",
+    "country1": "auto",
+    "country2": "us",
+    "straight_distance": 373.0968806506444,
+    "truck_distance": 410.271387428,
+    "city1": "Chicago",
+    "state1": "Illinois",
+    "city2": "Sharpsville",
+    "state2": "Pennsylvania"
+  }
+}

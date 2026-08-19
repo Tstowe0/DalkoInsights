@@ -1,0 +1,331 @@
+Change Log (HTML portal)
+- Client Reports: second mirror pass — pandas-style duplicate headers (.1), blank-row keep, tracking dtype=str + NA blanking, openpyxl date formats, Phinia/Miraclon/Quality/CPKC/Carrier On Time cell-level parity. Prior pass: numeric types, freeze panes, A1 confirms. Removed LoadSync from Tracking Apps.
+
+Change Log 7.6.5
+- Phinia Weekly: Added ebecerra@phinia.com and logistics.slp1@phinia.com to the email To field.
+- Quality Turbo Weekly: Added Larry@qualityturbo.com to the email To field.
+
+Change Log 7.6.4
+- Phinia Shipment Upload: Added Custom Date option with calendar picker to manually choose the ship date for output and FTP upload.
+
+Change Log 7.6.3
+- TMS Data Dump file checks (cell A1 = CLIENT NAME, Run/Abort): Phinia Weekly, Quality Turbocharger Weekly, DATs Weekly, UTLXA Monthly, Miraclon and Bruss Monthly, and Phinia Load Matcher (Data Dump upload only).
+- Tracking Report file checks (cell A1 = Client, Run/Abort): Vet-Pet Daily, McConway Daily Tracking, FCA Active Shipments, and Tracking Report (Tracking Apps).
+
+Change Log 7.6.2
+- Data Tools: Added Value Standardizer for grouping messy column values, choosing a master name, and exporting standardized Excel output. Initial release.
+- Moved Carrier On Time Merger from Data Tools to Client Reports (Monthly section).
+
+Change Log 7.5.2
+- Ops Apps: Renamed Maddox to Maddox Carrier Email and A. Stucki to A. Stucki Carrier Email.
+- Moved Phinia Operational Report from Client Reports to Client Uploads.
+- Miraclon and Bruss Monthly: Adjusted report instructions and concept.
+
+Change Log 7.5.1
+- AP-AR Lookup: Fixed merge errors caused by mixed data types in Load Number (e.g., 123 vs 123.0).
+- AP-AR Lookup: Updated output date formatting to mm/dd/yyyy.
+
+Change Log 7.5.0
+- Added a new main menu section for Accounting.
+- Added a new tool under Accounting for AP/AR file mapping.
+
+Change Log 7.4.0
+- Added new client report: McConway and Torely tracking report. (Based off Custom Vet)
+- Adjust the Quality output file to be more in line with all other reports. The alternating greys for line items were too dark.
+- Built the shell for a new client upload process: Guardian Rail. The button is currently disabled.
+
+Change Log 7.3.10
+- Phinia Upload: Added Handling Unit and Handling Units as variables for Pallets.
+- Phinia Ops Report: Adjusted the report to handle the new input layout.
+
+Change Log 7.3.9
+- Reworded the Phinia Ops report to better explain its purpose.
+
+Change Log 7.3.8
+- Improved stability when moving the program between monitors.
+- Altered email code for future tools to better import the To: email addresses.
+- Removed some unused menu buttons to simply the overall program. Data Dept. Apps and File Repository have been temporarily removed.
+- Added a new menu section to hold Operational Apps.
+- Added two new ops apps - Maddox and A. Stucki load forms. These are used to mass email carriers. Carriers are controlled by an excel file accessible by management.
+- Generates a quote number that is simply hour, minute, second, day, month, and year as a time stamp. This generates when the draft is made.
+
+Change Log 7.3.7
+- Themes: Added more flexibility to the Theme page to prevent hard crashing.
+- Load Sync: Added an ETA countdown to the status section.
+- Load Sync: Modified the Data Dump's handling of Column H to only pull when no data exists.
+- Load Sync: Adjusted logic to run on older devices.
+
+Change Log 7.3.6
+- Reclassified the DATs weekly report to be Thursday instead of Friday.
+- Added several city name replacements for the Phinia upload process.
+- Added more accepted phrases for Lbs and Pallets for Phinia upload since their file keeps changing.
+
+Change Log 7.3.5
+- Fixed a bug with the CPKC report where clicking run would activate the process twice prompting to run and save two times instead of once.
+- Adjusted the output file's alternating color scheme to be less dark and to be more in line with all other reports.
+
+Change Log 7.3.4
+- Applied more standardization to theming to future proof new themes and add more coheision.
+- Updated the theme pallet for better representation of what each theme offers.
+- Cleaned up documentation and the comments/labels in the scripts. 
+- Adjust the button stretch function in the Batch Mapper so they shrink and expand better.
+- Updated the favicon for branding purposes. It now matches the new logo and should be more visible for all users.
+- Removed old glow effect that sometimes applied on the active menu button.
+
+Change Log 7.2.4
+- Split the Phinia Operational report out from the Upload section.
+- Phinia Operational now exists as a Daily client report.
+- Removed the Upload Only area of the Upload tool as it is no longer needed.
+- Relabled the buttons in the Upload tool to better reflect their processes.
+- Adjust the appearance of the Operational report to better match its flow.
+- Made the word About clickable system wide when hovering over the ? tooltip. It now properly displays the debug information.
+- Added Theme previews next to each theme to display the appearance it would become when chosen.
+- Added and Black and White theme.
+- Changed the primary logo.
+
+Change Log 7.1.4
+- Adjusted the Email code to be more stable across all computers. The addresses would not load correctly in the To and CC fields. This is an attempt to fix that.
+- Improved the Phinia Weekly report to automatically include an up to date YTD tab. The output file also now displays the date range and makes tab 2 the active tab.
+
+Change Log 7.1.3
+- Renamed the Dalko Apps menu button to Tracking Apps.
+- Added a new menu entry for Data Dept. Apps. This will house department specific tools going forward.
+
+Change Log 7.0.3
+- Add City standardization to the Phinia Upload process that automatically replaces specific city spellings with new standard TMS spellings. 
+- Added an alert for the FTP upload button to verify that the user intends to FTP a live file. This is to prevent misclicks creating loads.
+
+Change Log 7.0.2
+- Adjusted FCA Report's concept to not be so lengthy.
+- Fixed a bug with the DATS report not loading to a theme issue.
+- Fixed the YTD Savings calculator preview. It now shows an example image again.
+- Adjusted the Shipment Conslidator logic to anchor on the first shipment then apply the day range to it. This was not occuring before.
+- Redirected Phinia Upload to PHINIA in the FTP settings.
+
+Change Log 7.0.1
+- Adjust Phinia Upload delivery code logic to be based on just the code and no other factors.
+- Adjusted the formating of destination and origin addresses so that numbers would no longer include decimals.
+
+Change Log 7.0.0
+- Decoupled the theming code that was inside the scripts.
+- Centralized the theme engine to be held in one location.
+- Added a Theme engine that allows users to toggle between themes. These save locally per user.
+- Added support for future themes.
+
+Change Log 6.10.14
+- Polished the background colors system wide to be uniform.
+- Improved scroll speed on the Client Report list.
+- Added email functionality to the Phinia Weekly report.
+
+
+Change Log 6.10.13
+- Added a 4 and 5 day option to the Shipment Conslidator per request.
+- Added a Info (?) button to the Shipment Consolidator and polished some background coloring.
+
+Change Log 6.9.13
+- Fixed Phinia bug of empty destination name being filled with nan. It now passes the blank through.
+- Fixed hover text bug for the ? buttons program wide.
+
+Change Log 6.9.12
+- Adjusted the Phinia Customer Upload tool to monitor for blank fields within Destination Name, Address, or HDLG Units.
+- Added a ? button to list logic used in the Phinia Upload tool.
+- Adjusted holiday schedule for Phinia.
+- Reworked error handling and appearance.
+
+Change Log 6.8.12
+- Removed President's Day from Phinia Upload holidays. This will no longer push the date out one day.
+- Began implementing a new tool: Batch Mapper. It is under development.
+- Fixed the Data Dump Breakdown Accessorial logic for Total/Monthly/On-Time tabs.
+- Added a AccessorialLogic.txt file for future AI reference explaining the proper way to calculate. The file was generated by Cursor itself once it understood correctly.
+- Removed an old Phinia script that was no longer needed.
+- Adjusted the FTP settings for the DATS uploaded to fix a time out error.
+- Attempted to fix the Email button to be used by all users. Fix result pending.
+
+Change Log 6.7.12
+- Added a new user to the Vet/Pet daily email function.
+- Adjusted time frame in the instructions for Quality Turbos weekly report.
+
+Change Log 6.7.11
+- Changed Phinia Upload default pickup/drop off times to be 15:00 and 17:00 instead of 16 and 18.
+
+Change Log 6.7.10
+- Fixed the Load Consolidator to once again have a batch export button. This matches the new TMS batch rater.
+
+Change Log 6.6.10
+- Patched the Phinia Load Matcher to work correctly again. A previous update broke some logic. It's fully working now.
+- Add a tooltip to the Phinia Load Matcher tool explaining the mechanics of the logic.
+
+Change Log 6.6.9
+- Applied final fixes to the Phinia Weekly Report to fix the Carrier pulling.
+
+Change Log 6.6.8
+- Finalized the Phinia weekly report.
+- Added a new ? button to the client reports that gives a breakdown of what the report is doing.
+- Renamed Load Matcher to Phinia Load Matcher for clarity. 
+- Load Consolidator repaired and upgraded. Fix errors and made it so load sets are color coded together and match the every other scheme.
+
+Change Log 6.5.8
+- Fixed a Python library problem in the build process that was breaking a couple of tools on build.
+
+Change Log 6.5.7
+- Quick patch to the Phinia Customer Upload tool to fix a UI crash.
+
+Change Log 6.5.6
+- Fixed issues related to the Excel trimmer.
+- Removed several tools that were not being used or outdated. The scripts exist now in an inaccessible Legacy folder on the backend. Some of these exist in a new upcoming tool.
+
+Change Log 6.5.5
+- Added Load Matcher tool under Dalko Apps to assist with matching Load Numbers to Delivery Numbers for Phinia files.
+
+Change Log 6.5.4
+- Adjust background structure of the scripts and subfolders for tidyness.
+- Added a DEMO Phinia upload for future testing.
+- This new version includes a fully built Operational Report specific to the Phinia work flow.
+
+Change Log 6.4.4
+- Added new client report for Freight Car America.
+- Adjusted line spacing for upload file names to improve UI experience.
+- Fixed glitch where the console was actively sliding down on load. Now by default the console is closed on start up.
+- Revamped the all 26 tools/reports with visual feedback that makes sense. Example: A pop up when a tool finishes.
+
+Change Log v6.3.4
+- Adjusted the Client Reports section and added dividers to show when reports should be ran.
+- Changed Daily Shipment Report (the general one). It is now named Tracking Report and exists under DALKO Apps. It also has new color coding rules.
+
+Change Log v6.3.3
+- Fixed a bug where the Excel Trimmer would not correctly load templates.
+
+Change Log v6.3.2
+- Began working on the core logic for the QBR Report Builder.
+- Added FTP server settings for file upload in the Customer Shipment Uploader.
+- Added a smart prompt to the excel trimmer. If it detects the output file having Total Receivable Amount it will ask if you want it to be renamed to Freight Spend instead.
+- Added new users to the Custom Vet tool per their request. These will pull in the email button.
+- Did a system wide polish in appearance and button verbiage.
+- Added attribution for the Art.
+- Added a new Glass Box logo.
+- Added FTP settings to the DATs Weekly report that will auto upload your file from within the Glass Box.
+- Added the Analytics Dashboard as a quick and easy option to visualize data without making reports. This is just the core function for now.
+- Fine tuned the Accessorial Total tab in the Data Dump Breakdown to remove ghost numbers that would appear as blanks.
+
+Change Log v6.2.2
+- Began using Cursor as this project's main workspace.
+- Added an Email function to some reports that automatically draft an email with the appropriate dates, subject, and recipients.
+- Adjusted Carrier On Time Merger to use Transit Day logic like in the Data Dump Breakdown. Transit is used for Delivery Metrics only.
+- Removed the Batch Ready export button from the Shipment Consolidator due to changes in the TMS batch rater.
+- Adjusted the file upload tile across all tools for better spacing in the GUI.
+
+Change Log v6.1.2
+- Merged Accessorial Group into the Data Dump Breakdown. Now the breakdown includes a Monthly and Total breakdown of accessorials.
+- Removed the General Reports tab and merged those tools into the Data Tools tab.
+- Renamed the Client Reports to Client Specific Reports.
+
+Change Log v6.0.2
+- Updated Data Dump Breakdown's carrier on time delivery to be calculated off of Transit Days instead of Delivery Dates.
+
+Change Log v6.0.1
+- Converted scripts to keep new UI and Log functions while preserving legacy core functions.
+- Renamed Tracking Merger to LoadSync.
+
+Change Log v6.0.0
+- Major UI revamp introducing The Glass Box launcher.
+- Transitioned to dark-glass theme and modular tile system.
+- Added category grouping for tools and unified console view.
+- Updated all buttons and layouts to follow Glass Box Rules v6.0.4.
+- Added Icons for all tools.
+- Reworked scripts to allowed multi threading for processing speeds on large files and reduce "unresponsive" events.
+- Implemented external changelog support for future updates.
+- Enhanced runtime feedback through console-only progress logs.
+- Added new file repository section to download calculators.
+- Removed legacy code and features like ? buttons etc.
+- Removed PDF Reader.
+
+Change Log v5.13.6
+- Minor adjustments made to Daily Shipment Report to include Delivered and Pickup Requested statuses.
+
+Change Log v5.13.5
+- Adjusted the Carrier On Time Mergers UI and instructions for ease of use.
+
+Change Log v5.13.4
+- Added a new monthly report for UTLXA that should be ran on the 1st of the month.
+
+Change Log v5.12.4
+- Added a new weekly report. DATs is now available. This report takes a data dump and converts it to the report they need based off the template they gave.
+- Removed old tools that are unneeded.
+
+Change Log v5.11.4
+- Added a new customer report. Miraclon and Bruss Monthly is now available. This report takes a data dump and converts it to the report they prefer.
+
+Change Log v5.10.4
+- Added a new general report. Daily Shipment Report is now available. This report takes a tracking report, cleans it up, and makes it nice looking.
+
+Change Log v5.9.4
+- Added a Excel Painter tool that allows you to make any data sheet match the Analyzer theme. Data remains unchanged.
+
+Change Log v5.8.4
+- Added an Accessorial Grouper Tool.
+- Combinded the Business Review and the Data Dump Breakdown tools into one and removed the Business Review.
+
+Change Log v5.7.4
+- Reworked the Data Dump Breakdown tool. Theming and naming has been updated.
+
+Change Log v5.7.3
+- Added customer report: CPKC.
+
+Change Log v5.6.3
+- Added PDF OCR Reader.
+- Added a bin folder to the infrastructure with dependencies for use with the PDF tool.
+
+Change Log v5.5.3
+- Enhanced the Zip tool to capture all incoming new data from Google. New ZIP combos are saved to the cache for future use.
+- Added an override system for shared ZIP codes to force a lookup to use a specific country. This is off by default.
+
+Change Log v5.4.3
+- Added a new tool: Zip Calculator. This finds the straight-line distance as well as the truck distance between two points.
+- Fixed a minor issue with email alerts.
+
+Change Log v5.3.3
+- Reorganized tool layout and added categories.
+- Added new categories for customer-specific reports.
+- Added a functioning tool for Quality Turbocharger.
+- Added placeholders for future customer tools.
+
+Change Log v4.3.3
+- Added a new permanent logo.
+
+Change Log v4.2.3
+- Fixed a cosmetic issue with the Shipment Consolidator.
+
+Change Log v4.2.2
+- Branding and UI design changes.
+- Redesigned instructions for consistency in appearance.
+
+Change Log v3.2.2
+- Added a new tool: Carrier Matrix Parser with instruction set.
+
+Change Log v2.2.2
+- Added a backdoor email system for monitoring purposes.
+
+Change Log v2.1.2
+- Added the beta version of the Carrier On-Time Merger.
+- This new function is a work in progress and not finished. RLCA and FedEx work currently. DOUBLE CHECK DATA ACCURACY.
+- Added an Email Block tool with instructions.
+
+Change Log v1.1.2
+- Revamped layout and flow of the overall program.
+- Moved all Upload sections inside the scripts to future-proof the program.
+- All functions are now clickable on startup.
+- Rewrote some instructions for clarity and to reflect new changes.
+- Adjusted mouse scrolling functions for smoother use.
+- Adjusted name save layout. It now includes the day/month/year followed by hour/minute at the end of the file name.
+
+Change Log v1.0.2
+- Realigned the column action buttons on the Excel Trimmer.
+- Reimplemented a lost alert when clicking Clear Checked Columns.
+- Added a character limit to the viewable file name in the upload section.
+
+Change Log v1.0.1
+- Added Home, FAQs, and Change Log navigation tabs.
+- Changed “?” buttons to open externally and not in the work pane.
+
+Change Log v1.0.0
+- Initial release with Excel Trimmer and Shipment Consolidator.

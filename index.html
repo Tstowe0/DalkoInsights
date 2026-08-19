@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Dalko Insights — Data &amp; Analytics Department freight dashboard. TMS Excel analytics in your browser." />
+  <title>Dalko Insights</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared/css/theme.css" />
+  <link rel="stylesheet" href="shared/css/shell.css" />
+</head>
+<body>
+  <div class="boot-banner hidden" id="boot-banner" role="alert"></div>
+
+  <!-- Top layer: Dalko Insights hub -->
+  <section class="insights-hub" id="insights-hub" aria-label="Dalko Insights">
+    <div class="insights-hub-glow" aria-hidden="true"></div>
+    <div class="insights-hub-inner">
+      <div class="insights-hub-brand">
+        <div class="insights-hub-mark">
+          <img class="insights-hub-logo" src="shared/images/earth.png" width="72" height="72" alt="" />
+        </div>
+        <h1 class="insights-hub-title">Dalko Insights</h1>
+      </div>
+      <button type="button" class="btn btn-primary btn-lg insights-hub-cta" id="btn-open-portals">
+        Enter
+      </button>
+    </div>
+  </section>
+
+  <!-- Portal chooser -->
+  <div class="portal-menu hidden" id="portal-menu" role="dialog" aria-modal="true" aria-labelledby="portal-menu-title">
+    <div class="portal-menu-backdrop" data-portal-dismiss="true"></div>
+    <div class="portal-menu-card">
+      <header class="portal-menu-header">
+        <div class="portal-menu-brand">
+          <img class="portal-menu-logo" src="shared/images/earth.png" width="36" height="36" alt="" />
+          <h2 class="portal-menu-brand-name" id="portal-menu-title">Dalko Insights</h2>
+        </div>
+        <p class="portal-menu-prompt">Choose Portal</p>
+      </header>
+      <div class="portal-menu-list" role="menu">
+        <button type="button" class="portal-menu-item" role="menuitem" data-portal="dalko">
+          Analysis
+        </button>
+        <button type="button" class="portal-menu-item" role="menuitem" data-portal="customer">
+          Presentation
+        </button>
+        <button type="button" class="portal-menu-item" role="menuitem" data-portal="glassbox">
+          Glass Box
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active portal mounts here -->
+  <div id="portal-root" aria-live="polite"></div>
+
+  <div class="loading-overlay hidden" id="loading-overlay" aria-live="polite">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <p id="loading-message">Working…</p>
+      <p class="loading-detail" id="loading-detail"></p>
+      <div class="loading-progress hidden" id="loading-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="loading-progress-track">
+          <div class="loading-progress-fill" id="loading-progress-fill"></div>
+        </div>
+        <span class="loading-progress-pct" id="loading-progress-pct">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="shared/js/shell.js?v=20260804-todotitle"></script>
+</body>
+</html>
