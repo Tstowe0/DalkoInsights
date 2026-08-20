@@ -156,7 +156,9 @@ Workflow:
     log: ctx.log,
   });
 
-  const options = CURRENCIES.map(([code, name]) => `<option value="${code}">${code} (${name})</option>`).join("");
+  const options = CURRENCIES.map(
+    ([code, name]) => `<option value="${code}" data-name="${escapeHtml(name)}">${code}</option>`
+  ).join("");
 
   /** @type {{ id: string, name: string, value: string }[]} */
   let extras = [];
@@ -186,32 +188,36 @@ Workflow:
           <div data-extra-lines></div>
         </div>
         <div class="gb-fx-col-actions">
-          <button type="button" class="btn btn-secondary" data-add>+ Additional</button>
+          <button type="button" class="btn btn-secondary" data-add>+ Add Charge</button>
         </div>
       </section>
 
       <section class="gb-fx-col gb-fx-col--mid" aria-label="Markup and exchange">
         <p class="gb-zip-block-title">Settings</p>
-        <label class="gb-zip-field">Markup %
-          <input data-markup type="text" inputmode="decimal" placeholder="0" autocomplete="off" />
-        </label>
-        <label class="gb-zip-field">Fuel Surcharge %
-          <input data-fuelpct type="text" inputmode="decimal" placeholder="0" autocomplete="off" />
-        </label>
-        <div class="gb-fx-pair">
-          <label class="gb-zip-field">From
-            <select data-from>${options}</select>
+        <div class="gb-fx-settings-body">
+          <label class="gb-zip-field">Markup %
+            <input data-markup type="text" inputmode="decimal" placeholder="0" autocomplete="off" />
           </label>
-          <span class="gb-fx-arrow" aria-hidden="true">→</span>
-          <label class="gb-zip-field">To
-            <select data-to>${options}</select>
+          <label class="gb-zip-field">Fuel Surcharge %
+            <input data-fuelpct type="text" inputmode="decimal" placeholder="0" autocomplete="off" />
           </label>
+          <div class="gb-fx-pair">
+            <label class="gb-zip-field">From
+              <select data-from>${options}</select>
+            </label>
+            <span class="gb-fx-arrow" aria-hidden="true">→</span>
+            <label class="gb-zip-field">To
+              <select data-to>${options}</select>
+            </label>
+          </div>
+          <label class="gb-zip-field">Exchange rate
+            <input data-rate type="text" inputmode="decimal" placeholder="Loading…" autocomplete="off" />
+          </label>
+          <p class="gb-fx-rate-meta" data-rate-meta>Loading rate…</p>
         </div>
-        <label class="gb-zip-field">Exchange rate
-          <input data-rate type="text" inputmode="decimal" placeholder="Loading…" autocomplete="off" />
-        </label>
-        <p class="gb-fx-rate-meta" data-rate-meta>Loading rate…</p>
-        <button type="button" class="btn btn-ghost" data-refresh>Refresh rate</button>
+        <div class="gb-fx-col-actions">
+          <button type="button" class="btn btn-ghost" data-refresh>Refresh rate</button>
+        </div>
       </section>
 
       <section class="gb-fx-col" aria-label="Converted output">
@@ -239,6 +245,27 @@ Workflow:
 
   fromEl.value = "CAD";
   toEl.value = "USD";
+
+  /** @param {HTMLSelectElement} select @param {boolean} showNames */
+  function paintCurrencyOptions(select, showNames) {
+    for (const option of select.options) {
+      const code = option.value;
+      const name = option.getAttribute("data-name") || "";
+      option.textContent = showNames && name ? `${code} — ${name}` : code;
+    }
+  }
+
+  /** @param {HTMLSelectElement} select */
+  function wireCurrencySelect(select) {
+    paintCurrencyOptions(select, false);
+    select.addEventListener("focus", () => paintCurrencyOptions(select, true));
+    select.addEventListener("mousedown", () => paintCurrencyOptions(select, true));
+    select.addEventListener("blur", () => paintCurrencyOptions(select, false));
+    select.addEventListener("change", () => paintCurrencyOptions(select, false));
+  }
+
+  wireCurrencySelect(fromEl);
+  wireCurrencySelect(toEl);
 
   function coreValue(id) {
     const input = /** @type {HTMLInputElement | null} */ (

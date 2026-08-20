@@ -1,5 +1,5 @@
-import { loadPortalCss } from "../../../shared/js/router.js?v=20260819-fxsweep";
-import { initGlassBox, destroyGlassBox } from "./app.js?v=20260819-fxsweep";
+import { loadPortalCss } from "../../../shared/js/router.js?v=20260820-fxpad";
+import { initGlassBox, destroyGlassBox } from "./app.js?v=20260820-fxpad";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;
 
@@ -50,7 +50,7 @@ const TEMPLATE = `
  * @param {{ onHome: () => void }} ctx
  */
 export async function mount(root, ctx) {
-  await loadPortalCss("portals/glassbox/css/portal.css?v=20260819-fxsweep");
+  await loadPortalCss("portals/glassbox/css/portal.css?v=20260820-fxpad");
   root.innerHTML = TEMPLATE;
   initGlassBox({ onHome: ctx.onHome });
 }
