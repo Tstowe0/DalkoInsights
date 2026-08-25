@@ -185,7 +185,7 @@ Workflow:
           </label>
           <label class="gb-fx-line">
             <span class="gb-fx-label">GST/HST %</span>
-            <input data-core="tax" type="text" inputmode="decimal" placeholder="5" autocomplete="off" />
+            <input data-core="tax" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off" />
             <span class="gb-fx-action-slot" aria-hidden="true"></span>
           </label>
           <div data-extra-lines></div>

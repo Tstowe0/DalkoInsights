@@ -28,8 +28,48 @@ export const TOOL_ABOUTS = {
     technical: "See the tool workspace instructions after opening.",
   },
   "Currency Converter": {
-    about: "Convert invoice lines (Freight, Fuel, GST/HST %, plus extras) with markup, fuel surcharge, and FX.",
-    technical: "Left = invoice amounts. GST/HST is a percent of (Freight + Fuel + Add Charges), not a dollar entry. Middle = Markup %, Fuel Surcharge %, and From→To rate (default CAD→USD). Right = converted lines with copy.\n\nMath:\n- Freight and Additional: amount × (1 + Markup %) × rate\n- Fuel: amount × (1 + Fuel Surcharge %) × rate\n- GST/HST: (sum of other charges) × (GST% / 100) × rate\n\nRate loads from open.er-api.com and can be typed over.",
+    about: "Turn a foreign-currency invoice into marked-up amounts in another currency (default CAD → USD), with GST/HST calculated as a percent of the other charges.",
+    technical: `Concept:
+Take the amounts from a carrier/customer invoice, apply your markup and fuel surcharge, figure GST/HST from a percent, then convert everything to the currency you need. Rates are mid-market (not a bank or carrier sell rate).
+
+Layout:
+• Invoice (left) — type the invoice numbers and tax percent
+• Settings (middle) — markup, fuel surcharge, and currency pair / rate
+• Converted (right) — results you can copy line by line
+
+Invoice fields:
+• Freight — base freight charge from the invoice
+• Fuel — fuel line from the invoice
+• GST/HST % — tax rate as a percent (for example 5 means 5%), not a dollar amount
+• + Add Charge — optional named extras (accessorials, lump fees, etc.); each gets the same treatment as Freight
+
+Settings fields:
+• Markup % — added on top of Freight and Add Charge lines only
+• Fuel Surcharge % — added on top of the Fuel line only
+• From / To — currencies (default From = CAD, To = USD)
+• Exchange rate — filled automatically; you can type over it or click Refresh rate
+
+Order of operations (what happens to each line):
+1. GST/HST dollars are calculated first from the raw invoice charges:
+   Tax base = Freight + Fuel + all Add Charge amounts
+   GST/HST $ = Tax base × (GST/HST % ÷ 100)
+   Example: Freight 50 + Fuel 25 + Add Charge 25 = 100; GST/HST 5% → 5.00
+   Markup and fuel surcharge are not part of this tax base.
+
+2. Each line is then converted to the To currency:
+   • Freight and Add Charges → amount × (1 + Markup % ÷ 100) × exchange rate
+   • Fuel → amount × (1 + Fuel Surcharge % ÷ 100) × exchange rate
+   • GST/HST → the GST/HST $ from step 1 × exchange rate (no markup)
+
+3. Total on the right is the sum of those converted lines.
+
+Workflow:
+1. Enter Freight, Fuel, and any Add Charges from the invoice.
+2. Enter GST/HST % (e.g. 5).
+3. Set Markup % and Fuel Surcharge % if needed.
+4. Confirm From → To (CAD → USD by default) and the rate.
+5. Copy any converted line or the Total from the right column.
+6. Clear Invoice wipes the left-side amounts and extras only; Settings stay put.`,
   },
   "Batch Mapper": {
     about: "Map an input file into the BatchRate template — via a saved Profile or Manual column mapping.",
