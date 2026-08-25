@@ -28,8 +28,8 @@ export const TOOL_ABOUTS = {
     technical: "See the tool workspace instructions after opening.",
   },
   "Currency Converter": {
-    about: "Convert invoice lines (Freight, Fuel, GST/HST, plus extras) with markup, fuel surcharge, and FX.",
-    technical: "Left = invoice amounts. Middle = Markup %, Fuel Surcharge %, and From→To rate (default CAD→USD). Right = converted lines with copy.\n\nMath:\n- Freight and Additional: amount × (1 + Markup %) × rate\n- Fuel: amount × (1 + Fuel Surcharge %) × rate\n- GST/HST: amount × rate\n\nRate loads from open.er-api.com and can be typed over.",
+    about: "Convert invoice lines (Freight, Fuel, GST/HST %, plus extras) with markup, fuel surcharge, and FX.",
+    technical: "Left = invoice amounts. GST/HST is a percent of (Freight + Fuel + Add Charges), not a dollar entry. Middle = Markup %, Fuel Surcharge %, and From→To rate (default CAD→USD). Right = converted lines with copy.\n\nMath:\n- Freight and Additional: amount × (1 + Markup %) × rate\n- Fuel: amount × (1 + Fuel Surcharge %) × rate\n- GST/HST: (sum of other charges) × (GST% / 100) × rate\n\nRate loads from open.er-api.com and can be typed over.",
   },
   "Batch Mapper": {
     about: "Map an input file into the BatchRate template — via a saved Profile or Manual column mapping.",

@@ -27,7 +27,7 @@ const CURRENCIES = [
 const CORE_LINES = [
   { id: "freight", label: "Freight", apply: "markup" },
   { id: "fuel", label: "Fuel", apply: "fuel" },
-  { id: "tax", label: "GST/HST", apply: "none" },
+  { id: "tax", label: "GST/HST", apply: "tax" },
 ];
 
 function formatMoney(n) {
@@ -119,7 +119,7 @@ async function fetchRates(base) {
 
 /**
  * @param {number} amount
- * @param {"markup" | "fuel" | "none"} apply
+ * @param {"markup" | "fuel" | "tax" | "none"} apply
  * @param {number} markupPct
  * @param {number} fuelPct
  * @param {number} rate
@@ -129,6 +129,7 @@ function convertLine(amount, apply, markupPct, fuelPct, rate) {
   let factor = 1;
   if (apply === "markup") factor = 1 + markupPct / 100;
   if (apply === "fuel") factor = 1 + fuelPct / 100;
+  // tax amount is already computed dollars in From currency
   return amount * factor * rate;
 }
 
@@ -143,13 +144,15 @@ export async function loadGui(parent, ctx) {
     instructions: `Enter invoice amounts on the left. Middle settings apply markup, fuel surcharge, and FX. The right column is the converted result.
 
 How values are modified:
-• Freight and Additional lines: × (1 + Markup %) × exchange rate
+• Freight and Add Charge lines: × (1 + Markup %) × exchange rate
 • Fuel: × (1 + Fuel Surcharge %) × exchange rate
-• GST/HST: exchange rate only (no markup)
+• GST/HST %: percent of (Freight + Fuel + Add Charges), then × exchange rate (no markup)
+
+Example: Freight 50 + Fuel 25 + Add Charge 25 = 100; GST/HST 5 → tax 5.00 in From currency.
 
 Workflow:
-1. Type Freight, Fuel, and GST/HST from the invoice (From currency).
-2. Set Markup % and Fuel Surcharge %. Add extra lines if needed.
+1. Type Freight, Fuel, and GST/HST % (e.g. 5 for 5%).
+2. Set Markup % and Fuel Surcharge %. Add extra charges if needed.
 3. From defaults to CAD, To to USD. The rate loads automatically and can be overridden.
 4. Copy any converted line from the right column.`,
     onBack: ctx.onBack,
@@ -181,8 +184,8 @@ Workflow:
             <span class="gb-fx-action-slot" aria-hidden="true"></span>
           </label>
           <label class="gb-fx-line">
-            <span class="gb-fx-label">GST/HST</span>
-            <input data-core="tax" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off" />
+            <span class="gb-fx-label">GST/HST %</span>
+            <input data-core="tax" type="text" inputmode="decimal" placeholder="5" autocomplete="off" />
             <span class="gb-fx-action-slot" aria-hidden="true"></span>
           </label>
           <div data-extra-lines></div>
@@ -288,13 +291,17 @@ Workflow:
   }
 
   function collectLines() {
-    /** @type {{ id: string, label: string, amount: number, apply: "markup" | "fuel" | "none" }[]} */
-    const lines = CORE_LINES.map((line) => ({
-      id: line.id,
-      label: line.label,
-      amount: coreValue(line.id),
-      apply: line.apply,
-    }));
+    /** @type {{ id: string, label: string, amount: number, apply: "markup" | "fuel" | "tax" | "none" }[]} */
+    const chargeLines = [];
+    for (const line of CORE_LINES) {
+      if (line.id === "tax") continue;
+      chargeLines.push({
+        id: line.id,
+        label: line.label,
+        amount: coreValue(line.id),
+        apply: line.apply,
+      });
+    }
     for (const extra of extras) {
       const nameInput = /** @type {HTMLInputElement | null} */ (
         extraLinesEl.querySelector(`[data-extra-id="${extra.id}"] [data-extra-name]`)
@@ -304,14 +311,36 @@ Workflow:
       );
       extra.name = nameInput?.value ?? extra.name;
       extra.value = valueInput?.value ?? extra.value;
-      lines.push({
+      chargeLines.push({
         id: extra.id,
         label: extra.name.trim() || "Additional",
         amount: parseAmount(extra.value),
         apply: "markup",
       });
     }
-    return lines;
+
+    const taxPct = parsePct(
+      /** @type {HTMLInputElement | null} */ (inputLinesEl.querySelector('[data-core="tax"]'))?.value ?? ""
+    );
+    const taxBase = chargeLines.reduce((sum, line) => {
+      const n = line.amount;
+      return Number.isFinite(n) ? sum + n : sum;
+    }, 0);
+    const taxAmount = taxBase * (taxPct / 100);
+
+    const coreCharges = chargeLines.filter((line) => line.id === "freight" || line.id === "fuel");
+    const extraCharges = chargeLines.filter((line) => line.id !== "freight" && line.id !== "fuel");
+
+    return [
+      ...coreCharges,
+      {
+        id: "tax",
+        label: "GST/HST",
+        amount: taxAmount,
+        apply: "tax",
+      },
+      ...extraCharges,
+    ];
   }
 
   function paintOutputs() {
