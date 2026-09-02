@@ -21,24 +21,6 @@ const TEMPLATE = `
       </button>
       <p class="nav-heading">Menu</p>
       <nav class="nav" id="main-nav" aria-label="Main"></nav>
-      <div class="sidebar-notes" aria-label="Product notes">
-        <div class="sidebar-note">
-          <span class="sidebar-note-title">Data driven</span>
-          <span class="sidebar-note-desc">Built from your TMS dump columns</span>
-        </div>
-        <div class="sidebar-note">
-          <span class="sidebar-note-title">Focus drill-down</span>
-          <span class="sidebar-note-desc">Click any row to filter all tabs</span>
-        </div>
-        <div class="sidebar-note">
-          <span class="sidebar-note-title">Local only</span>
-          <span class="sidebar-note-desc">Nothing leaves your browser</span>
-        </div>
-        <div class="sidebar-note">
-          <span class="sidebar-note-title">Export ready</span>
-          <span class="sidebar-note-desc">CSV on every detail tab</span>
-        </div>
-      </div>
     </aside>
 
     <div class="main-wrap">
