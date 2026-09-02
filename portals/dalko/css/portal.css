@@ -999,6 +999,151 @@
   color: var(--text-muted);
 }
 
+.acc-month-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: auto;
+}
+
+.acc-month-date-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.acc-month-date-select {
+  appearance: none;
+  border: 1px solid var(--card-border);
+  background: rgba(8, 14, 26, 0.75);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.4rem 1.6rem 0.4rem 0.7rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 12px) calc(50% - 2px), calc(100% - 8px) calc(50% - 2px);
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+}
+
+.acc-month-date-select:hover,
+.acc-month-date-select:focus {
+  border-color: var(--card-border-gold, #c9a227);
+  outline: none;
+}
+
+.acc-month-status {
+  margin: 0.65rem 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.check-dd {
+  position: relative;
+}
+
+.check-dd-btn {
+  appearance: none;
+  border: 1px solid var(--card-border);
+  background: rgba(8, 14, 26, 0.75);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  cursor: pointer;
+  max-width: min(18rem, 70vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.check-dd-btn:hover,
+.check-dd.open .check-dd-btn {
+  border-color: var(--card-border-gold, #c9a227);
+}
+
+.check-dd-panel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 40;
+  width: min(22rem, 85vw);
+  max-height: min(20rem, 55vh);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.55rem;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: rgba(10, 16, 28, 0.98);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.check-dd-panel[hidden] {
+  display: none !important;
+}
+
+.check-dd-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.check-dd-search {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background: rgba(8, 14, 26, 0.9);
+  color: var(--text);
+  padding: 0.4rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+.check-dd-list {
+  overflow: auto;
+  max-height: 13rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.check-dd-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.28rem 0.35rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.check-dd-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.check-dd-item input {
+  margin-top: 0.12rem;
+  flex-shrink: 0;
+}
+
+.check-dd-item span {
+  word-break: break-word;
+}
+
+.check-dd-empty {
+  margin: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 table.data-table {
   width: 100%;
   border-collapse: collapse;

@@ -122,6 +122,62 @@ export function calculateAccessorialTotals(rows, _maps, headers) {
 }
 
 /**
+ * @typedef {{
+ *   invoiceMonth: string | null,
+ *   shipMonth: string | null,
+ *   type: string,
+ *   customer: string,
+ *   sell: number,
+ *   buy: number,
+ *   buyCount: number,
+ *   sellCount: number,
+ * }} AccMonthFact
+ */
+
+/**
+ * Aggregate month-level accessorial rows from type×customer facts.
+ * @param {AccMonthFact[]} facts
+ * @param {Set<string> | null} selectedTypes null = all types
+ * @param {Set<string> | null} selectedCustomers null = all customers
+ * @param {"invoice" | "ship"} [dateBasis="invoice"]
+ */
+export function aggregateMonthRows(
+  facts,
+  selectedTypes = null,
+  selectedCustomers = null,
+  dateBasis = "invoice"
+) {
+  /** @type {Record<string, { sell: number, buy: number, buyCount: number, sellCount: number }>} */
+  const byMonth = {};
+  for (const f of facts) {
+    if (selectedTypes && !selectedTypes.has(f.type)) continue;
+    if (selectedCustomers && !selectedCustomers.has(f.customer)) continue;
+    const month =
+      dateBasis === "ship"
+        ? f.shipMonth
+        : f.invoiceMonth ?? /** @type {{ month?: string }} */ (f).month ?? null;
+    if (!month) continue;
+    if (!byMonth[month]) byMonth[month] = { sell: 0, buy: 0, buyCount: 0, sellCount: 0 };
+    const bucket = byMonth[month];
+    bucket.sell += f.sell;
+    bucket.buy += f.buy;
+    bucket.buyCount += f.buyCount;
+    bucket.sellCount += f.sellCount;
+  }
+  return Object.entries(byMonth)
+    .map(([month, d]) => ({
+      month,
+      monthLabel: formatMonthLabel(month),
+      sell: d.sell,
+      buy: d.buy,
+      net: d.sell - d.buy,
+      buyCount: d.buyCount,
+      sellCount: d.sellCount,
+    }))
+    .sort((a, b) => b.month.localeCompare(a.month));
+}
+
+/**
  * Position-based accessorial analysis (matches Python accessorials tab).
  * @param {unknown[][]} rows
  * @param {unknown[]} headers
@@ -130,8 +186,8 @@ export function calculateAccessorialTotals(rows, _maps, headers) {
 export function analyzeAccessorialsByPosition(rows, headers, maps) {
   /** @type {Record<string, { sell: number, buy: number, buyCount: number, sellCount: number }>} */
   const byType = {};
-  /** @type {Record<string, { sell: number, buy: number, buyCount: number, sellCount: number }>} */
-  const byMonth = {};
+  /** @type {Record<string, AccMonthFact>} */
+  const monthFactMap = {};
   /** @type {Record<string, { sell: number, buy: number, loads: Set<unknown> }>} */
   const byCustomer = {};
   let totalSell = 0;
@@ -166,11 +222,36 @@ export function analyzeAccessorialsByPosition(rows, headers, maps) {
 
       if (!byType[typeStr]) byType[typeStr] = { sell: 0, buy: 0, buyCount: 0, sellCount: 0 };
 
-      const month = monthKeyFromDateValue(getValue(row, "INVOICE DATE", maps));
-      if (month && !byMonth[month]) byMonth[month] = { sell: 0, buy: 0, buyCount: 0, sellCount: 0 };
-
+      const invoiceMonth = monthKeyFromDateValue(getValue(row, "INVOICE DATE", maps));
+      const shipMonth = monthKeyFromDateValue(getValue(row, "ACTUAL SHIP DATE", maps));
       const client = String(getValue(row, "CLIENT NAME", maps) ?? "").trim() || "Unknown";
       if (!byCustomer[client]) byCustomer[client] = { sell: 0, buy: 0, loads: new Set() };
+
+      /** @param {"buy" | "sell"} side */
+      const bumpMonthFact = (side) => {
+        if (!invoiceMonth && !shipMonth) return;
+        const key = `${invoiceMonth ?? ""}\0${shipMonth ?? ""}\0${typeStr}\0${client}`;
+        if (!monthFactMap[key]) {
+          monthFactMap[key] = {
+            invoiceMonth,
+            shipMonth,
+            type: typeStr,
+            customer: client,
+            sell: 0,
+            buy: 0,
+            buyCount: 0,
+            sellCount: 0,
+          };
+        }
+        const fact = monthFactMap[key];
+        if (side === "buy") {
+          fact.buy += amount;
+          fact.buyCount += 1;
+        } else {
+          fact.sell += amount;
+          fact.sellCount += 1;
+        }
+      };
 
       if (isBuy) {
         byType[typeStr].buy += amount;
@@ -179,10 +260,7 @@ export function analyzeAccessorialsByPosition(rows, headers, maps) {
         loadsWith.add(row);
         byCustomer[client].buy += amount;
         byCustomer[client].loads.add(row);
-        if (month) {
-          byMonth[month].buy += amount;
-          byMonth[month].buyCount += 1;
-        }
+        bumpMonthFact("buy");
       } else if (isSell) {
         byType[typeStr].sell += amount;
         byType[typeStr].sellCount += 1;
@@ -190,10 +268,7 @@ export function analyzeAccessorialsByPosition(rows, headers, maps) {
         loadsWith.add(row);
         byCustomer[client].sell += amount;
         byCustomer[client].loads.add(row);
-        if (month) {
-          byMonth[month].sell += amount;
-          byMonth[month].sellCount += 1;
-        }
+        bumpMonthFact("sell");
       }
     }
   });
@@ -225,17 +300,11 @@ export function analyzeAccessorialsByPosition(rows, headers, maps) {
     .sort((a, b) => b.sell + b.buy - (a.sell + a.buy))
     .slice(0, 30);
 
-  const monthRows = Object.entries(byMonth)
-    .map(([month, d]) => ({
-      month,
-      monthLabel: formatMonthLabel(month),
-      sell: d.sell,
-      buy: d.buy,
-      net: d.sell - d.buy,
-      buyCount: d.buyCount,
-      sellCount: d.sellCount,
-    }))
-    .sort((a, b) => b.month.localeCompare(a.month));
+  /** @type {AccMonthFact[]} */
+  const monthFacts = Object.values(monthFactMap);
+  const monthRows = aggregateMonthRows(monthFacts, null, null, "invoice");
+  const typeOptions = typeRows.map((r) => r.type);
+  const customerOptions = Object.keys(byCustomer).sort((a, b) => a.localeCompare(b));
 
   return {
     hasAccessorialColumns: headers.some((h) =>
@@ -254,11 +323,14 @@ export function analyzeAccessorialsByPosition(rows, headers, maps) {
     typeRows,
     customerRows,
     monthRows,
+    monthFacts,
+    typeOptions,
+    customerOptions,
   };
 }
 
 /** @param {string} yyyyMm */
-function formatMonthLabel(yyyyMm) {
+export function formatMonthLabel(yyyyMm) {
   const [y, m] = yyyyMm.split("-");
   const names = [
     "January",

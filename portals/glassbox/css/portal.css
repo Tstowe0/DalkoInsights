@@ -2194,3 +2194,88 @@ button.gb-cal-day:hover:not(.is-empty) {
     transform: none;
   }
 }
+
+/* Carrier Performance */
+.gb-cp-results {
+  margin-top: 1rem;
+}
+
+.gb-cp-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+.gb-cp-stat {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border, #d5dde5);
+  border-radius: 6px;
+  background: var(--surface-2, #f4f7fa);
+}
+
+.gb-cp-stat--wide {
+  grid-column: 1 / -1;
+}
+
+.gb-cp-stat-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted, #6b7a88);
+  margin-bottom: 0.2rem;
+}
+
+.gb-cp-stat strong {
+  font-size: 0.92rem;
+  font-weight: 650;
+  word-break: break-word;
+}
+
+.gb-cp-table-wrap {
+  max-height: min(28rem, 55vh);
+  overflow: auto;
+  border: 1px solid var(--border, #d5dde5);
+  border-radius: 6px;
+}
+
+.gb-cp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.gb-cp-table th,
+.gb-cp-table td {
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid var(--border, #e2e8ee);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.gb-cp-table th {
+  position: sticky;
+  top: 0;
+  background: #185074;
+  color: #fff;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.gb-cp-table tbody tr:nth-child(even) {
+  background: #e7e7e7;
+}
+
+.gb-cp-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.gb-cp-pos {
+  color: #1b7a3d;
+  font-weight: 600;
+}
+
+.gb-cp-neg {
+  color: #b42318;
+  font-weight: 600;
+}

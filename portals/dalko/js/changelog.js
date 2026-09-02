@@ -1,4 +1,7 @@
-export const CHANGELOG_TEXT = `Change Log 1.1.0 (Web) — Dalko Insights
+export const CHANGELOG_TEXT = `Change Log 1.1.1 (Web) — Dalko Insights
+- Accessorials → By month: multi-select filters for accessorial type and customer; Calculate by Invoice Date or Ship Date (ACTUAL SHIP DATE).
+
+Change Log 1.1.0 (Web) — Dalko Insights
 - Renamed product to Dalko Insights.
 - Large-file hardening: size/row limits with confirmations, background parse + analyze workers, cancellable jobs, progress detail on the loading overlay, main-thread fallbacks if workers fail.
 

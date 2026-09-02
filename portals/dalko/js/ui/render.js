@@ -4,6 +4,7 @@ import { CHANGELOG_TEXT } from "../changelog.js";
 import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js";
 import { navTitle } from "./nav.js";
 import { renderReportsView } from "./report.js";
+import { aggregateMonthRows } from "../analytics/accessorials.js";
 
 /** @param {string | undefined} tone */
 function toneClass(tone) {
@@ -498,19 +499,350 @@ function renderAccessorials(root, data, handlers, pageTitle) {
     })
   );
 
-  root.appendChild(
-    renderDataTable({
-      pageTitle,
-      title: "By month",
-      exportName: "Accessorial_Monthly",
-      columns: ["Month", "Sell amount", "Buy amount", "Net", "Buy frequency", "Sell frequency"],
-      rows: data.monthRows.map((r) => ({
-        cells: [r.monthLabel ?? r.month, r.sell, r.buy, r.net, r.buyCount, r.sellCount],
-        formats: ["text", "money", "money", "money", "int", "int"],
-      })),
-    })
-  );
+  root.appendChild(renderAccessorialsByMonth(pageTitle, data));
 }
+
+/**
+ * @param {string} pageTitle
+ * @param {object} data
+ */
+function renderAccessorialsByMonth(pageTitle, data) {
+  const columns = ["Month", "Sell amount", "Buy amount", "Net", "Buy frequency", "Sell frequency"];
+  /** @type {string[]} */
+  const typeOptions = Array.isArray(data.typeOptions)
+    ? data.typeOptions
+    : (data.typeRows || []).map((/** @type {{ type: string }} */ r) => r.type);
+  /** @type {string[]} */
+  const customerOptions = Array.isArray(data.customerOptions)
+    ? data.customerOptions
+    : (data.customerRows || []).map((/** @type {{ customer: string }} */ r) => r.customer);
+  /** @type {{ invoiceMonth?: string | null, shipMonth?: string | null, month?: string, type: string, customer: string, sell: number, buy: number, buyCount: number, sellCount: number }[]} */
+  const facts = Array.isArray(data.monthFacts) ? data.monthFacts : [];
+
+  const selectedTypes = new Set(typeOptions);
+  const selectedCustomers = new Set(customerOptions);
+  /** @type {"invoice" | "ship"} */
+  let dateBasis = "invoice";
+
+  /** @type {{ cells: unknown[], formats?: string[] }[]} */
+  let currentRows = monthRowsToTableRows(data.monthRows || []);
+
+  const surface = document.createElement("div");
+  surface.className = "surface table-section";
+
+  const head = document.createElement("div");
+  head.className = "block-head";
+
+  const heading = tableHeading(pageTitle, "By month");
+  if (heading) {
+    const h = document.createElement("h3");
+    h.className = "block-title";
+    h.textContent = heading;
+    head.appendChild(h);
+  }
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "table-toolbar";
+
+  const filters = document.createElement("div");
+  filters.className = "acc-month-filters";
+
+  const dateField = document.createElement("label");
+  dateField.className = "acc-month-date-field";
+  dateField.innerHTML = `<span>Calculate by</span>`;
+  const dateSelect = document.createElement("select");
+  dateSelect.className = "acc-month-date-select";
+  dateSelect.innerHTML = `
+    <option value="invoice">Invoice Date</option>
+    <option value="ship">Ship Date</option>
+  `;
+  dateSelect.value = dateBasis;
+  dateSelect.addEventListener("change", () => {
+    dateBasis = /** @type {"invoice" | "ship"} */ (dateSelect.value === "ship" ? "ship" : "invoice");
+    refresh();
+  });
+  dateField.appendChild(dateSelect);
+
+  const typeDd = mountCheckDropdown({
+    label: "Accessorial types",
+    options: typeOptions,
+    selected: selectedTypes,
+    onChange: () => refresh(),
+  });
+  const customerDd = mountCheckDropdown({
+    label: "Customers",
+    options: customerOptions,
+    selected: selectedCustomers,
+    onChange: () => refresh(),
+  });
+  filters.append(dateField, typeDd.root, customerDd.root);
+
+  const exportBtn = document.createElement("button");
+  exportBtn.type = "button";
+  exportBtn.className = "btn-sm";
+  exportBtn.textContent = "Export CSV";
+  exportBtn.addEventListener("click", () => downloadCsv("Accessorial_Monthly", columns, currentRows));
+
+  toolbar.append(filters, exportBtn);
+  head.appendChild(toolbar);
+  surface.appendChild(head);
+
+  const scroll = document.createElement("div");
+  scroll.className = "table-scroll";
+  const table = document.createElement("table");
+  table.className = "data-table";
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  for (const col of columns) {
+    const th = document.createElement("th");
+    th.textContent = col;
+    th.className = "num";
+    if (col === "Month") th.className = "col-text";
+    headRow.appendChild(th);
+  }
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+  const tbody = document.createElement("tbody");
+  table.appendChild(tbody);
+  scroll.appendChild(table);
+  surface.appendChild(scroll);
+
+  const status = document.createElement("p");
+  status.className = "acc-month-status";
+  surface.appendChild(status);
+
+  function refresh() {
+    typeDd.refreshLabel();
+    customerDd.refreshLabel();
+    const allTypes = selectedTypes.size === typeOptions.length;
+    const allCustomers = selectedCustomers.size === customerOptions.length;
+    const monthRows =
+      facts.length > 0
+        ? aggregateMonthRows(
+            facts,
+            allTypes ? null : selectedTypes,
+            allCustomers ? null : selectedCustomers,
+            dateBasis
+          )
+        : data.monthRows || [];
+    currentRows = monthRowsToTableRows(monthRows);
+    fillMonthTbody(tbody, currentRows);
+    const typePart =
+      selectedTypes.size === 0
+        ? "no types"
+        : allTypes
+          ? "all types"
+          : `${selectedTypes.size} of ${typeOptions.length} types`;
+    const custPart =
+      selectedCustomers.size === 0
+        ? "no customers"
+        : allCustomers
+          ? "all customers"
+          : `${selectedCustomers.size} of ${customerOptions.length} customers`;
+    const datePart = dateBasis === "ship" ? "Ship Date (ACTUAL SHIP DATE)" : "Invoice Date";
+    status.textContent = `By ${datePart} · ${monthRows.length} month(s) · ${typePart} · ${custPart}`;
+  }
+
+  fillMonthTbody(tbody, currentRows);
+  attachTableSort(table, {
+    columnFormats: ["text", "money", "money", "money", "int", "int"],
+  });
+  refresh();
+  return surface;
+}
+
+/**
+ * @param {{ month?: string, monthLabel?: string, sell: number, buy: number, net: number, buyCount: number, sellCount: number }[]} monthRows
+ */
+function monthRowsToTableRows(monthRows) {
+  return monthRows.map((r) => ({
+    cells: [r.monthLabel ?? r.month, r.sell, r.buy, r.net, r.buyCount, r.sellCount],
+    formats: ["text", "money", "money", "money", "int", "int"],
+  }));
+}
+
+/**
+ * @param {HTMLElement} tbody
+ * @param {{ cells: unknown[], formats?: string[] }[]} rows
+ */
+function fillMonthTbody(tbody, rows) {
+  tbody.replaceChildren();
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 6;
+    td.className = "table-empty-cell";
+    td.textContent = "No months match the selected accessorial types / customers.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    row.cells.forEach((cell, i) => {
+      const td = document.createElement("td");
+      const fmt = row.formats?.[i];
+      td.textContent = formatCell(cell, fmt);
+      setSortValue(td, cell);
+      if (fmt && fmt !== "text") td.classList.add("num");
+      else td.classList.add("col-text");
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+}
+
+/**
+ * Checkbox multi-select dropdown.
+ * @param {{
+ *   label: string,
+ *   options: string[],
+ *   selected: Set<string>,
+ *   onChange: () => void,
+ * }} opts
+ */
+function mountCheckDropdown(opts) {
+  const root = document.createElement("div");
+  root.className = "check-dd";
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "check-dd-btn";
+  btn.setAttribute("aria-haspopup", "listbox");
+  btn.setAttribute("aria-expanded", "false");
+
+  const panel = document.createElement("div");
+  panel.className = "check-dd-panel";
+  panel.hidden = true;
+
+  const actions = document.createElement("div");
+  actions.className = "check-dd-actions";
+  const allBtn = document.createElement("button");
+  allBtn.type = "button";
+  allBtn.className = "btn-sm";
+  allBtn.textContent = "All";
+  const noneBtn = document.createElement("button");
+  noneBtn.type = "button";
+  noneBtn.className = "btn-sm";
+  noneBtn.textContent = "None";
+  actions.append(allBtn, noneBtn);
+
+  const search = document.createElement("input");
+  search.type = "search";
+  search.className = "check-dd-search";
+  search.placeholder = "Filter…";
+  search.autocomplete = "off";
+
+  const list = document.createElement("div");
+  list.className = "check-dd-list";
+  list.setAttribute("role", "listbox");
+
+  /** @type {Map<string, HTMLLabelElement>} */
+  const labels = new Map();
+  for (const option of opts.options) {
+    const label = document.createElement("label");
+    label.className = "check-dd-item";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = opts.selected.has(option);
+    cb.addEventListener("change", () => {
+      if (cb.checked) opts.selected.add(option);
+      else opts.selected.delete(option);
+      opts.onChange();
+    });
+    const span = document.createElement("span");
+    span.textContent = option;
+    label.append(cb, span);
+    labels.set(option, label);
+    list.appendChild(label);
+  }
+
+  if (!opts.options.length) {
+    const empty = document.createElement("p");
+    empty.className = "check-dd-empty";
+    empty.textContent = "No options";
+    list.appendChild(empty);
+  }
+
+  panel.append(actions, search, list);
+  root.append(btn, panel);
+
+  function refreshLabel() {
+    const n = opts.selected.size;
+    const total = opts.options.length;
+    let summary = "None";
+    if (total === 0) summary = "None";
+    else if (n === 0) summary = "None";
+    else if (n === total) summary = "All";
+    else if (n === 1) summary = [...opts.selected][0];
+    else summary = `${n} selected`;
+    btn.textContent = `${opts.label}: ${summary}`;
+  }
+
+  function setOpen(open) {
+    panel.hidden = !open;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    root.classList.toggle("open", open);
+    if (open) {
+      search.value = "";
+      filterList("");
+      search.focus();
+    }
+  }
+
+  /** @param {string} q */
+  function filterList(q) {
+    const needle = q.trim().toLowerCase();
+    for (const [option, label] of labels) {
+      label.hidden = Boolean(needle) && !option.toLowerCase().includes(needle);
+    }
+  }
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setOpen(panel.hidden);
+  });
+  allBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    for (const option of opts.options) opts.selected.add(option);
+    for (const label of labels.values()) {
+      const cb = label.querySelector("input");
+      if (cb) /** @type {HTMLInputElement} */ (cb).checked = true;
+    }
+    opts.onChange();
+  });
+  noneBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    opts.selected.clear();
+    for (const label of labels.values()) {
+      const cb = label.querySelector("input");
+      if (cb) /** @type {HTMLInputElement} */ (cb).checked = false;
+    }
+    opts.onChange();
+  });
+  search.addEventListener("input", () => filterList(search.value));
+  search.addEventListener("click", (e) => e.stopPropagation());
+  panel.addEventListener("click", (e) => e.stopPropagation());
+
+  if (!mountCheckDropdown._docBound) {
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".check-dd.open").forEach((el) => {
+        el.classList.remove("open");
+        const p = el.querySelector(".check-dd-panel");
+        const b = el.querySelector(".check-dd-btn");
+        if (p) /** @type {HTMLElement} */ (p).hidden = true;
+        if (b) b.setAttribute("aria-expanded", "false");
+      });
+    });
+    mountCheckDropdown._docBound = true;
+  }
+
+  refreshLabel();
+  return { root, refreshLabel };
+}
+
+/** @type {{ _docBound?: boolean }} */
+mountCheckDropdown._docBound = false;
 
 /** @param {Date | null} d */
 function formatFilterDateDisplay(d) {

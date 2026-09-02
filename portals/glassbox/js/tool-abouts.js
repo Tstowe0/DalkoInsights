@@ -75,6 +75,37 @@ Workflow:
     about: "Map an input file into the BatchRate template — via a saved Profile or Manual column mapping.",
     technical: "Concept:\nMap any incoming customer data file into the BatchRateSampleFile format.\n\nWorkflow:\n1. Upload — choose your Excel or CSV file.\n2. Profile — default Manual unlocks column mapping; pick a saved format to lock Manual and use profile rules.\n3. Manual — map columns when Profile is Manual.\n4. Export — follows the selected profile or Manual mapping.",
   },
+  "Carrier Performance": {
+    about: "Rank carriers by on-time % and Z-score from a TMS Data Dump — same transit math as Dalko Analysis, built for large files.",
+    technical: `Concept:
+Score each carrier’s on-time delivery rate against all other carriers in the dump (leave-one-out Z-score), without running the full Analysis dashboard.
+
+Required columns:
+• CARRIER NAME1
+• ACTUAL TRANSIT DAYS
+• EXPECTED TRANSIT DAYS
+
+On time / late:
+• On time when actual transit days ≤ expected transit days
+• Late when actual > expected
+• Rows missing either transit column are skipped
+
+Z-score (same as Analysis):
+• Needs at least Min loads (default 10) with transit data
+• Compares this carrier’s on-time % to everyone else’s
+• Positive = better than peers; negative = worse than peers
+
+Large files:
+• Only those three columns are tallied — dump rows are not kept as objects
+• CSV is lighter than Excel for very large dumps
+• No Analysis Dashboard hard size/row cap
+
+Workflow:
+1. Upload TMS dump (.xlsx or .csv).
+2. Optionally set Min loads for Z-score.
+3. Run → ranked table (best Z first).
+4. Export Excel of the results.`,
+  },
   "Value Standardizer": {
     about: "Normalize values in a chosen column (trim, case, blanks) across an uploaded workbook.",
     technical: "Clean up inconsistent spellings in a column — like customer or carrier names — by grouping\nvariations and choosing one correct name. Work through one column at a time, review every\nchange below, then export once.",
