@@ -8,7 +8,7 @@
  *   https://tstowe0.github.io/DalkoInsights/
  *   https://tstowe0.github.io/DalkoInsights/index.html
  */
-export const AUTH_CLIENT_ID = "bd5e8f2e-64e3-4d59-ac0c-c0052e42c842";
+export const AUTH_CLIENT_ID = "75fb6576-2afd-48a2-b745-53554d8a4bee";
 export const AUTH_TENANT_ID = "5ee09e0c-7917-4a06-9090-62ecb16a2927";
 export const AUTH_ALLOWED_DOMAIN = "shipdalko.com";
 

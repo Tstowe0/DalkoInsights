@@ -4,7 +4,7 @@ import {
   AUTH_ERROR_KEY,
   AUTH_SCOPES,
   AUTH_TENANT_ID,
-} from "./auth-config.js?v=20260915-common";
+} from "./auth-config.js?v=20260915-app3";
 
 const MSAL_SOURCES = [
   "https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js",
@@ -132,7 +132,7 @@ export async function initAuth() {
   pca = new msal.PublicClientApplication({
     auth: {
       clientId: AUTH_CLIENT_ID,
-      authority: "https://login.microsoftonline.com/common",
+      authority: `https://login.microsoftonline.com/${AUTH_TENANT_ID}`,
       redirectUri,
       postLogoutRedirectUri: redirectUri,
       navigateToLoginRequestUrl: false,

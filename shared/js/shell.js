@@ -10,7 +10,7 @@ import {
   isAuthConfigured,
   signIn,
   signOut,
-} from "./auth.js?v=20260915-common";
+} from "./auth.js?v=20260915-app3";
 
 /**
  * Top-level Dalko Insights shell: sign-in → hub + portal chooser.
