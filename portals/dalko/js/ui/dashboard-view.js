@@ -92,6 +92,27 @@ function renderSpotlightSection(bc, netAccessorials) {
 }
 
 /**
+ * @param {object[]} rows
+ * @returns {HTMLUListElement}
+ */
+function buildLaneList(rows) {
+  const laneList = document.createElement("ul");
+  laneList.className = "lane-list";
+  for (const row of rows) {
+    const li = document.createElement("li");
+    const name = document.createElement("span");
+    name.className = "lane-name";
+    name.textContent = String(row.cells[0] ?? "");
+    const loads = document.createElement("span");
+    loads.className = "lane-loads";
+    loads.textContent = `${formatCell(row.cells[1], "int")} loads`;
+    li.append(name, loads);
+    laneList.appendChild(li);
+  }
+  return laneList;
+}
+
+/**
  * @param {HTMLElement} rail
  * @param {object} results
  */
@@ -123,6 +144,14 @@ export function renderDashboardRail(rail, results) {
   health.className = "rail-section";
   health.innerHTML = `<h4 class="rail-title">Equipment mix</h4><div class="donut-wrap"><canvas id="rail-donut"></canvas></div>`;
   rail.appendChild(health);
+
+  const lanes = document.createElement("div");
+  lanes.className = "rail-section";
+  const lanesTitle = document.createElement("h4");
+  lanesTitle.className = "rail-title";
+  lanesTitle.textContent = "Top lanes";
+  lanes.append(lanesTitle, buildLaneList(exec.topLanes));
+  rail.appendChild(lanes);
 
   const carriers = document.createElement("div");
   carriers.className = "rail-section";
@@ -238,25 +267,6 @@ export function renderConceptDashboard(root, results, handlers) {
     </div>
     <div class="chart-canvas-wrap"><canvas id="monthly-chart"></canvas></div>`;
   mid.appendChild(chartPanel);
-
-  const lanesPanel = document.createElement("div");
-  lanesPanel.className = "surface lanes-panel";
-  lanesPanel.innerHTML = `<h3 class="block-title">Top lanes</h3>`;
-  const laneList = document.createElement("ul");
-  laneList.className = "lane-list";
-  for (const row of exec.topLanes) {
-    const li = document.createElement("li");
-    const name = document.createElement("span");
-    name.className = "lane-name";
-    name.textContent = String(row.cells[0] ?? "");
-    const loads = document.createElement("span");
-    loads.className = "lane-loads";
-    loads.textContent = `${formatCell(row.cells[1], "int")} loads`;
-    li.append(name, loads);
-    laneList.appendChild(li);
-  }
-  lanesPanel.appendChild(laneList);
-  mid.appendChild(lanesPanel);
   root.appendChild(mid);
 
   const tablePanel = document.createElement("div");

@@ -21,7 +21,7 @@ function ensureDialog() {
     <div class="app-dialog-card">
       <div class="app-dialog-brand">
         <img class="app-dialog-logo" src="${LOGO_SRC}" width="28" height="28" alt="" />
-        <span class="app-dialog-brand-name">Dalko Insights</span>
+        <span class="app-dialog-brand-name">DALKO Insights</span>
       </div>
       <h2 class="app-dialog-title" id="app-dialog-title"></h2>
       <p class="app-dialog-message" id="app-dialog-message"></p>

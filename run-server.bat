@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 
 echo ============================================
-echo  Dalko Insights — local server
+echo  DALKO Insights — local server
 echo ============================================
 echo.
 

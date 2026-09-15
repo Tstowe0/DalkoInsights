@@ -583,7 +583,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--stack-gap);
-  max-width: 1200px;
+  width: 100%;
+  max-width: none;
   animation: view-enter 0.45s var(--ease-smooth) both;
 }
 
@@ -1978,24 +1979,17 @@ table.data-table tbody tr.row-hidden {
 }
 
 .dashboard-mid {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: var(--stack-gap);
   margin: 0;
 }
 
 .chart-panel,
-.lanes-panel,
 .holdings-panel {
   margin: 0;
 }
 
-.lanes-panel .block-title {
-  margin-bottom: var(--space-3);
-}
-
 .chart-canvas-wrap {
   height: 260px;
+  width: 100%;
   position: relative;
   border-radius: var(--radius-sm);
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, transparent 100%);
@@ -2026,11 +2020,20 @@ table.data-table tbody tr.row-hidden {
 
 .lane-name {
   font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lane-loads {
   color: var(--text-muted);
   flex-shrink: 0;
+}
+
+.right-rail .lane-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .holdings-panel {
@@ -2110,9 +2113,6 @@ table.data-table tbody tr.row-hidden {
 @media (max-width: 960px) {
   .hero-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .dashboard-mid {
-    grid-template-columns: 1fr;
   }
   .topbar-search-row {
     flex-direction: column;

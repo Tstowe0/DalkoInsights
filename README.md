@@ -1,4 +1,4 @@
-# Dalko Insights (Web)
+# DALKO Insights (Web)
 
 Browser-based freight analytics for TMS Excel dumps. All processing happens **locally** in your browser—the file is never uploaded.
 
@@ -13,6 +13,19 @@ python -m http.server 8080
 ```
 
 Then open [http://localhost:8080](http://localhost:8080).
+
+## Microsoft sign-in
+
+Sign-in is its own Entra app registration named **DALKO Insights** (not MyCRM). Only `@shipdalko.com` accounts are allowed. This site is a static SPA, so the app is a public client (PKCE) — do not create a client secret.
+
+Redirect URIs (Single-page application platform):
+
+- `http://localhost:8080/`
+- `http://localhost:8080/index.html`
+- `https://tstowe0.github.io/DalkoInsights/`
+- `https://tstowe0.github.io/DalkoInsights/index.html`
+
+Paste the Application (client) ID into `shared/js/auth-config.js` as `AUTH_CLIENT_ID`. Tenant ID stays the Dalko directory. Front-door URL is [https://tstowe0.github.io/DalkoInsights/](https://tstowe0.github.io/DalkoInsights/).
 
 ## Project layout
 
@@ -65,7 +78,8 @@ Each portal is self-contained: put that portal’s UI, styles, and logic under i
 
 ## Usage
 
-1. Open portals from the hub and choose **Dalko Portal**.
+1. **Sign in** with a `@shipdalko.com` Microsoft account, then choose a portal from the hub.
+2. Open portals from the hub and choose **Dalko Portal**.
 2. **Upload file** — TMS data dump (`.xlsx` / `.xls`).
 3. Analysis runs automatically in a background worker (UI stays responsive).
 4. **Filters** — date range; click any table row to **focus**; **Clear focus** resets.

@@ -6,12 +6,12 @@ const LOGO = new URL("../../../shared/images/earth.png", import.meta.url).href;
 const TEMPLATE = `
   <div class="app" id="app" data-layer="dalko-portal">
     <aside class="sidebar">
-      <button type="button" class="brand brand-btn" id="btn-brand-home" title="Back to hub" aria-label="Back to Dalko Insights hub">
+      <button type="button" class="brand brand-btn" id="btn-brand-home" title="Back to hub" aria-label="Back to DALKO Insights hub">
         <div class="brand-mark">
           <img class="brand-logo" src="${LOGO}" width="40" height="40" alt="" />
         </div>
         <div>
-          <div class="brand-title">Dalko Insights</div>
+          <div class="brand-title">DALKO Insights</div>
           <div class="brand-tagline">Let's grow together</div>
         </div>
       </button>

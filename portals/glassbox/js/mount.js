@@ -6,7 +6,7 @@ const LOGO = new URL("../images/logo.png", import.meta.url).href;
 const TEMPLATE = `
   <div class="gb-app" data-layer="glassbox">
     <aside class="gb-sidebar">
-      <button type="button" class="gb-brand" id="gb-btn-portals" title="Back to hub" aria-label="Back to Dalko Insights hub">
+      <button type="button" class="gb-brand" id="gb-btn-portals" title="Back to hub" aria-label="Back to DALKO Insights hub">
         <img class="gb-brand-logo" src="${LOGO}" width="52" height="52" alt="" />
         <div>
           <div class="gb-brand-title">The Glass Box</div>

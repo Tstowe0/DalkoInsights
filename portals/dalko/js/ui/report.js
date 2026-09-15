@@ -65,7 +65,7 @@ export function openExecutiveReport(opts) {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dalko Insights · Analytics Report</title>
+  <title>DALKO Insights · Analytics Report</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -75,7 +75,7 @@ export function openExecutiveReport(opts) {
   <div class="toolbar no-print">
     <div class="toolbar-brand">
       <img src="${escapeHtml(logoUrl)}" width="28" height="28" alt="" />
-      <span>Dalko Insights report</span>
+      <span>DALKO Insights report</span>
     </div>
     <div class="toolbar-actions">
       <button type="button" class="btn-ghost" onclick="window.close()">Close</button>
@@ -89,7 +89,7 @@ export function openExecutiveReport(opts) {
       <div class="cover-brand">
         <img class="cover-logo" src="${escapeHtml(logoUrl)}" width="52" height="52" alt="" />
         <div>
-          <h1>Dalko Insights</h1>
+          <h1>DALKO Insights</h1>
           <p class="tagline">Let's grow together</p>
         </div>
       </div>
@@ -158,7 +158,7 @@ export function openExecutiveReport(opts) {
     ${sectionFromResultTable("Division", results.officeDivision?.division, 10, [0, 1, 3, 4, 5])}
 
     <footer class="foot">
-      <span>Dalko Insights · Confidential</span>
+      <span>DALKO Insights · Confidential</span>
       <span>Data processed locally in your browser</span>
     </footer>
   </main>
