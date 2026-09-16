@@ -1,4 +1,4 @@
-﻿import { mountTrackingDailyReport } from "../_shared/client-reports.js";
+﻿import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20260916-xlsxstyle";
 import { VETPET_EXCLUDE } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 

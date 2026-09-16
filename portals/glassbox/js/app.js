@@ -113,7 +113,7 @@ export function initGlassBox(ctx) {
     if (!changelogCache) {
       try {
         const url = new URL("../ChangeLog.txt", import.meta.url);
-        url.searchParams.set("v", "20260916-sweep2");
+        url.searchParams.set("v", "20260916-xlsxstyle");
         const res = await fetch(url);
         changelogCache = res.ok ? await res.text() : "Could not load ChangeLog.txt.";
       } catch {

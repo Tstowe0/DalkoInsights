@@ -1,3 +1,6 @@
+Version 8.1.1
+- Client / tracking Excel exports keep the Glass Box look (navy header, white/gray zebra, Calibri 11, wrap). Visiting Insights first had been loading a SheetJS build that dropped fills and fonts.
+
 Version 8.1.0
 - Added Microsoft sign-in. Users sign in with their Dalko Microsoft account (@shipdalko.com) before choosing a portal.
 

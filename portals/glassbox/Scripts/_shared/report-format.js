@@ -33,6 +33,11 @@ export const XL = {
   BLACK: "000000",
 };
 
+/** Match Python/openpyxl Glass Box: Calibri 11. */
+function reportFont(extra = {}) {
+  return { name: "Calibri", sz: 11, ...extra };
+}
+
 /**
  * @param {object} workbook SheetJS workbook
  * @param {ReportStyleOpts} [opts]
@@ -100,13 +105,13 @@ export function applyClientReportStyle(workbook, opts = {}, sheetName) {
 
         if (hasTitleRow && R === 0) {
           cell.s.fill = { patternType: "solid", fgColor: { rgb: headerFill } };
-          cell.s.font = { bold: true, sz: titleFontSize, color: { rgb: XL.WHITE } };
+          cell.s.font = reportFont({ bold: true, sz: titleFontSize, color: { rgb: XL.WHITE } });
           continue;
         }
 
         if (R === headerRow) {
           cell.s.fill = { patternType: "solid", fgColor: { rgb: headerFill } };
-          cell.s.font = { bold: true, color: { rgb: XL.WHITE } };
+          cell.s.font = reportFont({ bold: true, color: { rgb: XL.WHITE } });
           continue;
         }
 
@@ -116,7 +121,7 @@ export function applyClientReportStyle(workbook, opts = {}, sheetName) {
           const fill = dataIdx % 2 === 0 ? zebraWhite : zebraGrey;
           cell.s.fill = { patternType: "solid", fgColor: { rgb: fill } };
         }
-        cell.s.font = cell.s.font || {};
+        cell.s.font = reportFont();
 
         // Match openpyxl default date display (not SheetJS m/d/yy)
         if (cell.t === "d" || cell.z === "m/d/yy" || cell.v instanceof Date) {
@@ -139,7 +144,7 @@ export function applyClientReportStyle(workbook, opts = {}, sheetName) {
           const fillRgb = cellHighlights.rows.get(R + 1);
           if (fillRgb) {
             cell.s.fill = { patternType: "solid", fgColor: { rgb: fillRgb } };
-            cell.s.font = { bold: true, color: { rgb: XL.BLACK } };
+            cell.s.font = reportFont({ bold: true, color: { rgb: XL.BLACK } });
           }
         }
       }

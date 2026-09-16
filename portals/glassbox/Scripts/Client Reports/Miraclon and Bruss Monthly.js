@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20260916-xlsxstyle";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";

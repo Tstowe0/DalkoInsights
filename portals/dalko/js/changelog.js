@@ -1,4 +1,7 @@
-export const CHANGELOG_TEXT = `Version 1.1.2 (Web)
+export const CHANGELOG_TEXT = `Version 1.1.3 (Web)
+- Glass Box Excel exports keep the navy header / zebra theme after visiting Insights (use xlsx-js-style instead of the CDN SheetJS build).
+
+Version 1.1.2 (Web)
 - Hub greeting (“Welcome {name}!”); Choose Portal shows Insights and Glass Box only.
 - Renamed Geographic to States. Added Cities (origin and destination, city + state).
 - Renamed Filters to Focuses. Add Focus builder: parent category → child layer → pick values from the full dump. Active focuses sit in a table with delete. Multiple focuses stack (AND across fields, OR on the same field). Clear focus is red.

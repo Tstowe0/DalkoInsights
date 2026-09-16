@@ -7,8 +7,8 @@ import {
   workbookToObjects,
   downloadWorkbook,
   readCellA1,
-} from "./excel.js";
-import { applyClientReportStyle, rowsToSheetWorkbook, XL } from "./report-format.js";
+} from "./excel.js?v=20260916-xlsxstyle";
+import { applyClientReportStyle, rowsToSheetWorkbook, XL } from "./report-format.js?v=20260916-xlsxstyle";
 import {
   pickVal,
   parseDate,

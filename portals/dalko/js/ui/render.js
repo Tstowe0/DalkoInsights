@@ -1,6 +1,6 @@
 import { formatCell, fmtMoney, fmtPct, fmtInt } from "./format.js";
 import { attachTableSort, setSortValue } from "./table-sort.js";
-import { CHANGELOG_TEXT } from "../changelog.js?v=20260916-sweep2";
+import { CHANGELOG_TEXT } from "../changelog.js?v=20260916-xlsxstyle";
 import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js?v=20260916-focusui";
 import { navTitle } from "./nav.js?v=20260916-focusui";
 import { renderReportsView } from "./report.js";

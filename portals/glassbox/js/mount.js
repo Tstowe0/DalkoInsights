@@ -1,5 +1,5 @@
 import { loadPortalCss } from "../../../shared/js/router.js?v=20260820-fxpad";
-import { initGlassBox, destroyGlassBox } from "./app.js?v=20260916-sweep2";
+import { initGlassBox, destroyGlassBox } from "./app.js?v=20260916-xlsxstyle";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;

@@ -1,5 +1,5 @@
 import { loadPortalCss } from "../../../shared/js/router.js";
-import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20260916-sweep2";
+import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20260916-xlsxstyle";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../../../shared/images/earth.png", import.meta.url).href;
@@ -82,9 +82,10 @@ export async function mount(root, ctx) {
   await loadPortalCss("portals/dalko/css/portal.css?v=20260916-bugsweep");
 
   await Promise.all([
-    loadScript("https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"),
+    loadScript("shared/vendor/xlsx-js-style.min.js"),
     loadScript("https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"),
   ]);
+  globalThis.__DALKO_XLSX_STYLE__ = true;
 
   root.innerHTML = TEMPLATE;
   paintSidebarGreeting(root);

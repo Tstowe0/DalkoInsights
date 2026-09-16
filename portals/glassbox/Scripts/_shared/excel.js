@@ -7,14 +7,28 @@ const XLSX_SRC = new URL("../../../../shared/vendor/xlsx-js-style.min.js", impor
 /** @type {Promise<void> | null} */
 let xlsxReady = null;
 
+function hasStyleXlsx() {
+  return Boolean(globalThis.__DALKO_XLSX_STYLE__ && globalThis.XLSX);
+}
+
+/**
+ * Community SheetJS (cdn.sheetjs.com) writes column widths but drops fills/fonts.
+ * Always use the vendored xlsx-js-style build so client reports keep the 9-15 look.
+ */
 export function ensureXlsx() {
-  if (typeof globalThis.XLSX !== "undefined") return Promise.resolve();
+  if (hasStyleXlsx() && typeof globalThis.XLSX !== "undefined") {
+    globalThis.__DALKO_XLSX_STYLE__ = true;
+    return Promise.resolve();
+  }
   if (xlsxReady) return xlsxReady;
   xlsxReady = new Promise((resolve, reject) => {
     const el = document.createElement("script");
     el.src = XLSX_SRC;
     el.async = true;
-    el.onload = () => resolve();
+    el.onload = () => {
+      globalThis.__DALKO_XLSX_STYLE__ = true;
+      resolve();
+    };
     el.onerror = () => reject(new Error("Failed to load SheetJS (xlsx-js-style) from shared/vendor."));
     document.head.appendChild(el);
   });
@@ -223,11 +237,13 @@ export function paintWorkbookTheme(workbook) {
         cell.s.alignment = { horizontal: "center", vertical: "center" };
         if (R === 0) {
           cell.s.fill = { patternType: "solid", fgColor: { rgb: "185074" } };
-          cell.s.font = { bold: true, color: { rgb: "FFFFFF" } };
+          cell.s.font = { name: "Calibri", sz: 11, bold: true, color: { rgb: "FFFFFF" } };
         } else if (R % 2 === 0) {
           cell.s.fill = { patternType: "solid", fgColor: { rgb: "E7E7E7" } };
+          cell.s.font = { name: "Calibri", sz: 11 };
         } else {
           cell.s.fill = { patternType: "solid", fgColor: { rgb: "FFFFFF" } };
+          cell.s.font = { name: "Calibri", sz: 11 };
         }
       }
     }

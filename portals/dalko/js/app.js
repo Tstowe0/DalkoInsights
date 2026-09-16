@@ -12,7 +12,7 @@ import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=2026091
 import { runAnalysis } from "./analytics/engine.js?v=20260916-focusui";
 import { nextJobId, workerJob } from "./workers/client.js";
 import { renderNav } from "./ui/nav.js?v=20260916-focusui";
-import { renderView } from "./ui/render.js?v=20260916-sweep2";
+import { renderView } from "./ui/render.js?v=20260916-xlsxstyle";
 import { RAIL_VIEWS, renderViewRail, teardownAllRails } from "./ui/page-rails.js";
 import { alertDialog, confirmDialog } from "./ui/dialog.js";
 import { runReport } from "./ui/report.js";

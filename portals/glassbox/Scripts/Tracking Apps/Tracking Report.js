@@ -6,7 +6,7 @@ import {
   objectsToWorkbook,
   downloadWorkbook,
   paintWorkbookTheme,
-} from "../_shared/excel.js";
+} from "../_shared/excel.js?v=20260916-xlsxstyle";
 
 export const meta = {
   id: "Tracking Report",
