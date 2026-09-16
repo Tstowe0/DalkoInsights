@@ -3,52 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="DALKO Insights — Data &amp; Analytics Department freight dashboard. TMS Excel analytics in your browser." />
-  <title>DALKO Insights</title>
+  <meta name="description" content="DALKO — Data &amp; Analytics tools. Sign in with your Microsoft account to choose a portal." />
+  <title>DALKO</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="shared/css/theme.css" />
-  <link rel="stylesheet" href="shared/css/shell.css?v=20260915-msauth" />
+  <link rel="stylesheet" href="shared/css/shell.css?v=20260915-land" />
 </head>
 <body>
   <div class="boot-banner hidden" id="boot-banner" role="alert"></div>
 
-  <!-- Sign in (first screen) -->
-  <section class="signin-screen" id="signin-screen" aria-label="Sign in">
-    <div class="insights-hub-glow" aria-hidden="true"></div>
-    <div class="signin-inner">
-      <div class="insights-hub-brand">
-        <div class="insights-hub-mark">
-          <img class="insights-hub-logo" src="shared/images/earth.png" width="72" height="72" alt="" />
-        </div>
-        <h1 class="insights-hub-title">DALKO Insights</h1>
-      </div>
-      <div class="signin-card">
-        <div class="signin-card-head">Sign In</div>
-        <div class="signin-card-body">
-          <p class="signin-lead">Continue to DALKO Insights with your Microsoft account.</p>
-          <p class="signin-error hidden" id="signin-error" role="alert"></p>
-          <button type="button" class="btn btn-primary btn-lg signin-ms-btn" id="btn-signin-ms">
-            <svg class="signin-ms-mark" width="16" height="16" viewBox="0 0 21 21" aria-hidden="true">
-              <rect fill="#f25022" x="1" y="1" width="9" height="9" />
-              <rect fill="#7fba00" x="11" y="1" width="9" height="9" />
-              <rect fill="#00a4ef" x="1" y="11" width="9" height="9" />
-              <rect fill="#ffb900" x="11" y="11" width="9" height="9" />
-            </svg>
-            <span id="signin-ms-label">Sign in with Microsoft</span>
-          </button>
-          <p class="signin-foot">Microsoft will sign you in. DALKO Insights does not ask for or store your password.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Hub / which portal (after sign-in) -->
-  <section class="insights-hub hidden" id="insights-hub" aria-label="DALKO Insights">
-    <div class="hub-user" id="hub-user">
+  <section class="insights-hub" id="insights-hub" aria-label="DALKO">
+    <div class="hub-user hidden" id="hub-user">
       <button type="button" class="hub-user-btn" id="btn-hub-user" aria-haspopup="menu" aria-expanded="false" aria-controls="hub-user-menu" title="Account">
-        <span id="hub-user-initials">DI</span>
+        <span id="hub-user-initials">D</span>
       </button>
       <div class="hub-user-menu hidden" id="hub-user-menu" role="menu">
         <p class="hub-user-name" id="hub-user-name"></p>
@@ -57,45 +26,60 @@
       </div>
     </div>
     <div class="insights-hub-glow" aria-hidden="true"></div>
-    <div class="insights-hub-inner">
-      <div class="insights-hub-brand">
-        <div class="insights-hub-mark">
-          <img class="insights-hub-logo" src="shared/images/earth.png" width="72" height="72" alt="" />
+    <div class="portal-menu-card landing-card">
+      <header class="portal-menu-header">
+        <div class="portal-menu-brand">
+          <div class="portal-menu-mark">
+            <img class="portal-menu-logo" src="shared/images/earth.png" width="48" height="48" alt="" />
+          </div>
+          <h1 class="portal-menu-brand-name" id="landing-title">DALKO</h1>
+          <p class="portal-menu-prompt" id="landing-prompt">Let's grow together</p>
         </div>
-        <h1 class="insights-hub-title">DALKO Insights</h1>
+      </header>
+
+      <div class="landing-signin" id="landing-signin">
+        <p class="signin-lead">Continue with your Microsoft account.</p>
+        <p class="signin-error hidden" id="signin-error" role="alert"></p>
+        <button type="button" class="btn btn-primary btn-lg signin-ms-btn" id="btn-signin-ms">
+          <svg class="signin-ms-mark" width="16" height="16" viewBox="0 0 21 21" aria-hidden="true">
+            <rect fill="#f25022" x="1" y="1" width="9" height="9" />
+            <rect fill="#7fba00" x="11" y="1" width="9" height="9" />
+            <rect fill="#00a4ef" x="1" y="11" width="9" height="9" />
+            <rect fill="#ffb900" x="11" y="11" width="9" height="9" />
+          </svg>
+          <span id="signin-ms-label">Sign in with Microsoft</span>
+        </button>
+        <p class="signin-foot">Microsoft will sign you in. Dalko does not ask for or store your password.</p>
       </div>
-      <button type="button" class="btn btn-primary btn-lg insights-hub-cta" id="btn-open-portals">
-        Enter
-      </button>
+
+      <div class="portal-menu-list hidden" id="landing-portals" role="menu">
+        <button type="button" class="portal-menu-item" role="menuitem" data-portal="dalko">
+          <span class="portal-menu-item-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none">
+              <rect x="6" y="28" width="7" height="12" rx="1.5" fill="currentColor" opacity="0.55" />
+              <rect x="16.5" y="18" width="7" height="22" rx="1.5" fill="currentColor" opacity="0.8" />
+              <rect x="27" y="10" width="7" height="30" rx="1.5" fill="currentColor" />
+              <rect x="37.5" y="22" width="7" height="18" rx="1.5" fill="currentColor" opacity="0.7" />
+            </svg>
+          </span>
+          <span class="portal-menu-item-copy">
+            <span class="portal-menu-item-label">Insights</span>
+            <span class="portal-menu-item-desc">TMS dashboard</span>
+          </span>
+        </button>
+        <button type="button" class="portal-menu-item" role="menuitem" data-portal="glassbox">
+          <span class="portal-menu-item-icon portal-menu-item-icon-logo" aria-hidden="true">
+            <img src="portals/glassbox/images/logo.png" width="48" height="48" alt="" />
+          </span>
+          <span class="portal-menu-item-copy">
+            <span class="portal-menu-item-label">Glass Box</span>
+            <span class="portal-menu-item-desc">Reports &amp; tools</span>
+          </span>
+        </button>
+      </div>
     </div>
   </section>
 
-  <!-- Portal chooser -->
-  <div class="portal-menu hidden" id="portal-menu" role="dialog" aria-modal="true" aria-labelledby="portal-menu-title">
-    <div class="portal-menu-backdrop" data-portal-dismiss="true"></div>
-    <div class="portal-menu-card">
-      <header class="portal-menu-header">
-        <div class="portal-menu-brand">
-          <img class="portal-menu-logo" src="shared/images/earth.png" width="36" height="36" alt="" />
-          <h2 class="portal-menu-brand-name" id="portal-menu-title">DALKO Insights</h2>
-        </div>
-        <p class="portal-menu-prompt">Choose Portal</p>
-      </header>
-      <div class="portal-menu-list" role="menu">
-        <button type="button" class="portal-menu-item" role="menuitem" data-portal="dalko">
-          Analysis
-        </button>
-        <button type="button" class="portal-menu-item" role="menuitem" data-portal="customer">
-          Presentation
-        </button>
-        <button type="button" class="portal-menu-item" role="menuitem" data-portal="glassbox">
-          Glass Box
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Active portal mounts here -->
   <div id="portal-root" aria-live="polite"></div>
 
   <div class="loading-overlay hidden" id="loading-overlay" aria-live="polite">
@@ -112,6 +96,6 @@
     </div>
   </div>
 
-  <script type="module" src="shared/js/shell.js?v=20260915-app3"></script>
+  <script type="module" src="shared/js/shell.js?v=20260915-land"></script>
 </body>
 </html>

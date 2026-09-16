@@ -3,17 +3,20 @@ import { parseExcelBuffer, readFileAsArrayBuffer } from "./data/excel.js";
 import {
   createDefaultFilters,
   getFilteredRows,
-  parseFilterDateInput,
-} from "./data/filters.js";
+  hasFocus,
+  hasFocuses,
+  listFocusLayerValues,
+} from "./data/filters.js?v=20260916-bugsweep";
 import { checkFileSize, checkRowCount, formatFileSize } from "./data/limits.js";
-import { rowMatchesAccessorialType } from "./analytics/accessorials.js";
-import { runAnalysis } from "./analytics/engine.js";
+import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=20260916-focusui";
+import { runAnalysis } from "./analytics/engine.js?v=20260916-focusui";
 import { nextJobId, workerJob } from "./workers/client.js";
-import { renderNav } from "./ui/nav.js";
-import { renderView } from "./ui/render.js";
+import { renderNav } from "./ui/nav.js?v=20260916-focusui";
+import { renderView } from "./ui/render.js?v=20260916-sweep2";
 import { RAIL_VIEWS, renderViewRail, teardownAllRails } from "./ui/page-rails.js";
 import { alertDialog, confirmDialog } from "./ui/dialog.js";
 import { runReport } from "./ui/report.js";
+import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 /** @type {import("./data/filters.js").FilterState} */
 let filters = createDefaultFilters();
@@ -79,7 +82,7 @@ function checkEnvironment() {
   if (location.protocol === "file:") {
     showBootBanner(
       "This app must be opened through a local web server (ES modules do not run from a double-clicked file). " +
-        "In the <code>HTML Version</code> folder run: <code>python -m http.server 8080</code> then open " +
+        "In the project folder run: <code>python -m http.server 8080</code> then open " +
         "<code>http://localhost:8080</code>."
     );
     return false;
@@ -95,6 +98,7 @@ function checkEnvironment() {
 }
 
 function applyTableSearch() {
+  if (state.activeView === "filters") return;
   const q = (el.tableSearch?.value ?? "").trim().toLowerCase();
   if (!el.viewRoot) return;
   const rows = el.viewRoot.querySelectorAll("table.data-table tbody tr");
@@ -121,87 +125,56 @@ function clearTableSearch() {
   if (el.tableSearch) el.tableSearch.value = "";
 }
 
-/** @param {string} column */
-function dateColumnExists(column) {
-  if (!state.maps) return false;
-  return (
-    state.maps.index[column] !== undefined ||
-    state.maps.upperMap[column.toUpperCase()] !== undefined
-  );
-}
-
 /**
  * @param {import("./data/filters.js").FilterState} trial
  */
 function countRowsForFilters(trial) {
   if (!state.maps) return 0;
-  const accessorialMatch =
-    trial.focusFilterColumn === "ACCESSORIAL_TYPE" && trial.focusFilterValue
-      ? (row) => rowMatchesAccessorialType(row, state.headers, state.maps, trial.focusFilterValue)
-      : undefined;
+  const accessorialMatch = (row, value) =>
+    rowMatchesAccessorialType(row, state.headers, state.maps, value);
   return getFilteredRows(state.rows, state.maps, trial, accessorialMatch).length;
 }
 
 const handlers = {
-  onApplyFilters: async (payload) => {
-    const start = parseFilterDateInput(payload.start);
-    const end = parseFilterDateInput(payload.end);
-    if (!start && !end) {
-      await alertDialog("Enter a valid start and/or end date (MM/DD/YYYY).", {
-        title: "Date filter",
-      });
-      return;
+  onListFocusValues: (layer) => {
+    if (!state.maps || !layer?.column) return [];
+    const accessorialMatch = (row, value) =>
+      rowMatchesAccessorialType(row, state.headers, state.maps, value);
+    const dateOnly = { ...filters, focuses: [] };
+    const rows = getFilteredRows(state.rows, state.maps, dateOnly, accessorialMatch);
+    return listFocusLayerValues(rows, state.maps, state.headers, layer.column, {
+      equipmentMode: layer.equipmentMode,
+    });
+  },
+  onAddFocuses: async (items) => {
+    const additions = [];
+    for (const item of items ?? []) {
+      const column = String(item?.column ?? "");
+      const value = String(item?.value ?? "").trim() || "Unknown";
+      if (!column || hasFocus(filters, column, value)) continue;
+      additions.push({ column, value });
     }
-    if (!dateColumnExists(payload.dateColumn)) {
-      await alertDialog(`Date column "${payload.dateColumn}" was not found in this file.`, {
-        title: "Date filter",
-      });
-      return;
-    }
+    if (!additions.length) return;
     const trial = {
       ...filters,
-      dateFilterColumn: payload.dateColumn,
-      dateFilterStart: start,
-      dateFilterEnd: end,
-      dateFilterEnabled: true,
-    };
-    if (!countRowsForFilters(trial)) {
-      await alertDialog("No rows match the current filters.", { title: "Date filter" });
-      return;
-    }
-    filters.dateFilterColumn = payload.dateColumn;
-    filters.dateFilterStart = start;
-    filters.dateFilterEnd = end;
-    filters.dateFilterEnabled = true;
-    runAnalyze();
-  },
-  onClearDate: () => {
-    filters.dateFilterEnabled = false;
-    filters.dateFilterStart = null;
-    filters.dateFilterEnd = null;
-    if (state.analysisComplete || state.rows.length) runAnalyze();
-    else refreshView();
-  },
-  onFocus: async (column, value) => {
-    const focusValue = String(value ?? "").trim() || "Unknown";
-    const trial = {
-      ...filters,
-      focusFilterEnabled: true,
-      focusFilterColumn: column,
-      focusFilterValue: focusValue,
+      focuses: [...(filters.focuses ?? []), ...additions],
     };
     if (!countRowsForFilters(trial)) {
       await alertDialog("No rows match that focus.", { title: "Focus" });
       return;
     }
     clearTableSearch();
-    filters.focusFilterEnabled = true;
-    filters.focusFilterColumn = column;
-    filters.focusFilterValue = focusValue;
+    filters.focuses = trial.focuses;
     updateFocusButton();
-    state.activeView = "dashboard";
-    renderNav(/** @type {HTMLElement} */ (el.nav), state.activeView, setView);
     runAnalyze();
+  },
+  onRemoveFocus: (column, value) => {
+    filters.focuses = (filters.focuses ?? []).filter(
+      (f) => !(f.column === column && f.value === value)
+    );
+    updateFocusButton();
+    if (state.analysisComplete || state.rows.length) runAnalyze();
+    else refreshView();
   },
   onRunReport: (reportId) => {
     void handleRunReport(reportId);
@@ -231,7 +204,7 @@ function setLoading(on, message = "Working…", detail = "", pct = null) {
 
 function updateFocusButton() {
   if (!el.btnClearFocus) return;
-  el.btnClearFocus.disabled = !filters.focusFilterEnabled;
+  el.btnClearFocus.disabled = !hasFocuses(filters);
 }
 
 function setView(viewId) {
@@ -269,6 +242,17 @@ function updateStatus(text) {
   if (el.status) el.status.textContent = text;
 }
 
+function resetSession() {
+  filters = createDefaultFilters();
+  state.fileName = null;
+  state.headers = [];
+  state.rows = [];
+  state.maps = null;
+  state.results = null;
+  state.activeView = "dashboard";
+  state.analysisComplete = false;
+}
+
 function showDataUi(show) {
   el.viewRoot?.classList.toggle("hidden", !show);
 }
@@ -302,7 +286,7 @@ function getParseWorker() {
 
 function getAnalyzeWorker() {
   if (!analyzeWorker) {
-    analyzeWorker = new Worker(new URL("./workers/analyze-worker.js", import.meta.url), {
+    analyzeWorker = new Worker(new URL("./workers/analyze-worker.js?v=20260916-focusui", import.meta.url), {
       type: "module",
     });
   }
@@ -522,10 +506,8 @@ async function handleFile(file) {
 
 function getAnalysisRows() {
   if (!state.maps) return [];
-  const accessorialMatch =
-    filters.focusFilterColumn === "ACCESSORIAL_TYPE" && filters.focusFilterValue
-      ? (row) => rowMatchesAccessorialType(row, state.headers, state.maps, filters.focusFilterValue)
-      : undefined;
+  const accessorialMatch = (row, value) =>
+    rowMatchesAccessorialType(row, state.headers, state.maps, value);
   return getFilteredRows(state.rows, state.maps, filters, accessorialMatch);
 }
 
@@ -569,11 +551,11 @@ async function runAnalyzeAsync(generation) {
 
     if (!rows.length) {
       setLoading(false);
-      await alertDialog("No rows match the current filters.", { title: "Filters" });
+      await alertDialog("No rows match the current focus.", { title: "Focus" });
       state.results = null;
       state.analysisComplete = true;
       refreshView();
-      updateStatus("No rows matched the current filters.");
+      updateStatus("No rows matched the current focus.");
       return;
     }
 
@@ -592,7 +574,10 @@ async function runAnalyzeAsync(generation) {
     const filtered = rows.length;
     let status = `✓ Analysis complete — ${filtered.toLocaleString()} records`;
     if (filtered !== total) status += ` (${total.toLocaleString()} total in file)`;
-    if (filters.focusFilterEnabled) status += " · focus active";
+    if (hasFocuses(filters)) {
+      const n = filters.focuses.length;
+      status += n === 1 ? " · focus active" : ` · ${n} focuses active`;
+    }
     if (filters.dateFilterEnabled) status += " · date filter active";
     updateStatus(status);
     refreshView();
@@ -624,9 +609,9 @@ async function handleRunReport(reportId) {
       results: state.results,
       fileName: state.fileName,
       focus: {
-        enabled: filters.focusFilterEnabled,
-        column: filters.focusFilterColumn,
-        value: filters.focusFilterValue,
+        enabled: hasFocuses(filters),
+        column: filters.focuses.map((f) => f.column).join(" · "),
+        value: filters.focuses.map((f) => f.value).join(" · "),
       },
       dateFilter: {
         enabled: filters.dateFilterEnabled,
@@ -646,34 +631,40 @@ async function handleRunReport(reportId) {
 }
 
 function clearFocus() {
-  if (!filters.focusFilterEnabled) return;
-  filters.focusFilterEnabled = false;
-  filters.focusFilterColumn = null;
-  filters.focusFilterValue = null;
+  if (!hasFocuses(filters)) return;
+  filters.focuses = [];
   updateFocusButton();
   runAnalyze();
 }
 
-function bindFileInput(input) {
+function bindFileInput(input, signal) {
   if (!input) return;
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-    input.value = "";
-    if (file) handleFile(file);
-  });
+  input.addEventListener(
+    "change",
+    () => {
+      const file = input.files?.[0];
+      input.value = "";
+      if (file) handleFile(file);
+    },
+    { signal }
+  );
 }
 
-function bindUploadButton(button, input) {
-  button?.addEventListener("click", async () => {
-    if (location.protocol === "file:") {
-      await alertDialog(
-        "Open this app at http://localhost:8080 (run python -m http.server in the HTML Version folder).",
-        { title: "Local server required" }
-      );
-      return;
-    }
-    input?.click();
-  });
+function bindUploadButton(button, input, signal) {
+  button?.addEventListener(
+    "click",
+    async () => {
+      if (location.protocol === "file:") {
+        await alertDialog(
+          "Open this app at http://localhost:8080 (run python -m http.server in the project folder).",
+          { title: "Local server required" }
+        );
+        return;
+      }
+      input?.click();
+    },
+    { signal }
+  );
 }
 
 /**
@@ -685,14 +676,15 @@ export function initDalkoPortal(opts = {}) {
   portalAbort = new AbortController();
   const { signal } = portalAbort;
 
+  resetSession();
   bindElements();
 
   if (!checkEnvironment()) {
     // Still bind upload to explain file:// issue
   }
 
-  bindFileInput(el.fileInput);
-  bindUploadButton(el.btnUpload, el.fileInput);
+  bindFileInput(el.fileInput, signal);
+  bindUploadButton(el.btnUpload, el.fileInput, signal);
 
   el.btnClearFocus?.addEventListener("click", () => clearFocus(), { signal });
   el.tableSearch?.addEventListener("input", () => applyTableSearch(), { signal });
@@ -702,13 +694,17 @@ export function initDalkoPortal(opts = {}) {
   el.btnBrandHome?.addEventListener("click", goHome, { signal });
   el.btnBackHub?.addEventListener("click", goHome, { signal });
 
+  showDataUi(true);
   renderNav(/** @type {HTMLElement} */ (el.nav), state.activeView, setView);
+  paintSidebarGreeting();
   updateFocusButton();
+  refreshView();
 
   void alertDialog(
-    "Dalko Portal runs on a TMS data dump. Upload an Excel export from your TMS to analyze customers, carriers, lanes, financials, and more — all locally in your browser.",
+    "DALKO Insights runs on a TMS data dump. Upload an Excel export from your TMS to analyze customers, carriers, lanes, financials, and more — all locally in your browser.",
     { title: "TMS data dump", okLabel: "Upload" }
   ).then(() => {
+    if (signal.aborted) return;
     el.fileInput?.click();
   });
 }
@@ -724,6 +720,7 @@ export function destroyDalkoPortal() {
   analyzeWorker = null;
   teardownAllRails();
   setLoading(false);
+  resetSession();
   el = {};
 }
 

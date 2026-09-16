@@ -148,18 +148,21 @@ export async function initAuth() {
   if (result?.account) {
     pca.setActiveAccount(result.account);
     activeAccount = await rejectIfDisallowed(result.account);
+    rememberGreetingName(activeAccount);
     return { account: activeAccount, justSignedIn: Boolean(activeAccount) };
   }
 
   const accounts = pca.getAllAccounts();
   if (!accounts.length) {
     activeAccount = null;
+    rememberGreetingName(null);
     return { account: null, justSignedIn: false };
   }
 
   const account = accounts[0];
   pca.setActiveAccount(account);
   activeAccount = await rejectIfDisallowed(account);
+  rememberGreetingName(activeAccount);
   return { account: activeAccount, justSignedIn: false };
 }
 
@@ -175,15 +178,101 @@ export function getEmail() {
   return emailOf(activeAccount);
 }
 
+const GREETING_NAME_KEY = "dalko.insights.greetingName";
+
+/**
+ * @param {import("@azure/msal-browser").AccountInfo | null | undefined} account
+ */
+function rememberGreetingName(account) {
+  const label = String(account?.name || account?.username || "").trim();
+  try {
+    if (label) sessionStorage.setItem(GREETING_NAME_KEY, label);
+    else sessionStorage.removeItem(GREETING_NAME_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** @param {string} raw */
+function firstNameFrom(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return "";
+  if (value.includes(",")) {
+    const given = value.split(",")[1]?.trim().split(/\s+/)[0];
+    if (given) return given;
+  }
+  const first = value.replace(/@.*$/, "").split(/[\s._-]+/).filter(Boolean)[0];
+  if (!first) return "";
+  return first.charAt(0).toUpperCase() + first.slice(1);
+}
+
+function nameFromLocalCache() {
+  try {
+    const saved = sessionStorage.getItem(GREETING_NAME_KEY);
+    if (saved) return saved;
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      const raw = localStorage.getItem(key);
+      if (!raw || raw[0] !== "{") continue;
+      const parsed = JSON.parse(raw);
+      const username = String(parsed?.username || "");
+      if (!username.toLowerCase().endsWith(`@${AUTH_ALLOWED_DOMAIN}`)) continue;
+      return String(parsed?.name || username);
+    }
+  } catch {
+    /* ignore */
+  }
+  return "";
+}
+
 export function getDisplayName() {
-  return String(activeAccount?.name || getEmail() || "Signed in");
+  return String(activeAccount?.name || getEmail() || nameFromLocalCache() || "Signed in");
+}
+
+/** Morning until noon, afternoon until 5pm, evening after. */
+export function getDaypartGreeting(now = new Date()) {
+  const hour = now.getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+}
+
+/** First name from the Microsoft account, else the email local-part. */
+export function getGreetingName() {
+  return (
+    firstNameFrom(activeAccount?.name) ||
+    firstNameFrom(getEmail()) ||
+    firstNameFrom(nameFromLocalCache()) ||
+    "there"
+  );
+}
+
+export function getAccountGreeting() {
+  return `${getDaypartGreeting()}, ${getGreetingName()}`;
+}
+
+/** @param {ParentNode} [root] */
+export function paintSidebarGreeting(root = document) {
+  const hello = getDaypartGreeting();
+  const name = getGreetingName();
+  const line = `${hello}, ${name}`;
+  root.querySelectorAll("[data-sidebar-hello]").forEach((el) => {
+    el.textContent = hello;
+  });
+  root.querySelectorAll("[data-sidebar-name]").forEach((el) => {
+    el.textContent = name;
+  });
+  root.querySelectorAll("[data-sidebar-greeting]").forEach((el) => {
+    el.textContent = line;
+  });
 }
 
 export function getInitials() {
   const name = getDisplayName();
   const parts = name.replace(/@.*$/, "").split(/[\s.]+/).filter(Boolean);
   const letters = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
-  return letters.toUpperCase() || "DI";
+  return letters.toUpperCase() || "D";
 }
 
 export async function signIn() {
@@ -194,6 +283,7 @@ export async function signIn() {
 export async function signOut() {
   const account = activeAccount;
   activeAccount = null;
+  rememberGreetingName(null);
   if (!pca) {
     window.location.assign(getRedirectUri());
     return;

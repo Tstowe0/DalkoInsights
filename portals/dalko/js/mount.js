@@ -1,12 +1,13 @@
 import { loadPortalCss } from "../../../shared/js/router.js";
-import { initDalkoPortal, destroyDalkoPortal } from "./app.js";
+import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20260916-sweep2";
+import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../../../shared/images/earth.png", import.meta.url).href;
 
 const TEMPLATE = `
   <div class="app" id="app" data-layer="dalko-portal">
     <aside class="sidebar">
-      <button type="button" class="brand brand-btn" id="btn-brand-home" title="Back to hub" aria-label="Back to DALKO Insights hub">
+      <button type="button" class="brand brand-btn" id="btn-brand-home" title="Back to hub" aria-label="Back to Dalko hub">
         <div class="brand-mark">
           <img class="brand-logo" src="${LOGO}" width="40" height="40" alt="" />
         </div>
@@ -21,6 +22,10 @@ const TEMPLATE = `
       </button>
       <p class="nav-heading">Menu</p>
       <nav class="nav" id="main-nav" aria-label="Main"></nav>
+      <div class="sidebar-foot">
+        <p class="sidebar-greeting-hello" data-sidebar-hello>Good Morning</p>
+        <p class="sidebar-greeting-name" data-sidebar-name></p>
+      </div>
     </aside>
 
     <div class="main-wrap">
@@ -30,11 +35,11 @@ const TEMPLATE = `
             <span class="search-icon" aria-hidden="true">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </span>
-            <input type="search" id="table-search" class="search-input" placeholder="Search customers, carriers, lanes in this view…" autocomplete="off" />
+            <input type="search" id="table-search" class="search-input" placeholder="Search customers, carriers, lanes, cities in this view…" autocomplete="off" />
           </label>
           <div class="topbar-actions">
             <p class="topbar-status" id="status-text" aria-live="polite"></p>
-            <button type="button" class="btn btn-ghost" id="btn-clear-focus" disabled>Clear focus</button>
+            <button type="button" class="btn btn-clear-focus" id="btn-clear-focus" disabled>Clear focus</button>
             <button type="button" class="btn btn-primary" id="btn-upload">Upload file</button>
             <input type="file" id="file-input" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden />
           </div>
@@ -43,7 +48,7 @@ const TEMPLATE = `
 
       <div class="content-workspace" id="content-workspace">
         <main class="content" id="main-content">
-          <div class="view-root hidden" id="view-root"></div>
+          <div class="view-root" id="view-root"></div>
         </main>
         <aside class="right-rail hidden" id="right-rail" aria-label="Summary"></aside>
       </div>
@@ -74,7 +79,7 @@ function loadScript(src) {
  * @param {{ onHome: () => void }} ctx
  */
 export async function mount(root, ctx) {
-  await loadPortalCss("portals/dalko/css/portal.css");
+  await loadPortalCss("portals/dalko/css/portal.css?v=20260916-bugsweep");
 
   await Promise.all([
     loadScript("https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"),
@@ -82,6 +87,7 @@ export async function mount(root, ctx) {
   ]);
 
   root.innerHTML = TEMPLATE;
+  paintSidebarGreeting(root);
   initDalkoPortal({ onHome: ctx.onHome });
 }
 

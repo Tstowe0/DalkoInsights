@@ -1,10 +1,12 @@
 import { formatCell, fmtMoney, fmtPct, fmtInt } from "./format.js";
 import { attachTableSort, setSortValue } from "./table-sort.js";
-import { CHANGELOG_TEXT } from "../changelog.js";
-import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js";
-import { navTitle } from "./nav.js";
+import { CHANGELOG_TEXT } from "../changelog.js?v=20260916-sweep2";
+import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js?v=20260916-focusui";
+import { navTitle } from "./nav.js?v=20260916-focusui";
 import { renderReportsView } from "./report.js";
-import { aggregateMonthRows } from "../analytics/accessorials.js";
+import { aggregateMonthRows } from "../analytics/accessorials.js?v=20260916-focusui";
+import { focusFieldLabel, hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
+import { renderFocusBuilder } from "./focus-builder.js?v=20260916-bugsweep";
 
 /** @param {string | undefined} tone */
 function toneClass(tone) {
@@ -109,10 +111,12 @@ function tableHeading(pageTitle, subtitle) {
  * @param {import("../data/filters.js").FilterState} filters
  */
 function prependFocusBanner(root, filters) {
-  if (!filters.focusFilterEnabled || !filters.focusFilterColumn) return;
+  if (!hasFocuses(filters)) return;
   const banner = document.createElement("div");
   banner.className = "focus-banner";
-  banner.textContent = `Focus: ${filters.focusFilterColumn} = ${filters.focusFilterValue}`;
+  banner.textContent = `Focus: ${filters.focuses
+    .map((f) => `${focusFieldLabel(f.column)} = ${f.value}`)
+    .join(" · ")}`;
   root.insertBefore(banner, root.firstChild);
 }
 
@@ -124,7 +128,6 @@ function prependFocusBanner(root, filters) {
  *   columns: string[],
  *   rows: { cells: unknown[], formats?: string[], focusValue?: string }[],
  *   focusColumn?: string | null,
- *   onFocus?: (column: string, value: string) => void,
  * }} opts
  */
 export function renderDataTable(opts) {
@@ -144,15 +147,12 @@ export function renderDataTable(opts) {
 
   const toolbar = document.createElement("div");
   toolbar.className = "table-toolbar";
-  const hint = document.createElement("span");
-  hint.className = "table-hint";
-  hint.textContent = opts.focusColumn ? "Click a row to focus the full dashboard on that value." : "";
   const exportBtn = document.createElement("button");
   exportBtn.type = "button";
   exportBtn.className = "btn-sm";
   exportBtn.textContent = "Export CSV";
   exportBtn.addEventListener("click", () => downloadCsv(opts.exportName, opts.columns, opts.rows));
-  toolbar.append(hint, exportBtn);
+  toolbar.appendChild(exportBtn);
   head.appendChild(toolbar);
   surface.appendChild(head);
 
@@ -179,16 +179,12 @@ export function renderDataTable(opts) {
     const td = document.createElement("td");
     td.colSpan = Math.max(opts.columns.length, 1);
     td.className = "table-empty-cell";
-    td.textContent = "No rows to display for the current filters/focus.";
+    td.textContent = "No rows to display for the current focus.";
     tr.appendChild(td);
     tbody.appendChild(tr);
   } else {
     for (const row of opts.rows) {
       const tr = document.createElement("tr");
-      if (opts.focusColumn && row.focusValue != null && opts.onFocus) {
-        tr.classList.add("focusable");
-        tr.addEventListener("click", () => opts.onFocus?.(opts.focusColumn, String(row.focusValue)));
-      }
       row.cells.forEach((cell, i) => {
         const td = document.createElement("td");
         const fmt = row.formats?.[i];
@@ -217,7 +213,7 @@ export function renderDataTable(opts) {
  * @param {string} viewId
  * @param {object | null} results
  * @param {import("../data/filters.js").FilterState} filters
- * @param {{ onApplyFilters: (payload: object) => void, onClearDate: () => void, onFocus: (col: string, val: string) => void, onRunReport?: (reportId: string) => void }} handlers
+ * @param {{ onRemoveFocus?: (col: string, val: string) => void, onListFocusValues?: (layer: object) => string[], onAddFocuses?: (items: { column: string, value: string }[]) => void, onRunReport?: (reportId: string) => void }} handlers
  * @param {boolean} [hasData=false]
  * @param {boolean} [analysisComplete=false]
  */
@@ -253,7 +249,7 @@ export function renderView(
   }
 
   if (viewId === "filters" && hasData) {
-    root.appendChild(renderFiltersPanel(filters, handlers));
+    root.appendChild(renderFocusesWorkspace(filters, handlers));
     return;
   }
 
@@ -262,14 +258,14 @@ export function renderView(
     surface.className = "surface loaded-prompt";
     if (!hasData) {
       surface.innerHTML = "<p>Upload a TMS Excel file to see this view.</p>";
-    } else if (filters.dateFilterEnabled || filters.focusFilterEnabled) {
+    } else if (filters.dateFilterEnabled || hasFocuses(filters)) {
       surface.innerHTML = `
         <h3 class="block-title">No matching rows</h3>
-        <p>Nothing matches the current date filter and/or focus. Clear filters or focus and try again.</p>`;
+        <p>Nothing matches the current focus. Clear focus and try again.</p>`;
     } else if (analysisComplete) {
       surface.innerHTML = `
         <h3 class="block-title">No analysis results</h3>
-        <p>Nothing to display. If the file has data, try re-uploading or clearing filters.</p>`;
+        <p>Nothing to display. If the file has data, try re-uploading or clearing focus.</p>`;
     } else {
       surface.innerHTML = `
         <h3 class="block-title">${viewId === "dashboard" ? "Building dashboard" : "Preparing view"}</h3>
@@ -280,7 +276,7 @@ export function renderView(
   }
 
   if (viewId === "dashboard") {
-    renderConceptDashboard(root, results, handlers);
+    renderConceptDashboard(root, results);
     prependFocusBanner(root, filters);
     return;
   }
@@ -295,7 +291,6 @@ export function renderView(
         pageTitle,
         exportName: "Customers",
         ...results.customers,
-        onFocus: handlers.onFocus,
       })
     );
     return;
@@ -306,7 +301,6 @@ export function renderView(
         pageTitle,
         exportName: "Sales_Reps",
         ...results.salesReps,
-        onFocus: handlers.onFocus,
       })
     );
     return;
@@ -318,7 +312,6 @@ export function renderView(
         title: "Profitability",
         exportName: "Carriers",
         ...results.carriers.profitability,
-        onFocus: handlers.onFocus,
       })
     );
     root.appendChild(
@@ -327,7 +320,6 @@ export function renderView(
         title: "Performance",
         exportName: "Carrier_Performance",
         ...results.carriers.performance,
-        onFocus: handlers.onFocus,
       })
     );
     return;
@@ -339,7 +331,6 @@ export function renderView(
         title: "By division",
         exportName: "Division",
         ...results.officeDivision.division,
-        onFocus: handlers.onFocus,
       })
     );
     root.appendChild(
@@ -348,7 +339,6 @@ export function renderView(
         title: "By office",
         exportName: "Office",
         ...results.officeDivision.office,
-        onFocus: handlers.onFocus,
       })
     );
     return;
@@ -363,7 +353,6 @@ export function renderView(
         title: "LTL equipment",
         exportName: "LTL",
         ...results.ltl.table,
-        onFocus: handlers.onFocus,
       })
     );
     return;
@@ -378,7 +367,6 @@ export function renderView(
         title: "Truckload equipment",
         exportName: "Truckload",
         ...results.truckload.table,
-        onFocus: handlers.onFocus,
       })
     );
     return;
@@ -393,7 +381,6 @@ export function renderView(
         title: "Lane performance",
         exportName: "Lanes",
         ...results.lanes.table,
-        onFocus: handlers.onFocus,
       })
     );
     return;
@@ -405,7 +392,6 @@ export function renderView(
         title: results.geographic.origin.title,
         exportName: "Origin_States",
         ...results.geographic.origin,
-        onFocus: handlers.onFocus,
       })
     );
     root.appendChild(
@@ -414,7 +400,33 @@ export function renderView(
         title: results.geographic.dest.title,
         exportName: "Destination_States",
         ...results.geographic.dest,
-        onFocus: handlers.onFocus,
+      })
+    );
+    return;
+  }
+  if (viewId === "cities") {
+    const cities = results.cities;
+    if (!cities?.origin || !cities?.dest) {
+      const surface = document.createElement("div");
+      surface.className = "surface";
+      surface.innerHTML = `<h3 class="block-title">Cities</h3><p>Re-upload the dump to build origin and destination city tables.</p>`;
+      root.appendChild(surface);
+      return;
+    }
+    root.appendChild(
+      renderDataTable({
+        pageTitle,
+        title: results.cities.origin.title,
+        exportName: "Origin_Cities",
+        ...results.cities.origin,
+      })
+    );
+    root.appendChild(
+      renderDataTable({
+        pageTitle,
+        title: results.cities.dest.title,
+        exportName: "Destination_Cities",
+        ...results.cities.dest,
       })
     );
     return;
@@ -479,7 +491,6 @@ function renderAccessorials(root, data, handlers, pageTitle) {
         formats: ["text", "money", "money", "money", "int", "int"],
       })),
       focusColumn: "ACCESSORIAL_TYPE",
-      onFocus: handlers.onFocus,
     })
   );
 
@@ -495,7 +506,6 @@ function renderAccessorials(root, data, handlers, pageTitle) {
         formats: ["text", "money", "money", "money", "int", "money"],
       })),
       focusColumn: "CLIENT NAME",
-      onFocus: handlers.onFocus,
     })
   );
 
@@ -844,111 +854,83 @@ function mountCheckDropdown(opts) {
 /** @type {{ _docBound?: boolean }} */
 mountCheckDropdown._docBound = false;
 
-/** @param {Date | null} d */
-function formatFilterDateDisplay(d) {
-  if (!d || Number.isNaN(d.getTime())) return "";
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${mm}/${dd}/${yyyy}`;
+/** @param {import("../data/filters.js").FilterState} filters @param {object} handlers */
+function renderFocusesWorkspace(filters, handlers) {
+  const page = document.createElement("div");
+  page.className = "focuses-page";
+
+  const selector = document.createElement("div");
+  selector.className = "surface focuses-selector-tile";
+  const selectorHead = document.createElement("div");
+  selectorHead.className = "block-head";
+  const selectorTitle = document.createElement("h3");
+  selectorTitle.className = "block-title";
+  selectorTitle.textContent = "Focus selector";
+  selectorHead.appendChild(selectorTitle);
+  selector.append(
+    selectorHead,
+    renderFocusBuilder({
+      existingFocuses: filters.focuses ?? [],
+      listValues: (layer) => handlers.onListFocusValues?.(layer) ?? [],
+      onApply: (items) => handlers.onAddFocuses?.(items),
+    })
+  );
+
+  page.append(selector, renderActiveFocusesTable(filters, handlers));
+  return page;
 }
 
 /** @param {import("../data/filters.js").FilterState} filters @param {object} handlers */
-function renderFiltersPanel(filters, handlers) {
+function renderActiveFocusesTable(filters, handlers) {
   const panel = document.createElement("div");
-  panel.className = "surface filters-panel";
+  panel.className = "surface table-section focuses-table-tile";
 
   const head = document.createElement("div");
-  head.className = "filters-head";
-  head.innerHTML = `
-    <h3 class="block-title">${navTitle("filters")}</h3>
-    <p class="filters-lead">Choose a TMS date column and range. Every tab re-analyzes on the filtered rows.</p>`;
+  head.className = "block-head";
+  const title = document.createElement("h3");
+  title.className = "block-title";
+  title.textContent = "Active focuses";
+  head.appendChild(title);
   panel.appendChild(head);
 
-  const grid = document.createElement("div");
-  grid.className = "filters-grid";
-
-  const colField = document.createElement("div");
-  colField.className = "field";
-  colField.innerHTML = `<label for="date-col">Date column</label>`;
-  const colSelect = document.createElement("select");
-  colSelect.id = "date-col";
-  for (const opt of [
-    "INVOICE DATE",
-    "ACTUAL SHIP DATE",
-    "EXPECTED SHIP DATE",
-    "ACTUAL DELIVERY DATE",
-    "EXPECTED DELIVERY",
-    "PAID DATE",
-  ]) {
-    const o = document.createElement("option");
-    o.value = opt;
-    o.textContent = opt;
-    if (opt === filters.dateFilterColumn) o.selected = true;
-    colSelect.appendChild(o);
+  const scroll = document.createElement("div");
+  scroll.className = "table-scroll focuses-table-scroll";
+  const table = document.createElement("table");
+  table.className = "data-table focuses-table";
+  table.innerHTML = `<thead><tr><th class="col-text">Field</th><th class="col-text">Value</th><th class="col-center">Action</th></tr></thead>`;
+  const tbody = document.createElement("tbody");
+  const focuses = filters.focuses ?? [];
+  if (!focuses.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.className = "table-empty-cell";
+    td.textContent = "No active focuses. Use the selector above to add one.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  } else {
+    for (const item of focuses) {
+      const tr = document.createElement("tr");
+      const fieldTd = document.createElement("td");
+      fieldTd.className = "col-text";
+      fieldTd.textContent = focusFieldLabel(item.column);
+      const valueTd = document.createElement("td");
+      valueTd.className = "col-text";
+      valueTd.textContent = item.value;
+      const actionTd = document.createElement("td");
+      actionTd.className = "col-center";
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "btn-sm focuses-remove";
+      remove.textContent = "Delete";
+      remove.addEventListener("click", () => handlers.onRemoveFocus?.(item.column, item.value));
+      actionTd.appendChild(remove);
+      tr.append(fieldTd, valueTd, actionTd);
+      tbody.appendChild(tr);
+    }
   }
-  colField.appendChild(colSelect);
-
-  const startField = document.createElement("div");
-  startField.className = "field";
-  startField.innerHTML = `<label for="date-start">Start date</label>`;
-  const startInput = document.createElement("input");
-  startInput.id = "date-start";
-  startInput.type = "text";
-  startInput.inputMode = "numeric";
-  startInput.autocomplete = "off";
-  startInput.placeholder = "MM/DD/YYYY";
-  startInput.value = formatFilterDateDisplay(filters.dateFilterStart);
-  startField.appendChild(startInput);
-
-  const endField = document.createElement("div");
-  endField.className = "field";
-  endField.innerHTML = `<label for="date-end">End date</label>`;
-  const endInput = document.createElement("input");
-  endInput.id = "date-end";
-  endInput.type = "text";
-  endInput.inputMode = "numeric";
-  endInput.autocomplete = "off";
-  endInput.placeholder = "MM/DD/YYYY";
-  endInput.value = formatFilterDateDisplay(filters.dateFilterEnd);
-  endField.appendChild(endInput);
-
-  grid.append(colField, startField, endField);
-  panel.appendChild(grid);
-
-  const actions = document.createElement("div");
-  actions.className = "filters-actions";
-
-  const apply = document.createElement("button");
-  apply.type = "button";
-  apply.className = "btn btn-primary";
-  apply.textContent = "Apply filter";
-  apply.addEventListener("click", () => {
-    handlers.onApplyFilters({
-      dateColumn: colSelect.value,
-      start: startInput.value,
-      end: endInput.value,
-    });
-  });
-
-  const clear = document.createElement("button");
-  clear.type = "button";
-  clear.className = "btn btn-ghost";
-  clear.textContent = "Clear date filter";
-  clear.addEventListener("click", () => handlers.onClearDate());
-
-  actions.append(apply, clear);
-
-  if (filters.dateFilterEnabled) {
-    const startStr = formatFilterDateDisplay(filters.dateFilterStart) || "…";
-    const endStr = formatFilterDateDisplay(filters.dateFilterEnd) || "…";
-    const status = document.createElement("p");
-    status.className = "filters-status";
-    status.innerHTML = `<span class="filters-status-dot" aria-hidden="true"></span>
-      <span>Active · <strong>${filters.dateFilterColumn}</strong> · ${startStr} – ${endStr}</span>`;
-    actions.appendChild(status);
-  }
-
-  panel.appendChild(actions);
+  table.appendChild(tbody);
+  scroll.appendChild(table);
+  panel.appendChild(scroll);
   return panel;
 }

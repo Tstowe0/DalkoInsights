@@ -1,5 +1,5 @@
 import { getValue, safeFloat, monthKeyFromDateValue } from "../data/context.js";
-import { analyzeAccessorialsByPosition } from "./accessorials.js";
+import { analyzeAccessorialsByPosition } from "./accessorials.js?v=20260916-focusui";
 
 const MIN_LOADS_FOR_Z_SCORE = 10;
 
@@ -26,6 +26,7 @@ export function runAnalysis(rows, maps, headers) {
     truckload: analyzeEquipment(rows, maps, false),
     lanes: analyzeLanes(rows, maps),
     geographic: analyzeGeographic(rows, maps),
+    cities: analyzeCities(rows, maps),
     financial: analyzeFinancial(rows, maps),
     accessorials,
   };
@@ -746,6 +747,53 @@ function analyzeGeographic(rows, maps) {
   const origin = stateAggregate(rows, maps, "ORIGIN STATE");
   const dest = stateAggregate(rows, maps, "DESTINATION STATE");
   return { origin, dest };
+}
+
+/**
+ * @param {unknown[][]} rows
+ * @param {import("../data/context.js").HeaderMaps} maps
+ */
+function analyzeCities(rows, maps) {
+  const origin = cityAggregate(rows, maps, "ORIGIN CITY", "ORIGIN STATE", "Origin cities");
+  const dest = cityAggregate(rows, maps, "DESTINATION CITY", "DESTINATION STATE", "Destination cities");
+  return { origin, dest };
+}
+
+/**
+ * @param {unknown[][]} rows
+ * @param {import("../data/context.js").HeaderMaps} maps
+ * @param {"ORIGIN CITY" | "DESTINATION CITY"} cityCol
+ * @param {"ORIGIN STATE" | "DESTINATION STATE"} stateCol
+ * @param {string} title
+ */
+function cityAggregate(rows, maps, cityCol, stateCol, title) {
+  /** @type {Record<string, { city: string, state: string, loads: number, revenue: number, weight: number, miles: number }>} */
+  const data = {};
+  for (const row of rows) {
+    const cityRaw = getValue(row, cityCol, maps);
+    if (!cityRaw || !String(cityRaw).trim()) continue;
+    const city = String(cityRaw).trim().toUpperCase();
+    const stateRaw = getValue(row, stateCol, maps);
+    const state = stateRaw ? String(stateRaw).trim().toUpperCase() : "";
+    const key = state ? `${city}|${state}` : city;
+    if (!data[key]) data[key] = { city, state, loads: 0, revenue: 0, weight: 0, miles: 0 };
+    data[key].loads++;
+    data[key].revenue += safeFloat(getValue(row, "TOTAL RECEIVABLE AMOUNT", maps));
+    data[key].weight += safeFloat(getValue(row, "Total Wt.", maps));
+    data[key].miles += safeFloat(getValue(row, "Total Miles", maps));
+  }
+  return {
+    focusColumn: cityCol,
+    title,
+    columns: ["City", "State", "Loads", "Revenue", "Avg miles", "Total weight"],
+    rows: Object.values(data)
+      .sort((a, b) => b.loads - a.loads)
+      .map((d) => ({
+        focusValue: d.state ? `${d.city}, ${d.state}` : d.city,
+        cells: [d.city, d.state || "—", d.loads, d.revenue, d.loads ? d.miles / d.loads : 0, d.weight],
+        formats: ["text", "text", "int", "money", "int", "weight"],
+      })),
+  };
 }
 
 /**

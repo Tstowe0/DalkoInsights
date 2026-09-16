@@ -1,5 +1,5 @@
 /* Module worker — runs aggregations off the UI thread */
-import { runAnalysis } from "../analytics/engine.js";
+import { runAnalysis } from "../analytics/engine.js?v=20260916-focusui";
 
 self.onmessage = (event) => {
   const { jobId, rows, maps, headers } = event.data ?? {};

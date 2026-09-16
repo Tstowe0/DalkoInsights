@@ -10,6 +10,7 @@ import {
   renderChangelog,
   renderThemes,
 } from "./views.js?v=20260819-fxsweep";
+import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;
 
@@ -111,7 +112,9 @@ export function initGlassBox(ctx) {
   async function showChangelog(workspaceEl) {
     if (!changelogCache) {
       try {
-        const res = await fetch(new URL("../ChangeLog.txt", import.meta.url));
+        const url = new URL("../ChangeLog.txt", import.meta.url);
+        url.searchParams.set("v", "20260916-sweep2");
+        const res = await fetch(url);
         changelogCache = res.ok ? await res.text() : "Could not load ChangeLog.txt.";
       } catch {
         changelogCache = "Could not load ChangeLog.txt.";
@@ -135,6 +138,7 @@ export function initGlassBox(ctx) {
   btnConsoleClose?.addEventListener("click", () => toggleConsole(false), { signal });
 
   renderGlassNav(nav, "home", selectNav);
+  paintSidebarGreeting();
   renderHome(workspace, LOGO);
   appendConsole("Glass Box shell ready.");
   appendConsole("Scripts modules imported and ready to launch.");
@@ -145,4 +149,5 @@ export function destroyGlassBox() {
   abort = null;
   activeView = "home";
   returnView = "home";
+  changelogCache = "";
 }

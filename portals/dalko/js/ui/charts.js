@@ -501,6 +501,9 @@ export function renderMonthlyChart(canvas, data) {
         easing: "easeOutQuart",
       },
       interaction: { mode: "index", intersect: false },
+      layout: {
+        padding: { top: 4, right: 8, bottom: 8, left: 4 },
+      },
       plugins: {
         legend: {
           display: true,
@@ -521,7 +524,7 @@ export function renderMonthlyChart(canvas, data) {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: "#9aa3b8", font: { size: 10 } },
+          ticks: { color: "#9aa3b8", font: { size: 10 }, padding: 6 },
         },
         y: {
           grid: { color: "rgba(255,255,255,0.05)", drawTicks: false },
@@ -529,6 +532,7 @@ export function renderMonthlyChart(canvas, data) {
           ticks: {
             color: "#9aa3b8",
             font: { size: 10 },
+            padding: 6,
             callback: (v) => {
               const n = Number(v);
               if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;

@@ -1,12 +1,13 @@
 import { loadPortalCss } from "../../../shared/js/router.js?v=20260820-fxpad";
-import { initGlassBox, destroyGlassBox } from "./app.js?v=20260820-fxpad";
+import { initGlassBox, destroyGlassBox } from "./app.js?v=20260916-sweep2";
+import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;
 
 const TEMPLATE = `
   <div class="gb-app" data-layer="glassbox">
     <aside class="gb-sidebar">
-      <button type="button" class="gb-brand" id="gb-btn-portals" title="Back to hub" aria-label="Back to DALKO Insights hub">
+      <button type="button" class="gb-brand" id="gb-btn-portals" title="Back to hub" aria-label="Back to Dalko hub">
         <img class="gb-brand-logo" src="${LOGO}" width="52" height="52" alt="" />
         <div>
           <div class="gb-brand-title">The Glass Box</div>
@@ -21,7 +22,8 @@ const TEMPLATE = `
           <img class="gb-nav-icon" src="${new URL("../images/menuicons/Console.png", import.meta.url).href}" width="20" height="20" alt="" />
           <span class="gb-nav-label">Console</span>
         </button>
-        <p class="gb-credit">Created by Terry Stowe</p>
+        <p class="sidebar-greeting-hello" data-sidebar-hello>Good Morning</p>
+        <p class="sidebar-greeting-name" data-sidebar-name></p>
       </div>
     </aside>
 
@@ -52,6 +54,7 @@ const TEMPLATE = `
 export async function mount(root, ctx) {
   await loadPortalCss("portals/glassbox/css/portal.css?v=20260820-fxpad");
   root.innerHTML = TEMPLATE;
+  paintSidebarGreeting(root);
   initGlassBox({ onHome: ctx.onHome });
 }
 

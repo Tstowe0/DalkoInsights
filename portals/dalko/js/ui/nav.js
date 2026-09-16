@@ -1,6 +1,6 @@
 /** @type {{ id: string, label: string, icon: string }[]} */
 export const NAV_ITEMS = [
-  { id: "filters", label: "Filters", icon: "🔍" },
+  { id: "filters", label: "Focuses", icon: "🎯" },
   { id: "dashboard", label: "Dashboard", icon: "📊" },
   { id: "customers", label: "Customers", icon: "👥" },
   { id: "carriers", label: "Carriers", icon: "🚚" },
@@ -10,7 +10,8 @@ export const NAV_ITEMS = [
   { id: "truckload", label: "Truckload", icon: "🚛" },
   { id: "lanes", label: "Lanes", icon: "🛣️" },
   { id: "accessorials", label: "Accessorials", icon: "💰" },
-  { id: "geographic", label: "Geographic", icon: "🌎" },
+  { id: "geographic", label: "States", icon: "🌎" },
+  { id: "cities", label: "Cities", icon: "🏙️" },
   { id: "financial", label: "Financial", icon: "💵" },
   { id: "changelog", label: "Change log", icon: "📋" },
   { id: "reports", label: "Reports", icon: "📄" },

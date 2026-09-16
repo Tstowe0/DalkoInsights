@@ -145,14 +145,6 @@ export function renderDashboardRail(rail, results) {
   health.innerHTML = `<h4 class="rail-title">Equipment mix</h4><div class="donut-wrap"><canvas id="rail-donut"></canvas></div>`;
   rail.appendChild(health);
 
-  const lanes = document.createElement("div");
-  lanes.className = "rail-section";
-  const lanesTitle = document.createElement("h4");
-  lanesTitle.className = "rail-title";
-  lanesTitle.textContent = "Top lanes";
-  lanes.append(lanesTitle, buildLaneList(exec.topLanes));
-  rail.appendChild(lanes);
-
   const carriers = document.createElement("div");
   carriers.className = "rail-section";
   carriers.innerHTML = `
@@ -208,9 +200,8 @@ export function renderDashboardRail(rail, results) {
 /**
  * @param {HTMLElement} root
  * @param {object} results
- * @param {{ onFocus: (col: string, val: string) => void }} handlers
  */
-export function renderConceptDashboard(root, results, handlers) {
+export function renderConceptDashboard(root, results) {
   if (monthlyRaf) {
     cancelAnimationFrame(monthlyRaf);
     monthlyRaf = 0;
@@ -267,11 +258,19 @@ export function renderConceptDashboard(root, results, handlers) {
     </div>
     <div class="chart-canvas-wrap"><canvas id="monthly-chart"></canvas></div>`;
   mid.appendChild(chartPanel);
+
+  const lanesPanel = document.createElement("div");
+  lanesPanel.className = "surface lanes-panel";
+  const lanesTitle = document.createElement("h3");
+  lanesTitle.className = "block-title";
+  lanesTitle.textContent = "Top lanes";
+  lanesPanel.append(lanesTitle, buildLaneList(exec.topLanes));
+  mid.appendChild(lanesPanel);
   root.appendChild(mid);
 
   const tablePanel = document.createElement("div");
   tablePanel.className = "surface table-section holdings-panel";
-  tablePanel.innerHTML = `<div class="block-head"><h3 class="block-title">Dashboard - Top customers</h3><span class="block-meta">Click a row to focus</span></div>`;
+  tablePanel.innerHTML = `<div class="block-head"><h3 class="block-title">Dashboard - Top customers</h3></div>`;
   const scroll = document.createElement("div");
   scroll.className = "table-scroll";
   const table = document.createElement("table");
@@ -287,8 +286,6 @@ export function renderConceptDashboard(root, results, handlers) {
   const tbody = table.querySelector("tbody");
   for (const row of exec.topCustomers) {
     const tr = document.createElement("tr");
-    tr.className = "focusable";
-    tr.addEventListener("click", () => handlers.onFocus("CLIENT NAME", String(row.focusValue)));
 
     const nameTd = document.createElement("td");
     nameTd.className = "hold-name col-text";
