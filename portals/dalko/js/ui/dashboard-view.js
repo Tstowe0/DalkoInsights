@@ -8,7 +8,7 @@ import {
   renderRailCarriersChart,
   renderRailTransitChart,
   destroyChart,
-} from "./charts.js";
+} from "./charts.js?v=20260922-corp2";
 
 /** @type {object | null} */
 let monthlyChartInstance = null;

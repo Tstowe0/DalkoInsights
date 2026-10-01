@@ -71,6 +71,7 @@ export const SECTIONS = [
     label: "Data Tools",
     tools: [
       makeTool("Data Tools/Batch Mapper.js"),
+      makeTool("Data Tools/Carrier Search.js"),
       makeTool("Data Tools/Carrier Performance.js"),
       makeTool("Data Tools/Currency Converter.js"),
       makeTool("Data Tools/Value Standardizer.js"),
@@ -87,6 +88,7 @@ export const SECTIONS = [
     id: "client-uploads",
     label: "Client Uploads",
     tools: [
+      makeTool("Client Uploads/Demo Upload.js"),
       makeTool("Client Uploads/Phinia Shipment Upload.js"),
       makeTool("Client Uploads/Phinia Operational Report.js"),
       makeTool("Client Uploads/Guardian Shipment Upload.js"),
@@ -137,12 +139,13 @@ export const CLIENT_REPORT_BANDS = [
   },
 ];
 
-/** @type {{ id: string, label: string, kind: "home" | "section" | "reports" | "changelog" | "themes" | "console" }[]} */
+/** @type {{ id: string, label: string, kind: "home" | "section" | "reports" | "changelog" | "themes" | "console" | "tool", toolId?: string }[]} */
 export const NAV_ITEMS = [
   { id: "home", label: "Home", kind: "home" },
   { id: "accounting", label: "Accounting", kind: "section" },
   { id: "tracking", label: "Tracking Apps", kind: "section" },
   { id: "ops", label: "Ops Apps", kind: "section" },
+  { id: "carrier-search", label: "Carrier Search", kind: "tool", toolId: "Carrier Search" },
   { id: "data-tools", label: "Data Tools", kind: "section" },
   { id: "client-reports", label: "Client Reports", kind: "reports" },
   { id: "client-uploads", label: "Client Uploads", kind: "section" },

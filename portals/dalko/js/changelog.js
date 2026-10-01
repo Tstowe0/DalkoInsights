@@ -1,4 +1,12 @@
-export const CHANGELOG_TEXT = `Version 1.1.3 (Web)
+export const CHANGELOG_TEXT = `Version 1.1.4 (Web)
+- Moved Back to hub under the sidebar username.
+- Carriers right rail: plain-language Z-score explanation.
+- Hub settings (gear next to account): API Integrations.
+- Insights opens on Home (centered mark) instead of a dump prompt.
+- Data & Tools: Carrier Search (FMCSA QCMobile) on the left menu.
+- Insights is one door on the merged desk. The example dump is not preloaded.
+
+Version 1.1.3 (Web)
 - Glass Box Excel exports keep the navy header / zebra theme after visiting Insights (use xlsx-js-style instead of the CDN SheetJS build).
 
 Version 1.1.2 (Web)

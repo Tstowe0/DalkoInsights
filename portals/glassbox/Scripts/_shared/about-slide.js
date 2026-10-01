@@ -18,10 +18,10 @@ function escapeHtml(value) {
 
 /**
  * @param {HTMLElement} host  container to append the help control into
- * @param {{ title: string, toolId?: string }} opts
+ * @param {{ title: string, toolId?: string, present?: "modal" | "swap" }} opts
  */
 export function mountAboutSlide(host, opts) {
-  const { title, toolId = title } = opts;
+  const { title, toolId = title, present = "modal" } = opts;
   let info = null;
   try {
     info = getToolAbout(toolId) || getToolAbout(title);
@@ -46,7 +46,8 @@ export function mountAboutSlide(host, opts) {
   const open = (e) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
-    openAboutModal(title, info);
+    if (present === "swap") openAboutSwap(host, title, info);
+    else openAboutModal(title, info);
   };
   helpBtn.addEventListener("click", open);
   slideBtn.addEventListener("click", open);
@@ -62,15 +63,67 @@ export function mountAboutSlide(host, opts) {
 }
 
 /**
+ * @param {{ about: string, technical: string } | null} info
+ */
+function aboutCopy(info) {
+  return {
+    about: info?.about?.trim() || "No about text is available for this tool yet.",
+    technical: info?.technical?.trim() || "No technical details are available for this tool yet.",
+  };
+}
+
+/**
+ * Replace the tool panel with About, keeping the same box. Close restores the tool.
+ * @param {HTMLElement} host
+ * @param {string} title
+ * @param {{ about: string, technical: string } | null} info
+ */
+function openAboutSwap(host, title, info) {
+  const tool = host.closest(".gb-tool");
+  const panel = /** @type {HTMLElement | null} */ (tool?.querySelector("[data-about-panel]"));
+  if (!tool || !panel) {
+    openAboutModal(title, info);
+    return;
+  }
+  if (tool.classList.contains("is-about")) return;
+
+  const copy = aboutCopy(info);
+  panel.innerHTML = `
+    <header class="gb-stage-about-bar">
+      <h2 class="gb-tool-title">About</h2>
+      <button type="button" class="btn btn-ghost" data-about-back>Close</button>
+    </header>
+    <div class="gb-stage-about-body">
+      <p class="gb-fly-heading">About</p>
+      <p class="gb-fly-about">${escapeHtml(copy.about)}</p>
+      <p class="gb-fly-heading">Technical details / Mapping &amp; Logic</p>
+      <pre class="gb-fly-tech">${escapeHtml(copy.technical)}</pre>
+    </div>
+  `;
+  panel.hidden = false;
+  tool.classList.add("is-about");
+
+  const close = () => {
+    tool.classList.remove("is-about");
+    panel.hidden = true;
+    panel.innerHTML = "";
+    window.removeEventListener("keydown", onKey);
+  };
+  const onKey = (e) => {
+    if (e.key === "Escape") close();
+  };
+  panel.querySelector("[data-about-back]")?.addEventListener("click", close);
+  window.addEventListener("keydown", onKey);
+}
+
+/**
  * @param {string} title
  * @param {{ about: string, technical: string } | null} info
  */
 function openAboutModal(title, info) {
   document.querySelector(".gb-about-modal")?.remove();
 
-  const about = info?.about?.trim() || "No about text is available for this tool yet.";
-  const technical =
-    info?.technical?.trim() || "No technical details are available for this tool yet.";
+  const { about, technical } = aboutCopy(info);
 
   const modal = document.createElement("div");
   modal.className = "gb-about-modal";

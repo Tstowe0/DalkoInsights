@@ -1,4 +1,4 @@
-﻿import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20260916-xlsxstyle";
+﻿import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20260928-stage3f";
 import { VETPET_EXCLUDE, MCCONWAY_KEEP } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
@@ -43,13 +43,14 @@ export async function loadGui(parent, ctx) {
     title: meta.title,
     category: meta.category,
     instructions: `Instructions:
-1. Tracking Report
-2. Ship Date: 1 Month Out
-3. Customers: McConway and Torely Pittsburgh and Kutztown, Standard Forged Products`,
+1. Run a TMS Tracking Report.
+2. Use Today's date and go back 1 Month.
+3. Use the customers: McConway and Torely Pittsburgh and Kutztown, Standard Forged Products.`,
     excludeStatuses: EXCLUDE,
     highlight: false,
     filename: ({ today, fmtMDY }) => `Ferroworks Daily Shipment Report ${fmtMDY(today)}.xlsx`,
     sheetName: ({ today, fmtMDY }) => `Daily Shipments for ${fmtMDY(today)}`,
+    layout: "stage",
     emailDraft: () => {
       const today = fmtSlashMDY(new Date(), "/");
       const subject = `Ferroworks Daily Shipment Report ${today}`;

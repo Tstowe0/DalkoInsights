@@ -75,6 +75,27 @@ Workflow:
     about: "Map an input file into the BatchRate template — via a saved Profile or Manual column mapping.",
     technical: "Concept:\nMap any incoming customer data file into the BatchRateSampleFile format.\n\nWorkflow:\n1. Upload — choose your Excel or CSV file.\n2. Profile — default Manual unlocks column mapping; pick a saved format to lock Manual and use profile rules.\n3. Manual — map columns when Profile is Manual.\n4. Export — follows the selected profile or Manual mapping.",
   },
+  "Carrier Search": {
+    about: "Look up a US motor carrier in FMCSA QCMobile by name, USDOT, or MC number. Authority, insurance on file, BASICs, and out-of-service rates come back from the public safety file.",
+    technical: `Concept:
+The page never holds the FMCSA web key. run-server.bat reads FMCSA_WEBKEY from .env.dat.staging and calls mobile.fmcsa.dot.gov/qc/services.
+
+Lookup:
+• Auto — digits are USDOT; MC123456 is a docket; anything else is a name
+• Name / USDOT / MC — force one mode
+
+Snapshot (after you click a match):
+• Legal name, DBA, phone, physical address
+• Allowed to operate, drivers, power units
+• Common / contract / broker authority
+• BIPD, cargo, and bond insurance on file
+• MC dockets, BASICs percentiles, OOS rates, cargo classes
+
+Setup:
+1. Create a free web key at the FMCSA QCMobile developer site (Login.gov).
+2. Add FMCSA_WEBKEY=... to .env.dat.staging.
+3. Restart run-server.bat.`,
+  },
   "Carrier Performance": {
     about: "Rank carriers by on-time % and Z-score from a TMS Data Dump — same transit math as Dalko Analysis, built for large files.",
     technical: `Concept:

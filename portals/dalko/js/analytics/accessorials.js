@@ -178,12 +178,43 @@ export function aggregateMonthRows(
 }
 
 /**
+ * @param {string[] | null | undefined} accessorialTypes
+ * @returns {Set<string> | null}
+ */
+function allowedAccessorialTypes(accessorialTypes) {
+  if (!accessorialTypes?.length) return null;
+  const allowed = new Set();
+  for (const type of accessorialTypes) {
+    const value = String(type ?? "").trim();
+    if (value) allowed.add(value);
+  }
+  return allowed.size ? allowed : null;
+}
+
+/**
+ * A focused type list counts only those types. Loads can carry several
+ * accessorials, so a row kept for one type must not still tally the others.
+ * @param {string} typeStr
+ * @param {Set<string> | null} allowed
+ */
+function accessorialTypeAllowed(typeStr, allowed) {
+  if (!allowed) return true;
+  if (allowed.has(typeStr)) return true;
+  for (const focus of allowed) {
+    if (focus.length >= 35 && typeStr.startsWith(focus.slice(0, 35))) return true;
+  }
+  return false;
+}
+
+/**
  * Position-based accessorial analysis (matches Python accessorials tab).
  * @param {unknown[][]} rows
  * @param {unknown[]} headers
  * @param {import("../data/context.js").HeaderMaps} maps
+ * @param {string[] | null} [accessorialTypes] active accessorial-type focuses; null counts every type
  */
-export function analyzeAccessorialsByPosition(rows, headers, maps) {
+export function analyzeAccessorialsByPosition(rows, headers, maps, accessorialTypes = null) {
+  const allowedTypes = allowedAccessorialTypes(accessorialTypes);
   /** @type {Record<string, { sell: number, buy: number, buyCount: number, sellCount: number }>} */
   const byType = {};
   /** @type {Record<string, AccMonthFact>} */
@@ -215,6 +246,7 @@ export function analyzeAccessorialsByPosition(rows, headers, maps) {
       if (typeVal == null || typeVal === "") continue;
       const typeStr = String(typeVal).trim();
       if (!typeStr || ["NONE", "NULL"].includes(typeStr.toUpperCase())) continue;
+      if (!accessorialTypeAllowed(typeStr, allowedTypes)) continue;
 
       const amountVal = row[amountColIdx];
       if (amountVal == null) continue;

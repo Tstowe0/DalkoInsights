@@ -15,11 +15,12 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo Starting server at http://localhost:8080
+echo Starting http://localhost:8080
+echo This one process serves the site, DAT RateView, and FMCSA QCMobile.
 echo Press Ctrl+C to stop.
 echo.
 
 start "" "http://localhost:8080"
-python -m http.server 8080
+python tools\dat-proxy.py
 
 pause

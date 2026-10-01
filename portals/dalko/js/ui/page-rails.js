@@ -4,10 +4,8 @@ import {
   renderRailSellBuyChart,
   renderRailSplitDonut,
   destroyChart,
-} from "./charts.js";
-import { renderDashboardRail, teardownDashboardCharts } from "./dashboard-view.js";
-
-const GOLD_BRIGHT = "#f0c14a";
+} from "./charts.js?v=20260922-corp2";
+import { renderDashboardRail, teardownDashboardCharts } from "./dashboard-view.js?v=20260922-corp2";
 
 /** Views that show the right-hand insight rail */
 export const RAIL_VIEWS = new Set([
@@ -199,6 +197,7 @@ function renderCarriersRail(rail, results) {
     note.textContent = "Need ≥10 loads with transit days to score carriers.";
     empty.appendChild(note);
     rail.appendChild(empty);
+    rail.appendChild(buildZScoreExplain());
     return;
   }
 
@@ -218,6 +217,41 @@ function renderCarriersRail(rail, results) {
       { valueLabel: "Z-score", format: "number" }
     );
   });
+
+  rail.appendChild(buildZScoreExplain());
+}
+
+function buildZScoreExplain() {
+  const section = document.createElement("div");
+  section.className = "rail-section rail-explain";
+
+  const h = document.createElement("h4");
+  h.className = "rail-title";
+  h.textContent = "What is a Z-Score?";
+  section.appendChild(h);
+
+  const intro = document.createElement("p");
+  intro.className = "rail-explain-body";
+  intro.textContent =
+    "Imagine each carrier is a kid in class. We look at how often they show up on time, then compare that to everyone else — not just their raw on-time %.";
+  section.appendChild(intro);
+
+  const list = document.createElement("ul");
+  list.className = "rail-explain-list";
+  list.innerHTML = `
+    <li><strong>Near 0</strong> — pretty typical. Nothing special.</li>
+    <li><strong>Positive (like +2)</strong> — they really are better than the pack, not just lucky on a few loads.</li>
+    <li><strong>Negative (like −2)</strong> — they really are worse than the pack.</li>
+  `;
+  section.appendChild(list);
+
+  const foot = document.createElement("p");
+  foot.className = "rail-explain-foot";
+  foot.textContent =
+    "We only score carriers with at least 10 loads that have transit days. A couple of good or bad trips is not enough to judge.";
+  section.appendChild(foot);
+
+  return section;
 }
 
 /** @param {HTMLElement} rail @param {object} results */
@@ -390,7 +424,6 @@ function renderFinancialRail(rail, results) {
       labelA: "Paid",
       labelB: "Unpaid",
       centerCaption: "paid",
-      colorA: GOLD_BRIGHT,
       colorB: "rgba(239, 107, 107, 0.8)",
     });
   });

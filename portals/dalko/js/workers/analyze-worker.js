@@ -1,15 +1,15 @@
 /* Module worker — runs aggregations off the UI thread */
-import { runAnalysis } from "../analytics/engine.js?v=20260916-focusui";
+import { runAnalysis } from "../analytics/engine.js?v=20261001-accfocus";
 
 self.onmessage = (event) => {
-  const { jobId, rows, maps, headers } = event.data ?? {};
+  const { jobId, rows, maps, headers, accessorialTypes } = event.data ?? {};
   try {
     self.postMessage({
       jobId,
       type: "progress",
       message: `Analyzing ${Array.isArray(rows) ? rows.length.toLocaleString() : 0} rows…`,
     });
-    const results = runAnalysis(rows, maps, headers);
+    const results = runAnalysis(rows, maps, headers, accessorialTypes ?? null);
     self.postMessage({ jobId, type: "done", results });
   } catch (err) {
     self.postMessage({

@@ -1,4 +1,4 @@
-/** @typedef {{ id: string, label: string, column: string, equipmentMode?: "ltl" | "truckload" }} FocusLayer */
+﻿/** @typedef {{ id: string, label: string, column: string, equipmentMode?: "ltl" | "truckload" }} FocusLayer */
 /** @typedef {{ id: string, label: string, icon: string, layers: FocusLayer[] }} FocusCategory */
 
 /** @type {FocusCategory[]} */
@@ -6,25 +6,25 @@ export const FOCUS_CATEGORIES = [
   {
     id: "customers",
     label: "Customers",
-    icon: "👥",
+    icon: "ðŸ‘¥",
     layers: [{ id: "customer", label: "Customer", column: "CLIENT NAME" }],
   },
   {
     id: "carriers",
     label: "Carriers",
-    icon: "🚚",
+    icon: "ðŸšš",
     layers: [{ id: "carrier", label: "Carrier", column: "CARRIER NAME1" }],
   },
   {
     id: "salesReps",
     label: "Sales reps",
-    icon: "👤",
+    icon: "ðŸ‘¤",
     layers: [{ id: "salesRep", label: "Sales rep", column: "SALES REP" }],
   },
   {
     id: "officeDivision",
     label: "Office / division",
-    icon: "🏢",
+    icon: "ðŸ¢",
     layers: [
       { id: "division", label: "Division", column: "DIVISION" },
       { id: "office", label: "Office", column: "OFFICE" },
@@ -33,25 +33,25 @@ export const FOCUS_CATEGORIES = [
   {
     id: "ltl",
     label: "LTL",
-    icon: "📦",
+    icon: "ðŸ“¦",
     layers: [{ id: "ltlEquip", label: "LTL equipment", column: "EQUIPMENT", equipmentMode: "ltl" }],
   },
   {
     id: "truckload",
     label: "Truckload",
-    icon: "🚛",
+    icon: "ðŸš›",
     layers: [{ id: "tlEquip", label: "Truckload equipment", column: "EQUIPMENT", equipmentMode: "truckload" }],
   },
   {
     id: "lanes",
     label: "Lanes",
-    icon: "🛣️",
+    icon: "ðŸ›£ï¸",
     layers: [{ id: "lane", label: "Lane", column: "LANE" }],
   },
   {
     id: "accessorials",
     label: "Accessorials",
-    icon: "💰",
+    icon: "ðŸ’°",
     layers: [
       { id: "accType", label: "Accessorial type", column: "ACCESSORIAL_TYPE" },
       { id: "accCustomer", label: "Customer", column: "CLIENT NAME" },
@@ -60,7 +60,7 @@ export const FOCUS_CATEGORIES = [
   {
     id: "geographic",
     label: "States",
-    icon: "🌎",
+    icon: "ðŸŒŽ",
     layers: [
       { id: "originState", label: "Origin states", column: "ORIGIN STATE" },
       { id: "destState", label: "Destination states", column: "DESTINATION STATE" },
@@ -69,7 +69,7 @@ export const FOCUS_CATEGORIES = [
   {
     id: "cities",
     label: "Cities",
-    icon: "🏙️",
+    icon: "ðŸ™ï¸",
     layers: [
       { id: "originCity", label: "Origin cities", column: "ORIGIN CITY" },
       { id: "destCity", label: "Destination cities", column: "DESTINATION CITY" },
@@ -77,350 +77,412 @@ export const FOCUS_CATEGORIES = [
   },
 ];
 
+/** @param {string} column */
+export function focusFieldIcon(column) {
+  const col = String(column);
+  for (const cat of FOCUS_CATEGORIES) {
+    if (cat.layers.some((layer) => layer.column === col)) return cat.icon;
+  }
+  return "";
+}
+
 const VALUE_RENDER_CAP = 800;
 
+/** @type {Set<string>} */
+const openBranches = new Set();
+/** @type {Map<string, string[]>} */
+const valueCache = new Map();
+let treeQuery = "";
+
 /**
+ * Permissions-style tree. Categories and layers expand. Value checkboxes are the focuses.
  * @param {{
  *   existingFocuses?: { column: string, value: string }[],
  *   listValues: (layer: FocusLayer) => string[],
- *   onApply: (items: { column: string, value: string }[]) => void,
+ *   onApply: (items: { column: string, value: string }[]) => void | Promise<void>,
+ *   onRemove?: (column: string, value: string) => void,
+ *   onRemoveMany?: (items: { column: string, value: string }[]) => void,
  * }} opts
  */
 export function renderFocusBuilder(opts) {
-  const existing = opts.existingFocuses ?? [];
+  /** @type {{ column: string, value: string }[]} */
+  let selected = (opts.existingFocuses ?? []).map((item) => ({ column: item.column, value: item.value }));
+  /** @type {WeakMap<HTMLInputElement, FocusLayer[]>} */
+  const branchBoxes = new WeakMap();
   const root = document.createElement("div");
-  root.className = "focus-builder";
-
-  /** @type {"parent" | "layer" | "values"} */
-  let step = "parent";
-  /** @type {FocusCategory | null} */
-  let parent = null;
-  /** @type {FocusLayer | null} */
-  let layer = null;
-  /** @type {string[]} */
-  let values = [];
-  /** @type {Set<string>} */
-  let selected = new Set();
-  let query = "";
-  let loadingValues = false;
+  root.className = "focus-tree-root";
   let loadSeq = 0;
 
   /** @param {string} column @param {string} value */
-  const alreadyOn = (column, value) => existing.some((f) => f.column === column && f.value === value);
+  const alreadyOn = (column, value) => selected.some((f) => f.column === column && f.value === value);
 
-  function resetToParent() {
-    loadSeq += 1;
-    step = "parent";
-    parent = null;
-    layer = null;
-    values = [];
-    selected = new Set();
-    query = "";
-    loadingValues = false;
+  /** @param {{ column: string, value: string }[]} items */
+  function remember(items) {
+    for (const item of items) {
+      if (!alreadyOn(item.column, item.value)) selected.push({ column: item.column, value: item.value });
+    }
+  }
+
+  /** @param {{ column: string, value: string }[]} items */
+  function forget(items) {
+    const drop = new Set(items.map((item) => `${item.column}\0${item.value}`));
+    selected = selected.filter((item) => !drop.has(`${item.column}\0${item.value}`));
+  }
+
+  /** @param {FocusLayer} layer */
+  function countLayer(layer) {
+    const cached = valueCache.get(layer.id);
+    return selected.filter(
+      (item) => item.column === layer.column && (!cached || cached.includes(item.value))
+    ).length;
+  }
+
+  function syncChecks() {
+    root.querySelectorAll("input.focus-branch-check").forEach((node) => {
+      if (!(node instanceof HTMLInputElement)) return;
+      const layers = branchBoxes.get(node);
+      if (!layers) return;
+      const on = branchComplete(layers);
+      if (node.checked !== on) node.checked = on;
+    });
+    root.querySelectorAll("input.focus-value-check").forEach((node) => {
+      if (!(node instanceof HTMLInputElement)) return;
+      const on = alreadyOn(node.dataset.column || "", node.dataset.value || "");
+      if (node.checked !== on) node.checked = on;
+    });
+    root.querySelectorAll(".focus-branch-row").forEach((row) => {
+      const box = row.querySelector("input.focus-branch-check");
+      const layers = box instanceof HTMLInputElement ? branchBoxes.get(box) : undefined;
+      if (!layers) return;
+      const count = layers.reduce((sum, layer) => sum + countLayer(layer), 0);
+      row.classList.toggle("is-picked", count > 0);
+      let badge = row.querySelector(".focus-count");
+      if (!count) {
+        badge?.remove();
+        return;
+      }
+      if (!badge) {
+        badge = document.createElement("em");
+        badge.className = "focus-count";
+        row.appendChild(badge);
+      }
+      if (badge.textContent !== String(count)) badge.textContent = String(count);
+    });
   }
 
   function paint() {
+    const q = treeQuery.trim().toLowerCase();
     root.innerHTML = "";
-    root.append(renderStepper(), renderBody());
+
+    const search = document.createElement("input");
+    search.type = "search";
+    search.className = "focus-tree-search";
+    search.placeholder = "Search focuses";
+    search.value = treeQuery;
+    search.autocomplete = "off";
+    search.addEventListener("input", () => {
+      treeQuery = search.value;
+      paint();
+      const next = root.querySelector(".focus-tree-search");
+      if (next instanceof HTMLInputElement) {
+        next.focus();
+        const end = next.value.length;
+        next.setSelectionRange(end, end);
+      }
+    });
+    root.appendChild(search);
+
+    const scroll = document.createElement("div");
+    scroll.className = "focus-tree-scroll perm-tree-wrap";
+    const tree = document.createElement("ul");
+    tree.className = "perm-tree focus-tree";
+
+    let any = false;
+    for (const cat of FOCUS_CATEGORIES) {
+      const layers = cat.layers.filter((layer) => branchMatches(cat, layer, q));
+      if (!layers.length) continue;
+      any = true;
+      tree.appendChild(renderCategory(cat, layers, q));
+    }
+    if (!any) {
+      const empty = document.createElement("p");
+      empty.className = "focus-tree-empty";
+      empty.textContent = q ? "Nothing matches that search." : "No focus categories.";
+      scroll.appendChild(empty);
+    } else {
+      scroll.appendChild(tree);
+    }
+    root.appendChild(scroll);
   }
 
-  function renderStepper() {
-    const rail = document.createElement("ol");
-    rail.className = "focus-builder-steps";
-    rail.setAttribute("aria-label", "Focus builder");
-    const items = [
-      { id: "parent", label: "Add Focus", done: true, current: false },
-      {
-        id: "category",
-        label: "Select Parent Category",
-        done: step === "layer" || step === "values",
-        current: step === "parent",
-      },
-      {
-        id: "layer",
-        label: "Select Child Layer",
-        done: step === "values",
-        current: step === "layer" || step === "values",
-      },
-    ];
-    for (const item of items) {
-      const li = document.createElement("li");
-      li.className = `focus-builder-step${item.current ? " is-current" : ""}${item.done ? " is-done" : ""}`;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "focus-builder-step-btn";
-      btn.textContent = item.label;
-      const canJump =
-        item.id === "parent" ||
-        item.id === "category" ||
-        (item.id === "layer" && (step === "layer" || step === "values") && parent);
-      btn.disabled = !canJump;
-      btn.addEventListener("click", () => {
-        if (item.id === "parent" || item.id === "category") {
-          resetToParent();
-        } else if (item.id === "layer" && parent) {
-          loadSeq += 1;
-          step = "layer";
-          layer = null;
-          values = [];
-          selected = new Set();
-          query = "";
-          loadingValues = false;
-        }
+  /**
+   * @param {FocusCategory} cat
+   * @param {FocusLayer} layer
+   * @param {string} q
+   */
+  function branchMatches(cat, layer, q) {
+    if (!q) return true;
+    if (cat.label.toLowerCase().includes(q) || layer.label.toLowerCase().includes(q)) return true;
+    const cached = valueCache.get(layer.id) ?? [];
+    if (cached.some((value) => value.toLowerCase().includes(q))) return true;
+    return selected.some(
+      (item) =>
+        item.column === layer.column &&
+        (!valueCache.has(layer.id) || cached.includes(item.value)) &&
+        (`${layer.label} ${item.value}`.toLowerCase().includes(q))
+    );
+  }
+
+  /**
+   * @param {FocusCategory} cat
+   * @param {FocusLayer[]} layers
+   * @param {string} q
+   */
+  function renderCategory(cat, layers, q) {
+    if (cat.layers.length === 1) return renderLayer(cat, layers[0], q, cat.label);
+    const id = cat.id;
+    const open = openBranches.has(id) || Boolean(q);
+    const li = document.createElement("li");
+    li.className = `focus-branch${open ? " is-open" : ""}`;
+    const count = layers.reduce((sum, layer) => sum + countLayer(layer), 0);
+    li.appendChild(
+      branchRow(cat.label, open, count, () => {
+        if (openBranches.has(id)) openBranches.delete(id);
+        else openBranches.add(id);
         paint();
-      });
-      li.appendChild(btn);
-      rail.appendChild(li);
+      }, layers)
+    );
+    if (open) {
+      const ul = document.createElement("ul");
+      for (const layer of layers) ul.appendChild(renderLayer(cat, layer, q));
+      li.appendChild(ul);
     }
-    return rail;
+    return li;
   }
 
-  function renderBody() {
-    const body = document.createElement("div");
-    body.className = "focus-builder-body";
-
-    if (step === "parent") {
-      const title = document.createElement("h4");
-      title.className = "focus-builder-heading";
-      title.textContent = "Select parent category";
-      body.append(
-        title,
-        renderChoiceGrid(
-          FOCUS_CATEGORIES.map((cat) => ({
-            icon: cat.icon,
-            label: cat.label,
-            meta: cat.layers.length === 1 ? cat.layers[0].label : `${cat.layers.length} layers`,
-            onClick: () => {
-              parent = cat;
-              step = "layer";
-              paint();
-            },
-          }))
-        )
-      );
-      return body;
-    }
-
-    if (step === "layer" && parent) {
-      const title = document.createElement("h4");
-      title.className = "focus-builder-heading";
-      title.textContent = `Select child layer · ${parent.label}`;
-      body.append(
-        title,
-        renderChoiceGrid(
-          parent.layers.map((item) => ({
-            icon: parent.icon,
-            label: item.label,
-            onClick: () => openLayer(item),
-          }))
-        )
-      );
-      return body;
-    }
-
-    if (step === "values" && parent && layer) {
-      body.append(renderValuesStep());
-    }
-
-    return body;
+  /**
+   * @param {FocusCategory} cat
+   * @param {FocusLayer} layer
+   * @param {string} q
+   */
+  function renderLayer(cat, layer, q, label = layer.label) {
+    const id = `${cat.id}/${layer.id}`;
+    const open = openBranches.has(id) || (Boolean(q) && valueCache.has(layer.id));
+    const li = document.createElement("li");
+    li.className = `focus-branch${open ? " is-open" : ""}`;
+    li.appendChild(
+      branchRow(label, open, countLayer(layer), () => {
+        if (openBranches.has(id)) {
+          openBranches.delete(id);
+          paint();
+          return;
+        }
+        openBranches.add(id);
+        ensureValues(layer);
+      }, [layer])
+    );
+    if (open) li.appendChild(renderValues(layer, q));
+    return li;
   }
 
-  /** @param {FocusLayer} item */
-  function openLayer(item) {
+  /**
+   * @param {string} label
+   * @param {boolean} open
+   * @param {number} count
+   * @param {() => void} onToggle
+   * @param {FocusLayer[]} layers
+   */
+  function branchRow(label, open, count, onToggle, layers) {
+    const row = document.createElement("div");
+    row.className = "perm-node focus-branch-row";
+    const twist = document.createElement("button");
+    twist.type = "button";
+    twist.className = "focus-twist";
+    twist.setAttribute("aria-expanded", open ? "true" : "false");
+    twist.setAttribute("aria-label", open ? `Collapse ${label}` : `Expand ${label}`);
+    twist.addEventListener("click", onToggle);
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.className = "focus-branch-check";
+    const knownEmpty = layers.every(
+      (layer) => valueCache.has(layer.id) && (valueCache.get(layer.id) ?? []).length === 0
+    );
+    box.checked = branchComplete(layers);
+    box.disabled = knownEmpty;
+    branchBoxes.set(box, layers);
+    box.setAttribute("aria-label", `Focus every ${label} value`);
+    box.addEventListener("click", (event) => event.stopPropagation());
+    box.addEventListener("change", () => {
+      if (box.checked) {
+        void applyLayers(layers);
+        return;
+      }
+      clearLayers(layers);
+    });
+    const name = document.createElement("span");
+    name.className = "focus-branch-name";
+    name.textContent = label;
+    name.addEventListener("click", onToggle);
+    row.append(twist, box, name);
+    if (count) row.classList.add("is-picked");
+    if (count) {
+      const badge = document.createElement("em");
+      badge.className = "focus-count";
+      badge.textContent = String(count);
+      row.appendChild(badge);
+    }
+    return row;
+  }
+
+  /** @param {FocusLayer[]} layers */
+  function branchComplete(layers) {
+    if (!layers.length) return false;
+    for (const layer of layers) {
+      const values = valueCache.get(layer.id);
+      if (!values?.length) return false;
+      for (const value of values) {
+        if (!alreadyOn(layer.column, value)) return false;
+      }
+    }
+    return true;
+  }
+
+  /** @param {FocusLayer} layer */
+  function valuesFor(layer) {
+    if (valueCache.has(layer.id)) return valueCache.get(layer.id) ?? [];
+    let values = [];
+    try {
+      values = opts.listValues(layer) ?? [];
+    } catch {
+      values = [];
+    }
+    valueCache.set(layer.id, values);
+    return values;
+  }
+
+  /** @param {FocusLayer[]} layers */
+  function applyLayers(layers) {
+    /** @type {{ column: string, value: string }[]} */
+    const missing = [];
+    for (const layer of layers) {
+      for (const value of valuesFor(layer)) {
+        if (!alreadyOn(layer.column, value)) missing.push({ column: layer.column, value });
+      }
+    }
+    if (!missing.length) return undefined;
+    remember(missing);
+    syncChecks();
+    return Promise.resolve(opts.onApply(missing)).then((ok) => {
+      if (ok === false) {
+        forget(missing);
+        syncChecks();
+      }
+    });
+  }
+
+  /** @param {FocusLayer[]} layers */
+  function clearLayers(layers) {
+    /** @type {{ column: string, value: string }[]} */
+    const present = [];
+    for (const layer of layers) {
+      for (const value of valuesFor(layer)) {
+        if (alreadyOn(layer.column, value)) present.push({ column: layer.column, value });
+      }
+    }
+    if (!present.length) return;
+    forget(present);
+    syncChecks();
+    if (opts.onRemoveMany) {
+      opts.onRemoveMany(present);
+      return;
+    }
+    for (const item of present) opts.onRemove?.(item.column, item.value);
+  }
+
+  /** @param {FocusLayer} layer */
+  function ensureValues(layer) {
+    if (valueCache.has(layer.id)) {
+      paint();
+      return;
+    }
     const seq = ++loadSeq;
-    layer = item;
-    query = "";
-    values = [];
-    selected = new Set();
-    loadingValues = true;
-    step = "values";
     paint();
     requestAnimationFrame(() => {
       if (seq !== loadSeq) return;
+      let values = [];
       try {
-        values = opts.listValues(item) ?? [];
+        values = opts.listValues(layer) ?? [];
       } catch {
         values = [];
       }
       if (seq !== loadSeq) return;
-      selected = new Set(values.filter((v) => alreadyOn(item.column, v)));
-      loadingValues = false;
+      valueCache.set(layer.id, values);
       paint();
     });
-  }
-
-  function renderValuesStep() {
-    const wrap = document.createElement("div");
-    wrap.className = "focus-builder-values-wrap";
-
-    const title = document.createElement("h4");
-    title.className = "focus-builder-heading";
-    title.textContent = `${parent?.label} · ${layer?.label}`;
-    wrap.appendChild(title);
-
-    if (loadingValues) {
-      const wait = document.createElement("p");
-      wait.className = "focus-builder-hint";
-      wait.textContent = "Loading values…";
-      wrap.appendChild(wait);
-      return wrap;
-    }
-
-    if (!values.length) {
-      const empty = document.createElement("p");
-      empty.className = "focus-builder-hint";
-      empty.textContent = "No values in this dump for that layer.";
-      wrap.appendChild(empty);
-      wrap.appendChild(renderValueActions());
-      return wrap;
-    }
-
-    const search = document.createElement("input");
-    search.type = "search";
-    search.className = "focus-builder-search";
-    search.placeholder = `Search ${values.length.toLocaleString()} values…`;
-    search.value = query;
-    search.autocomplete = "off";
-    wrap.appendChild(search);
-
-    const list = document.createElement("div");
-    list.className = "focus-builder-values";
-    list.setAttribute("role", "group");
-    list.setAttribute("aria-label", layer?.label ?? "Values");
-    wrap.appendChild(list);
-
-    const meta = document.createElement("p");
-    meta.className = "focus-builder-meta";
-    wrap.appendChild(meta);
-    wrap.appendChild(renderValueActions());
-
-    const fillList = () => {
-      const column = layer?.column ?? "";
-      const q = query.trim().toLowerCase();
-      const filtered = q ? values.filter((v) => v.toLowerCase().includes(q)) : values;
-      const shown = filtered.slice(0, VALUE_RENDER_CAP);
-      list.innerHTML = "";
-      for (const value of shown) {
-        const locked = alreadyOn(column, value);
-        const row = document.createElement("label");
-        row.className = `focus-builder-value${locked ? " is-locked" : ""}`;
-        const box = document.createElement("input");
-        box.type = "checkbox";
-        box.checked = selected.has(value);
-        box.disabled = locked;
-        box.addEventListener("change", () => {
-          if (box.checked) selected.add(value);
-          else selected.delete(value);
-          syncApplyButton(wrap);
-        });
-        const text = document.createElement("span");
-        text.textContent = value;
-        row.append(box, text);
-        if (locked) {
-          const badge = document.createElement("em");
-          badge.textContent = "Active";
-          row.appendChild(badge);
-        }
-        list.appendChild(row);
-      }
-      if (filtered.length > shown.length) {
-        meta.textContent = `Showing ${shown.length.toLocaleString()} of ${filtered.length.toLocaleString()} matches. Refine the search to narrow the list.`;
-      } else if (q) {
-        meta.textContent = `${filtered.length.toLocaleString()} match${filtered.length === 1 ? "" : "es"}`;
-      } else {
-        meta.textContent = `${values.length.toLocaleString()} value${values.length === 1 ? "" : "s"}`;
-      }
-    };
-
-    search.addEventListener("input", () => {
-      query = search.value;
-      fillList();
-    });
-    fillList();
-    return wrap;
-  }
-
-  function newCount() {
-    if (!layer) return 0;
-    let n = 0;
-    for (const value of selected) {
-      if (!alreadyOn(layer.column, value)) n += 1;
-    }
-    return n;
-  }
-
-  /** @param {HTMLElement} wrap */
-  function syncApplyButton(wrap) {
-    const apply = wrap.querySelector(".focus-builder-apply");
-    if (!(apply instanceof HTMLButtonElement)) return;
-    const fresh = newCount();
-    apply.disabled = fresh < 1;
-    apply.textContent = fresh ? `Apply ${fresh} focus${fresh === 1 ? "" : "es"}` : "Apply focuses";
-  }
-
-  function renderValueActions() {
-    const actions = document.createElement("div");
-    actions.className = "focus-builder-actions";
-
-    const apply = document.createElement("button");
-    apply.type = "button";
-    apply.className = "btn btn-primary focus-builder-apply";
-    const fresh = newCount();
-    apply.textContent = fresh ? `Apply ${fresh} focus${fresh === 1 ? "" : "es"}` : "Apply focuses";
-    apply.disabled = fresh < 1;
-    apply.addEventListener("click", () => {
-      if (!layer) return;
-      const items = [...selected]
-        .filter((value) => !alreadyOn(layer.column, value))
-        .map((value) => ({ column: layer.column, value }));
-      if (!items.length) return;
-      opts.onApply(items);
-    });
-
-    const cancel = document.createElement("button");
-    cancel.type = "button";
-    cancel.className = "btn btn-ghost";
-    cancel.textContent = "Start over";
-    cancel.addEventListener("click", () => {
-      resetToParent();
-      paint();
-    });
-
-    actions.append(apply, cancel);
-    return actions;
   }
 
   /**
-   * @param {{ icon: string, label: string, meta?: string, onClick: () => void }[]} choices
+   * @param {FocusLayer} layer
+   * @param {string} q
    */
-  function renderChoiceGrid(choices) {
-    const grid = document.createElement("div");
-    grid.className = "focus-builder-grid";
-    for (const choice of choices) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "focus-builder-choice";
-      const icon = document.createElement("span");
-      icon.className = "focus-builder-choice-icon";
-      icon.setAttribute("aria-hidden", "true");
-      icon.textContent = choice.icon;
-      const copy = document.createElement("span");
-      copy.className = "focus-builder-choice-copy";
-      const label = document.createElement("span");
-      label.className = "focus-builder-choice-label";
-      label.textContent = choice.label;
-      copy.appendChild(label);
-      if (choice.meta) {
-        const meta = document.createElement("span");
-        meta.className = "focus-builder-choice-meta";
-        meta.textContent = choice.meta;
-        copy.appendChild(meta);
-      }
-      btn.append(icon, copy);
-      btn.addEventListener("click", choice.onClick);
-      grid.appendChild(btn);
+  function renderValues(layer, q) {
+    const ul = document.createElement("ul");
+    if (!valueCache.has(layer.id)) {
+      const li = document.createElement("li");
+      li.className = "focus-tree-note";
+      li.textContent = "Loading values...";
+      ul.appendChild(li);
+      return ul;
     }
-    return grid;
+    const values = valueCache.get(layer.id) ?? [];
+    const shown = (q && !layer.label.toLowerCase().includes(q) ? values.filter((value) => value.toLowerCase().includes(q)) : values).slice(0, VALUE_RENDER_CAP);
+    if (!shown.length) {
+      const li = document.createElement("li");
+      li.className = "focus-tree-note";
+      li.textContent = values.length ? "Nothing matches that search." : "No values in this dump.";
+      ul.appendChild(li);
+      return ul;
+    }
+    for (const value of shown) {
+      const li = document.createElement("li");
+      const label = document.createElement("label");
+      label.className = "perm-node";
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.className = "focus-value-check";
+      box.dataset.column = layer.column;
+      box.dataset.value = value;
+      box.checked = alreadyOn(layer.column, value);
+      box.addEventListener("change", () => {
+        const item = { column: layer.column, value };
+        if (box.checked) {
+          remember([item]);
+          syncChecks();
+          void Promise.resolve(opts.onApply([item])).then((ok) => {
+            if (ok === false) {
+              forget([item]);
+              syncChecks();
+            }
+          });
+          return;
+        }
+        forget([item]);
+        syncChecks();
+        opts.onRemove?.(layer.column, value);
+      });
+      const text = document.createElement("span");
+      text.textContent = value;
+      label.append(box, text);
+      li.appendChild(label);
+      ul.appendChild(li);
+    }
+    if (values.length > VALUE_RENDER_CAP && !q) {
+      const more = document.createElement("li");
+      more.className = "focus-tree-note";
+      more.textContent = `Showing ${VALUE_RENDER_CAP.toLocaleString()} of ${values.length.toLocaleString()}. Search to narrow the list.`;
+      ul.appendChild(more);
+    }
+    return ul;
   }
 
   paint();

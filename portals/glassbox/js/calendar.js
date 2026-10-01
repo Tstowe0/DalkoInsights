@@ -93,11 +93,20 @@ export function mountSidebarCalendar(host, opts = {}) {
       const isToday = isThisMonth && day === today.getDate();
       const isSelected = selectedKey === key;
       const isDue = dueDays.has(day);
+      const holiday = usHolidayName(key, viewYear);
       const classes = ["gb-cal-day"];
       if (isToday) classes.push("is-today");
       if (isSelected) classes.push("is-selected");
       if (isDue) classes.push("is-due");
-      const label = isDue ? `Reports due ${MONTHS[viewMonth]} ${day}` : `${MONTHS[viewMonth]} ${day}`;
+      if (holiday) classes.push("is-holiday");
+      const when = `${MONTHS[viewMonth]} ${day}`;
+      const label = holiday
+        ? isDue
+          ? `${holiday}. Reports due ${when}`
+          : `${holiday}, ${when}`
+        : isDue
+          ? `Reports due ${when}`
+          : when;
       cells.push(
         `<button type="button" class="${classes.join(" ")}" data-cal-day="${day}" data-cal-key="${key}" aria-pressed="${isSelected ? "true" : "false"}" aria-current="${isToday ? "date" : "false"}" aria-label="${label}" title="${label}">${day}</button>`
       );
@@ -177,6 +186,82 @@ export function mountSidebarCalendar(host, opts = {}) {
 
   paint();
   emitSelection(selectedKey);
+}
+
+/** @type {Map<number, Map<string, string>>} */
+const holidayYearCache = new Map();
+
+/**
+ * US federal holiday name for a date key, including the observed weekday
+ * when a fixed holiday falls on a weekend.
+ * @param {string} key
+ * @param {number} year
+ */
+function usHolidayName(key, year) {
+  return (
+    holidaysForYear(year).get(key) ||
+    holidaysForYear(year - 1).get(key) ||
+    holidaysForYear(year + 1).get(key) ||
+    ""
+  );
+}
+
+/** @param {number} year @returns {Map<string, string>} */
+function holidaysForYear(year) {
+  const cached = holidayYearCache.get(year);
+  if (cached) return cached;
+  const map = buildUsHolidays(year);
+  holidayYearCache.set(year, map);
+  return map;
+}
+
+/**
+ * @param {number} year
+ * @param {number} month 0-based
+ * @param {number} weekday Sun=0
+ * @param {number} n 1-based
+ */
+function nthWeekday(year, month, weekday, n) {
+  const first = new Date(year, month, 1);
+  const offset = (weekday - first.getDay() + 7) % 7;
+  return new Date(year, month, 1 + offset + (n - 1) * 7);
+}
+
+/** @param {number} year @returns {Map<string, string>} */
+function buildUsHolidays(year) {
+  /** @type {Map<string, string>} */
+  const map = new Map();
+  /** @param {Date} date @param {string} name */
+  const add = (date, name) => {
+    const key = toDateKey(date);
+    if (!map.has(key)) map.set(key, name);
+  };
+
+  add(nthWeekday(year, 0, 1, 3), "Martin Luther King Jr. Day");
+  add(nthWeekday(year, 1, 1, 3), "Presidents Day");
+  const mayEnd = new Date(year, 5, 0);
+  add(new Date(year, 4, mayEnd.getDate() - ((mayEnd.getDay() + 6) % 7)), "Memorial Day");
+  add(nthWeekday(year, 8, 1, 1), "Labor Day");
+  add(nthWeekday(year, 9, 1, 2), "Columbus Day");
+  add(nthWeekday(year, 10, 4, 4), "Thanksgiving");
+
+  /** @type {[Date, string][]} */
+  const fixed = [
+    [new Date(year, 0, 1), "New Year's Day"],
+    [new Date(year, 5, 19), "Juneteenth"],
+    [new Date(year, 6, 4), "Independence Day"],
+    [new Date(year, 10, 11), "Veterans Day"],
+    [new Date(year, 11, 25), "Christmas Day"],
+  ];
+  for (const [date, name] of fixed) {
+    add(date, name);
+    const shift = date.getDay() === 6 ? -1 : date.getDay() === 0 ? 1 : 0;
+    if (!shift) continue;
+    const observed = new Date(date);
+    observed.setDate(date.getDate() + shift);
+    add(observed, `${name} (observed)`);
+  }
+  return map;
 }
 
 /** @param {string} key YYYY-MM-DD */

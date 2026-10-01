@@ -14,6 +14,7 @@
  * @param {ToolContext} ctx
  */
 export async function launchTool(scriptPath, parent, ctx) {
+  parent.classList.remove("cs-host");
   parent.innerHTML = `
     <section class="gb-tool gb-tool-loading">
       <p class="gb-tool-loading-msg">Launching ${escapeHtml(scriptPath)}…</p>

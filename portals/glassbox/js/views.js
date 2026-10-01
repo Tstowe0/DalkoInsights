@@ -1,6 +1,6 @@
-import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20260819-fxicon";
-import { menuIconUrl, tileIconUrl } from "./icons.js?v=20260819-fxicon";
-import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20260819-fxicon";
+import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20260930-demo";
+import { menuIconUrl, tileIconUrl } from "./icons.js?v=20260923-fmcsa";
+import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20260925-ghostslow";
 
 /**
  * @param {HTMLElement} container
@@ -180,6 +180,7 @@ function fillTileGrid(grid, tools, onTool) {
     btn.type = "button";
     btn.className = `gb-tile${tool.disabled ? " disabled" : ""}${tool.skipped ? " gb-tile-skipped" : ""}`;
     btn.disabled = Boolean(tool.disabled);
+    btn.dataset.toolId = tool.id;
     btn.innerHTML = `
       <span class="gb-tile-title">${escapeHtml(tool.label)}</span>
       <img class="gb-tile-icon" src="${tileIconUrl(tool.label)}" width="56" height="56" alt="" />

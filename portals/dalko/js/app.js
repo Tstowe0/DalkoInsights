@@ -8,14 +8,14 @@ import {
   listFocusLayerValues,
 } from "./data/filters.js?v=20260916-bugsweep";
 import { checkFileSize, checkRowCount, formatFileSize } from "./data/limits.js";
-import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=20260916-focusui";
-import { runAnalysis } from "./analytics/engine.js?v=20260916-focusui";
+import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=20261001-accfocus";
+import { runAnalysis } from "./analytics/engine.js?v=20261001-accfocus";
 import { nextJobId, workerJob } from "./workers/client.js";
-import { renderNav } from "./ui/nav.js?v=20260916-focusui";
-import { renderView } from "./ui/render.js?v=20260916-xlsxstyle";
-import { RAIL_VIEWS, renderViewRail, teardownAllRails } from "./ui/page-rails.js";
+import { navTitle, renderNav } from "./ui/nav.js?v=20260923-desk";
+import { renderView } from "./ui/render.js?v=20261001-focusbold";
+import { RAIL_VIEWS, renderViewRail, teardownAllRails } from "./ui/page-rails.js?v=20260922-corp2";
 import { alertDialog, confirmDialog } from "./ui/dialog.js";
-import { runReport } from "./ui/report.js";
+import { runReport, teardownExecReport } from "./ui/report.js?v=20261001-nohier";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 /** @type {import("./data/filters.js").FilterState} */
@@ -28,7 +28,7 @@ const state = {
   rows: [],
   maps: null,
   results: null,
-  activeView: "dashboard",
+  activeView: "home",
   analysisComplete: false,
 };
 
@@ -42,6 +42,12 @@ let analyzeWorker = null;
 
 /** @type {(() => void) | null} */
 let homeHandler = null;
+
+/** @type {(() => void) | null} */
+let refreshHandler = null;
+
+/** When true, skip portal chrome (nav / auto-jump to dashboard). */
+let embedMode = false;
 
 /** @type {AbortController | null} */
 let portalAbort = null;
@@ -82,7 +88,7 @@ function checkEnvironment() {
   if (location.protocol === "file:") {
     showBootBanner(
       "This app must be opened through a local web server (ES modules do not run from a double-clicked file). " +
-        "In the project folder run: <code>python -m http.server 8080</code> then open " +
+        "In the project folder run: <code>run-server.bat</code> then open " +
         "<code>http://localhost:8080</code>."
     );
     return false;
@@ -125,16 +131,6 @@ function clearTableSearch() {
   if (el.tableSearch) el.tableSearch.value = "";
 }
 
-/**
- * @param {import("./data/filters.js").FilterState} trial
- */
-function countRowsForFilters(trial) {
-  if (!state.maps) return 0;
-  const accessorialMatch = (row, value) =>
-    rowMatchesAccessorialType(row, state.headers, state.maps, value);
-  return getFilteredRows(state.rows, state.maps, trial, accessorialMatch).length;
-}
-
 const handlers = {
   onListFocusValues: (layer) => {
     if (!state.maps || !layer?.column) return [];
@@ -154,26 +150,27 @@ const handlers = {
       if (!column || hasFocus(filters, column, value)) continue;
       additions.push({ column, value });
     }
-    if (!additions.length) return;
-    const trial = {
-      ...filters,
-      focuses: [...(filters.focuses ?? []), ...additions],
-    };
-    if (!countRowsForFilters(trial)) {
-      await alertDialog("No rows match that focus.", { title: "Focus" });
-      return;
-    }
+    if (!additions.length) return true;
     clearTableSearch();
-    filters.focuses = trial.focuses;
+    filters.focuses = [...(filters.focuses ?? []), ...additions];
     updateFocusButton();
-    runAnalyze();
+    runAnalyze({ quiet: true });
+    return true;
   },
   onRemoveFocus: (column, value) => {
     filters.focuses = (filters.focuses ?? []).filter(
       (f) => !(f.column === column && f.value === value)
     );
     updateFocusButton();
-    if (state.analysisComplete || state.rows.length) runAnalyze();
+    if (state.analysisComplete || state.rows.length) runAnalyze({ quiet: true });
+    else refreshView();
+  },
+  onRemoveFocuses: (items) => {
+    const drop = new Set((items ?? []).map((item) => `${item.column}\0${item.value}`));
+    if (!drop.size) return;
+    filters.focuses = (filters.focuses ?? []).filter((f) => !drop.has(`${f.column}\0${f.value}`));
+    updateFocusButton();
+    if (state.analysisComplete || state.rows.length) runAnalyze({ quiet: true });
     else refreshView();
   },
   onRunReport: (reportId) => {
@@ -204,18 +201,117 @@ function setLoading(on, message = "Working…", detail = "", pct = null) {
 
 function updateFocusButton() {
   if (!el.btnClearFocus) return;
-  el.btnClearFocus.disabled = !hasFocuses(filters);
+  const on = hasFocuses(filters);
+  el.btnClearFocus.disabled = !on;
+  el.btnClearFocus.hidden = embedMode ? !on : el.btnClearFocus.hidden;
+  el.btnClearFocus.classList.toggle("hidden", embedMode && !on);
+  if (embedMode && on) {
+    el.btnClearFocus.textContent = `Clear focus (${filters.focuses.length})`;
+  }
+}
+
+/** Row count where a section switch is slow enough to show a loading state first. */
+const HEAVY_VIEW_ROWS = 8000;
+let viewPaintToken = 0;
+let lastRenderedView = null;
+
+/** @param {string} viewId */
+function sectionLabel(viewId) {
+  if (viewId === "reports") return "Reports";
+  return navTitle(viewId);
+}
+
+function viewLoadingHost() {
+  return el.contentWorkspace || document.getElementById("content-workspace");
+}
+
+function ensureViewLoading() {
+  const host = viewLoadingHost();
+  if (!host) return null;
+  let node = host.querySelector(".view-loading");
+  if (node) return /** @type {HTMLElement} */ (node);
+  node = document.createElement("div");
+  node.className = "view-loading hidden";
+  node.hidden = true;
+  node.setAttribute("role", "status");
+  node.innerHTML = `<div class="view-loading-mark"><span class="view-loading-spin" aria-hidden="true"></span><span class="view-loading-label"></span></div>`;
+  host.appendChild(node);
+  return /** @type {HTMLElement} */ (node);
+}
+
+/** @param {string} viewId */
+function showViewLoading(viewId) {
+  const node = ensureViewLoading();
+  if (!node) return;
+  const label = node.querySelector(".view-loading-label");
+  if (label) label.textContent = `Loading ${sectionLabel(viewId)}`;
+  node.hidden = false;
+  node.classList.remove("hidden");
+  viewLoadingHost()?.setAttribute("aria-busy", "true");
+}
+
+function hideViewLoading() {
+  const node = viewLoadingHost()?.querySelector(".view-loading");
+  if (!(node instanceof HTMLElement)) return;
+  node.hidden = true;
+  node.classList.add("hidden");
+  viewLoadingHost()?.removeAttribute("aria-busy");
+}
+
+let embeddedInsightHide = /** @type {string[]} */ ([]);
+
+/** @param {string[]} ids */
+export function setEmbeddedInsightHide(ids) {
+  embeddedInsightHide = Array.isArray(ids) ? ids.map(String) : [];
+  if (el.nav) paintInsightNav();
+}
+
+function insightNavOpts() {
+  const hide = embedMode ? ["changelog", ...embeddedInsightHide] : [...embeddedInsightHide];
+  return { hide };
+}
+
+function paintInsightNav(activeId = state.activeView) {
+  if (el.nav) renderNav(/** @type {HTMLElement} */ (el.nav), activeId, setView, insightNavOpts());
 }
 
 function setView(viewId) {
-  if (viewId !== state.activeView) clearTableSearch();
+  const changing = viewId !== state.activeView;
+  if (changing) clearTableSearch();
   state.activeView = viewId;
-  renderNav(/** @type {HTMLElement} */ (el.nav), viewId, setView);
-  refreshView();
+  paintInsightNav(viewId);
+
+  viewPaintToken += 1;
+  const token = viewPaintToken;
+  const busy = el.loading && !el.loading.classList.contains("hidden");
+  const heavy = changing && state.analysisComplete && state.rows.length >= HEAVY_VIEW_ROWS && !busy;
+  if (!heavy) {
+    hideViewLoading();
+    refreshView();
+    return;
+  }
+
+  showViewLoading(viewId);
+  requestAnimationFrame(() => {
+    window.setTimeout(() => {
+      if (token !== viewPaintToken) return;
+      try {
+        refreshView();
+      } finally {
+        if (token === viewPaintToken) hideViewLoading();
+      }
+    }, 48);
+  });
 }
 
 function refreshView() {
   if (!el.viewRoot) return;
+  const content = el.viewRoot.closest(".content");
+  const treeScroll = el.viewRoot.querySelector(".focus-tree-scroll");
+  const stayOnFocuses = state.activeView === "filters" && lastRenderedView === "filters";
+  const contentTop = stayOnFocuses ? content?.scrollTop ?? 0 : 0;
+  const treeTop = stayOnFocuses ? treeScroll?.scrollTop ?? 0 : 0;
+  document.getElementById("app")?.classList.toggle("is-home", state.activeView === "home");
   const showRail = RAIL_VIEWS.has(state.activeView) && !!state.results;
   el.contentWorkspace?.classList.toggle("with-rail", showRail);
   el.rightRail?.classList.toggle("hidden", !showRail);
@@ -230,15 +326,37 @@ function refreshView() {
     filters,
     viewHandlers,
     hasData,
-    state.analysisComplete
+    state.analysisComplete,
+    state.fileName
   );
   if (showRail && el.rightRail && state.results) {
     renderViewRail(el.rightRail, state.activeView, state.results);
   }
   applyTableSearch();
+  refreshHandler?.();
+  if (stayOnFocuses) {
+    el.viewRoot.classList.add("is-quiet");
+    if (content) content.scrollTop = contentTop;
+    const nextTree = el.viewRoot.querySelector(".focus-tree-scroll");
+    if (nextTree) nextTree.scrollTop = treeTop;
+    requestAnimationFrame(() => {
+      if (content) content.scrollTop = contentTop;
+      const again = el.viewRoot?.querySelector(".focus-tree-scroll");
+      if (again) again.scrollTop = treeTop;
+    });
+  } else {
+    el.viewRoot.classList.remove("is-quiet");
+  }
+  lastRenderedView = state.activeView;
 }
 
 function updateStatus(text) {
+  const insightStatus = document.getElementById("insights-status");
+  if (insightStatus) {
+    insightStatus.textContent = text;
+    insightStatus.hidden = !text;
+    return;
+  }
   if (el.status) el.status.textContent = text;
 }
 
@@ -249,7 +367,7 @@ function resetSession() {
   state.rows = [];
   state.maps = null;
   state.results = null;
-  state.activeView = "dashboard";
+  state.activeView = "home";
   state.analysisComplete = false;
 }
 
@@ -286,7 +404,7 @@ function getParseWorker() {
 
 function getAnalyzeWorker() {
   if (!analyzeWorker) {
-    analyzeWorker = new Worker(new URL("./workers/analyze-worker.js?v=20260916-focusui", import.meta.url), {
+    analyzeWorker = new Worker(new URL("./workers/analyze-worker.js?v=20261001-accfocus", import.meta.url), {
       type: "module",
     });
   }
@@ -352,15 +470,16 @@ async function parseWorkbook(file, buffer, generation) {
  * @param {ReturnType<typeof buildHeaderMaps>} maps
  * @param {unknown[]} headers
  * @param {number} generation
+ * @param {string[] | null} accessorialTypes
  */
-async function analyzeInBackground(rows, maps, headers, generation) {
+async function analyzeInBackground(rows, maps, headers, generation, accessorialTypes) {
   const jobId = nextJobId();
   try {
     const worker = getAnalyzeWorker();
     const result = await workerJob(
       worker,
       jobId,
-      { rows, maps, headers },
+      { rows, maps, headers, accessorialTypes },
       [],
       (msg) => {
         if (generation !== workGeneration) return;
@@ -382,7 +501,7 @@ async function analyzeInBackground(rows, maps, headers, generation) {
     setLoading(true, "Analyzing…", "Worker unavailable — analyzing on main thread…");
     await new Promise((r) => setTimeout(r, 0));
     if (generation !== workGeneration) throw new Error("Cancelled");
-    return runAnalysis(rows, maps, headers);
+    return runAnalysis(rows, maps, headers, accessorialTypes);
   }
 }
 
@@ -483,7 +602,7 @@ async function handleFile(file) {
       `✓ ${file.name} — ${rows.length.toLocaleString()} records — analyzing…`
     );
     state.activeView = "dashboard";
-    renderNav(/** @type {HTMLElement} */ (el.nav), state.activeView, setView);
+    paintInsightNav();
     refreshView();
 
     setLoading(
@@ -511,7 +630,16 @@ function getAnalysisRows() {
   return getFilteredRows(state.rows, state.maps, filters, accessorialMatch);
 }
 
-function runAnalyze() {
+/** Accessorial-type focuses limit which charges are counted, not only which loads stay. */
+function focusedAccessorialTypes() {
+  const types = (filters.focuses ?? [])
+    .filter((f) => f.column === "ACCESSORIAL_TYPE")
+    .map((f) => f.value);
+  return types.length ? types : null;
+}
+
+function runAnalyze(opts = {}) {
+  const quiet = opts.quiet === true;
   const generation = bumpGeneration();
   // Keep parse worker; only drop analyze worker so an in-flight analyze is cancelled
   try {
@@ -520,13 +648,13 @@ function runAnalyze() {
     /* ignore */
   }
   analyzeWorker = null;
-  void runAnalyzeAsync(generation);
+  void runAnalyzeAsync(generation, quiet);
 }
 
 /**
  * @param {number} generation
  */
-async function runAnalyzeAsync(generation) {
+async function runAnalyzeAsync(generation, quiet = false) {
   if (!state.maps || !state.rows.length) {
     if (generation !== workGeneration) return;
     setLoading(false);
@@ -539,33 +667,38 @@ async function runAnalyzeAsync(generation) {
     return;
   }
 
-  setLoading(
-    true,
-    "Analyzing…",
-    `${state.rows.length.toLocaleString()} rows in file`
-  );
+  if (!quiet) {
+    setLoading(
+      true,
+      "Analyzing…",
+      `${state.rows.length.toLocaleString()} rows in file`
+    );
+  }
 
   try {
     const rows = getAnalysisRows();
     if (generation !== workGeneration) return;
 
+    /** @type {Awaited<ReturnType<typeof analyzeInBackground>>} */
+    let results;
     if (!rows.length) {
-      setLoading(false);
-      await alertDialog("No rows match the current focus.", { title: "Focus" });
-      state.results = null;
-      state.analysisComplete = true;
-      refreshView();
-      updateStatus("No rows matched the current focus.");
-      return;
+      results = runAnalysis([], state.maps, state.headers, focusedAccessorialTypes());
+    } else {
+      if (!quiet) {
+        setLoading(
+          true,
+          "Analyzing…",
+          `${rows.length.toLocaleString()} rows · background worker`
+        );
+      }
+      results = await analyzeInBackground(
+        rows,
+        state.maps,
+        state.headers,
+        generation,
+        focusedAccessorialTypes()
+      );
     }
-
-    setLoading(
-      true,
-      "Analyzing…",
-      `${rows.length.toLocaleString()} rows · background worker`
-    );
-
-    const results = await analyzeInBackground(rows, state.maps, state.headers, generation);
     if (generation !== workGeneration) return;
 
     state.results = results;
@@ -580,7 +713,7 @@ async function runAnalyzeAsync(generation) {
     }
     if (filters.dateFilterEnabled) status += " · date filter active";
     updateStatus(status);
-    refreshView();
+    if (!(quiet && state.activeView === "filters")) refreshView();
   } catch (err) {
     if (generation !== workGeneration) return;
     console.error(err);
@@ -656,7 +789,7 @@ function bindUploadButton(button, input, signal) {
     async () => {
       if (location.protocol === "file:") {
         await alertDialog(
-          "Open this app at http://localhost:8080 (run python -m http.server in the project folder).",
+          "Open this app at http://localhost:8080 (run run-server.bat in the project folder).",
           { title: "Local server required" }
         );
         return;
@@ -668,10 +801,12 @@ function bindUploadButton(button, input, signal) {
 }
 
 /**
- * @param {{ onHome?: () => void }} [opts]
+ * @param {{ onHome?: () => void, onRefresh?: () => void, embedMode?: boolean }} [opts]
  */
 export function initDalkoPortal(opts = {}) {
   homeHandler = opts.onHome ?? null;
+  refreshHandler = opts.onRefresh ?? null;
+  embedMode = Boolean(opts.embedMode);
   portalAbort?.abort();
   portalAbort = new AbortController();
   const { signal } = portalAbort;
@@ -695,18 +830,10 @@ export function initDalkoPortal(opts = {}) {
   el.btnBackHub?.addEventListener("click", goHome, { signal });
 
   showDataUi(true);
-  renderNav(/** @type {HTMLElement} */ (el.nav), state.activeView, setView);
-  paintSidebarGreeting();
+  paintInsightNav();
+  if (!embedMode) paintSidebarGreeting();
   updateFocusButton();
   refreshView();
-
-  void alertDialog(
-    "DALKO Insights runs on a TMS data dump. Upload an Excel export from your TMS to analyze customers, carriers, lanes, financials, and more — all locally in your browser.",
-    { title: "TMS data dump", okLabel: "Upload" }
-  ).then(() => {
-    if (signal.aborted) return;
-    el.fileInput?.click();
-  });
 }
 
 export function destroyDalkoPortal() {
@@ -714,15 +841,68 @@ export function destroyDalkoPortal() {
   portalAbort?.abort();
   portalAbort = null;
   homeHandler = null;
+  refreshHandler = null;
+  embedMode = false;
   parseWorker?.terminate();
   analyzeWorker?.terminate();
   parseWorker = null;
   analyzeWorker = null;
   teardownAllRails();
+  teardownExecReport();
   setLoading(false);
   resetSession();
   el = {};
 }
+
+export function clearInsightsData() {
+  bumpGeneration();
+  resetWorkers();
+  teardownAllRails();
+  teardownExecReport();
+  setLoading(false);
+  hideViewLoading();
+  filters = createDefaultFilters();
+  state.fileName = null;
+  state.headers = [];
+  state.rows = [];
+  state.maps = null;
+  state.results = null;
+  state.analysisComplete = false;
+  clearTableSearch();
+  updateFocusButton();
+  refreshView();
+}
+
+export function setInsightsView(viewId) {
+  setView(viewId);
+}
+
+export function getInsightsSnapshot() {
+  return {
+    fileName: state.fileName,
+    headers: state.headers,
+    rows: state.rows,
+    maps: state.maps,
+    results: state.results,
+    filters,
+    analysisComplete: state.analysisComplete,
+    activeView: state.activeView,
+  };
+}
+
+/**
+ * @param {{ enabled: boolean, start?: Date | null, end?: Date | null, column?: string }} opts
+ */
+export function applyInsightsDateFilter(opts) {
+  filters.dateFilterEnabled = Boolean(opts.enabled);
+  filters.dateFilterStart = opts.start ?? null;
+  filters.dateFilterEnd = opts.end ?? null;
+  if (opts.column) filters.dateFilterColumn = opts.column;
+  if (state.maps && state.rows.length) runAnalyze();
+  else refreshView();
+}
+
+export { handleFile as handleInsightsFile };
 
 window.addEventListener("error", (event) => {
   console.error(event.error ?? event.message);

@@ -1,5 +1,5 @@
 import { loadPortalCss } from "../../../shared/js/router.js?v=20260820-fxpad";
-import { initGlassBox, destroyGlassBox } from "./app.js?v=20260916-xlsxstyle";
+import { initGlassBox, destroyGlassBox } from "./app.js?v=20260923-ghost";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;
@@ -18,12 +18,14 @@ const TEMPLATE = `
       <nav class="gb-nav" id="gb-nav" aria-label="Glass Box"></nav>
 
       <div class="gb-sidebar-foot">
-        <button type="button" class="gb-nav-btn gb-console-toggle" id="gb-btn-console">
-          <img class="gb-nav-icon" src="${new URL("../images/menuicons/Console.png", import.meta.url).href}" width="20" height="20" alt="" />
-          <span class="gb-nav-label">Console</span>
+        <div class="sidebar-user">
+          <p class="sidebar-greeting-hello" data-sidebar-hello>Good Morning</p>
+          <p class="sidebar-greeting-name" data-sidebar-name></p>
+        </div>
+        <button type="button" class="nav-back-hub" id="btn-back-hub">
+          <span class="nav-back-hub-arrow" aria-hidden="true">←</span>
+          Back to hub
         </button>
-        <p class="sidebar-greeting-hello" data-sidebar-hello>Good Morning</p>
-        <p class="sidebar-greeting-name" data-sidebar-name></p>
       </div>
     </aside>
 
@@ -43,6 +45,12 @@ const TEMPLATE = `
       <div class="gb-calendar-host" id="gb-calendar"></div>
       <div class="gb-rail-divider" role="separator" aria-hidden="true"></div>
       <div class="gb-todo-host" id="gb-todo"></div>
+      <div class="gb-rail-foot">
+        <button type="button" class="gb-nav-btn gb-console-toggle" id="gb-btn-console">
+          <img class="gb-nav-icon" src="${new URL("../images/menuicons/Console.png", import.meta.url).href}" width="20" height="20" alt="" />
+          <span class="gb-nav-label">Console</span>
+        </button>
+      </div>
     </aside>
   </div>
 `;
@@ -52,7 +60,7 @@ const TEMPLATE = `
  * @param {{ onHome: () => void }} ctx
  */
 export async function mount(root, ctx) {
-  await loadPortalCss("portals/glassbox/css/portal.css?v=20260820-fxpad");
+  await loadPortalCss("portals/glassbox/css/portal.css?v=20261001-stageall");
   root.innerHTML = TEMPLATE;
   paintSidebarGreeting(root);
   initGlassBox({ onHome: ctx.onHome });

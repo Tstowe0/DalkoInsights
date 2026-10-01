@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="DALKO — Data &amp; Analytics tools. Sign in with your Microsoft account to choose a portal." />
+  <title>DALKO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared/css/theme.css" />
+  <link rel="stylesheet" href="shared/css/shell.css?v=20260918-settings" />
+</head>
+<body>
+  <div class="boot-banner hidden" id="boot-banner" role="alert"></div>
+
+  <section class="insights-hub" id="insights-hub" aria-label="DALKO">
+    <div class="hub-user hidden" id="hub-user">
+      <button type="button" class="hub-settings-btn" id="btn-hub-settings" title="Settings" aria-label="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.75"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.36.21.81.32 1.51.32H21a2 2 0 1 1 0 4h-.09c-.7 0-1.15.11-1.51.32Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button type="button" class="hub-user-btn" id="btn-hub-user" aria-haspopup="menu" aria-expanded="false" aria-controls="hub-user-menu" title="Account">
+        <span id="hub-user-initials">D</span>
+      </button>
+      <div class="hub-user-menu hidden" id="hub-user-menu" role="menu">
+        <p class="hub-user-name" id="hub-user-name"></p>
+        <p class="hub-user-email" id="hub-user-email"></p>
+        <button type="button" class="hub-user-signout" id="btn-sign-out" role="menuitem">Sign out</button>
+      </div>
+    </div>
+    <div class="insights-hub-glow" aria-hidden="true"></div>
+    <div class="portal-menu-card landing-card">
+      <header class="portal-menu-header">
+        <div class="portal-menu-brand">
+          <div class="portal-menu-mark">
+            <img class="portal-menu-logo" src="shared/images/earth.png" width="48" height="48" alt="" />
+          </div>
+          <h1 class="portal-menu-brand-name" id="landing-title">DALKO</h1>
+          <p class="portal-menu-prompt" id="landing-prompt">Let's grow together</p>
+        </div>
+      </header>
+
+      <div class="landing-signin" id="landing-signin">
+        <p class="signin-lead">Continue with your Microsoft account.</p>
+        <p class="signin-error hidden" id="signin-error" role="alert"></p>
+        <button type="button" class="btn btn-primary btn-lg signin-ms-btn" id="btn-signin-ms">
+          <svg class="signin-ms-mark" width="16" height="16" viewBox="0 0 21 21" aria-hidden="true">
+            <rect fill="#f25022" x="1" y="1" width="9" height="9" />
+            <rect fill="#7fba00" x="11" y="1" width="9" height="9" />
+            <rect fill="#00a4ef" x="1" y="11" width="9" height="9" />
+            <rect fill="#ffb900" x="11" y="11" width="9" height="9" />
+          </svg>
+          <span id="signin-ms-label">Sign in with Microsoft</span>
+        </button>
+        <p class="signin-foot">Microsoft will sign you in. Dalko does not ask for or store your password.</p>
+      </div>
+
+      <div class="landing-settings hidden" id="landing-settings">
+        <button type="button" class="settings-back" id="btn-settings-back">
+          <span class="settings-back-arrow" aria-hidden="true">←</span>
+          Back
+        </button>
+        <div class="settings-home" id="settings-home">
+          <div class="settings-list" role="list">
+            <button type="button" class="settings-item" id="btn-settings-api">
+              <span class="settings-item-copy">
+                <span class="settings-item-label">API Integrations</span>
+                <span class="settings-item-desc">Connect outside systems</span>
+              </span>
+              <span class="settings-item-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+        </div>
+        <div class="settings-detail hidden" id="settings-api">
+          <p class="settings-empty">No integrations connected yet.</p>
+        </div>
+      </div>
+
+      <div class="portal-menu-list hidden" id="landing-portals" role="menu">
+        <button type="button" class="portal-menu-item" role="menuitem" data-portal="dalko">
+          <span class="portal-menu-item-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none">
+              <rect x="6" y="28" width="7" height="12" rx="1.5" fill="currentColor" opacity="0.55" />
+              <rect x="16.5" y="18" width="7" height="22" rx="1.5" fill="currentColor" opacity="0.8" />
+              <rect x="27" y="10" width="7" height="30" rx="1.5" fill="currentColor" />
+              <rect x="37.5" y="22" width="7" height="18" rx="1.5" fill="currentColor" opacity="0.7" />
+            </svg>
+          </span>
+          <span class="portal-menu-item-copy">
+            <span class="portal-menu-item-label">DALKO Insights</span>
+            <span class="portal-menu-item-desc">TMS dashboard</span>
+          </span>
+        </button>
+        <button type="button" class="portal-menu-item" role="menuitem" data-portal="glassbox">
+          <span class="portal-menu-item-icon portal-menu-item-icon-logo" aria-hidden="true">
+            <img src="portals/glassbox/images/logo.png" width="48" height="48" alt="" />
+          </span>
+          <span class="portal-menu-item-copy">
+            <span class="portal-menu-item-label">Glass Box</span>
+            <span class="portal-menu-item-desc">Reports &amp; tools</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div id="portal-root" aria-live="polite"></div>
+
+  <div class="loading-overlay hidden" id="loading-overlay" aria-live="polite">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <p id="loading-message">Working…</p>
+      <p class="loading-detail" id="loading-detail"></p>
+      <div class="loading-progress hidden" id="loading-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="loading-progress-track">
+          <div class="loading-progress-fill" id="loading-progress-fill"></div>
+        </div>
+        <span class="loading-progress-pct" id="loading-progress-pct">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="shared/js/shell.js?v=20260918-settings"></script>
+</body>
+</html>

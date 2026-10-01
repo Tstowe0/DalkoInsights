@@ -2,7 +2,7 @@
  * Carrier On Time Merger — web port matching Python Glass Box v6.2.0 exactly.
  */
 
-import { mountToolShell } from "../_shared/tool-shell.js";
+import { mountAboutSlide } from "../_shared/about-slide.js";
 import {
   ensureXlsx,
   readFileBuffer,
@@ -26,30 +26,6 @@ export const meta = {
   category: "Client Reports",
   script: "Client Reports/Carrier On Time Merger.js",
 };
-
-const INSTRUCTIONS = `
-Concept:
-Builds or updates On Time reports by merging carrier-provided delay/service codes
-with TMS Data Dump data. Uses transit-based on-time logic (ACTUAL TRANSIT DAYS vs
-EXPECTED TRANSIT DAYS) and treats EARLY shipments as ON-TIME for percentage calculations.
-Supports two modes: creating new reports from data dumps or updating existing reports
-with carrier-provided delay codes.
-
-Workflow:
-1. NEW REPORT (Dump Mode)
-   - Upload a TMS Data Dump for the previous month using the Ship Date. (Using Invoice date will not match carrier reports)
-   - Tool generates a new 'On Time' dataset with Early/Late results.
-
-2. UPDATE EXISTING REPORT (Append Mode)
-   - Upload an existing On Time report (with Carrier Reason column).
-   - Upload one carrier file (RLCA, FedEx, etc.).
-   - Tool merges new reasons into the existing report.
-
-Carrier Merge Hierarchy:
-1. Existing reasons from prior report
-2. Dump-derived reasons (if present)
-3. Carrier file reasons (most recent)
-`.trim();
 
 /**
  * Read first usable sheet to rows + header order.
@@ -91,96 +67,100 @@ function readSheetObjects(buffer, opts = {}) {
  * @param {{ onBack: () => void, log: (msg: string) => void }} ctx
  */
 export async function loadGui(parent, ctx) {
-  const shell = mountToolShell(parent, {
-    title: meta.title,
-    category: meta.category,
-    instructions: INSTRUCTIONS,
-    onBack: ctx.onBack,
-    log: ctx.log,
-  });
-
-  shell.setStatus("Ready");
-  shell.body.innerHTML = `
-    <div class="gb-ws">
-      <section class="gb-ws-step">
-        <header class="gb-ws-step-head">
-          <span class="gb-ws-step-num" aria-hidden="true">1</span>
-          <div class="gb-ws-step-titles">
-            <h4 class="gb-ws-step-title">Base file</h4>
-            <p class="gb-ws-step-hint">TMS Data Dump or existing On Time output</p>
-          </div>
-        </header>
-        <div class="gb-ws-step-body">
-          <div class="gb-ws-file">
-            <p class="gb-ws-file-name" data-base-label>No file selected</p>
-            <div class="gb-ws-file-actions">
-              <input type="file" hidden data-base-input accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
-              <button type="button" class="btn btn-secondary" data-base-browse>Browse</button>
-              <button type="button" class="btn btn-ghost" data-base-clear>Clear</button>
+  parent.innerHTML = `
+    <section class="gb-tool gb-tool--stage" data-tool="${meta.title}">
+      <div class="gb-stage">
+        <section class="gb-stage-guide" aria-label="How to use this tool">
+          <header class="gb-stage-bar">
+            <h2 class="gb-tool-title">${meta.title}</h2>
+            <div class="gb-tool-header-actions">
+              <div data-about-slot></div>
             </div>
-          </div>
-          <p class="gb-cot-mode" data-base-mode></p>
-        </div>
-      </section>
-
-      <section class="gb-ws-step">
-        <header class="gb-ws-step-head">
-          <span class="gb-ws-step-num" aria-hidden="true">2</span>
-          <div class="gb-ws-step-titles">
-            <h4 class="gb-ws-step-title">Carrier file</h4>
-            <p class="gb-ws-step-hint">Optional — RLCA / FedEx delay codes</p>
-          </div>
-        </header>
-        <div class="gb-ws-step-body">
-          <div class="gb-ws-file">
-            <p class="gb-ws-file-name" data-carrier-label>No carrier file selected</p>
-            <div class="gb-ws-file-actions">
-              <input type="file" hidden data-carrier-input accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
-              <button type="button" class="btn btn-secondary" data-carrier-browse>Browse</button>
-              <button type="button" class="btn btn-ghost" data-carrier-clear>Clear</button>
+          </header>
+          <p class="gb-stage-lead">Builds or updates On Time reports by merging carrier delay codes with a TMS Data Dump. Early shipments count as on time.</p>
+          <p class="gb-stage-kicker">How to use</p>
+          <ol class="gb-stage-steps">
+            <li><span class="gb-stage-num" aria-hidden="true">1</span><p>New report: upload a TMS Data Dump for the previous month using Ship Date.</p></li>
+            <li><span class="gb-stage-num" aria-hidden="true">2</span><p>Update a report: upload an existing On Time file, then one carrier file.</p></li>
+            <li><span class="gb-stage-num" aria-hidden="true">3</span><p>Reasons merge in this order: existing report, dump, then the carrier file.</p></li>
+          </ol>
+        </section>
+        <div class="gb-stage-work">
+          <div class="gb-stage-split">
+            <div class="gb-stage-well" data-base-well>
+              <p class="gb-stage-kicker">Base file</p>
+              <p class="gb-stage-file" data-base-label>No file selected</p>
+              <p class="gb-stage-hint" data-base-mode>TMS Data Dump or existing On Time output</p>
+              <div class="gb-stage-file-actions">
+                <input type="file" hidden data-base-input accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+                <button type="button" class="btn btn-secondary" data-base-browse>Browse</button>
+                <button type="button" class="btn btn-ghost" data-base-clear>Clear</button>
+                <button type="button" class="btn btn-primary" data-run disabled>Run</button>
+              </div>
+            </div>
+            <div class="gb-stage-well">
+              <p class="gb-stage-kicker">Carrier file</p>
+              <p class="gb-stage-file" data-carrier-label>No carrier file selected</p>
+              <p class="gb-stage-hint">Optional — RLCA / FedEx delay codes</p>
+              <div class="gb-stage-file-actions">
+                <input type="file" hidden data-carrier-input accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+                <button type="button" class="btn btn-secondary" data-carrier-browse>Browse</button>
+                <button type="button" class="btn btn-ghost" data-carrier-clear>Clear</button>
+              </div>
             </div>
           </div>
         </div>
-      </section>
-
-      <footer class="gb-ws-actions">
-        <button type="button" class="btn btn-primary" data-run disabled>Run</button>
-      </footer>
-    </div>
+      </div>
+    </section>
   `;
+
+  const aboutSlot = parent.querySelector("[data-about-slot]");
+  if (aboutSlot instanceof HTMLElement) {
+    try {
+      mountAboutSlide(aboutSlot, { title: meta.title });
+    } catch (err) {
+      ctx.log(`About control failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  const shellBody = parent;
 
   /** @type {{ headers: string[], rows: Record<string, unknown>[], mode: "dump" | "append", name: string } | null} */
   let base = null;
   /** @type {{ headers: string[], rows: Record<string, unknown>[], name: string } | null} */
   let carrier = null;
 
-  const baseInput = /** @type {HTMLInputElement} */ (shell.body.querySelector("[data-base-input]"));
-  const carrierInput = /** @type {HTMLInputElement} */ (shell.body.querySelector("[data-carrier-input]"));
-  const baseLabel = /** @type {HTMLElement} */ (shell.body.querySelector("[data-base-label]"));
-  const baseMode = /** @type {HTMLElement} */ (shell.body.querySelector("[data-base-mode]"));
-  const carrierLabel = /** @type {HTMLElement} */ (shell.body.querySelector("[data-carrier-label]"));
-  const runBtn = /** @type {HTMLButtonElement} */ (shell.body.querySelector("[data-run]"));
+  const baseInput = /** @type {HTMLInputElement} */ (shellBody.querySelector("[data-base-input]"));
+  const carrierInput = /** @type {HTMLInputElement} */ (shellBody.querySelector("[data-carrier-input]"));
+  const baseLabel = /** @type {HTMLElement} */ (shellBody.querySelector("[data-base-label]"));
+  const baseMode = /** @type {HTMLElement} */ (shellBody.querySelector("[data-base-mode]"));
+  const baseWell = /** @type {HTMLElement} */ (shellBody.querySelector("[data-base-well]"));
+  const carrierLabel = /** @type {HTMLElement} */ (shellBody.querySelector("[data-carrier-label]"));
+  const carrierWell = carrierLabel.closest(".gb-stage-well");
+  const runBtn = /** @type {HTMLButtonElement} */ (shellBody.querySelector("[data-run]"));
 
   const syncRun = () => {
     runBtn.disabled = !base;
   };
 
-  shell.body.querySelector("[data-base-browse]")?.addEventListener("click", () => baseInput.click());
-  shell.body.querySelector("[data-carrier-browse]")?.addEventListener("click", () => carrierInput.click());
+  shellBody.querySelector("[data-base-browse]")?.addEventListener("click", () => baseInput.click());
+  shellBody.querySelector("[data-carrier-browse]")?.addEventListener("click", () => carrierInput.click());
 
-  shell.body.querySelector("[data-base-clear]")?.addEventListener("click", () => {
+  shellBody.querySelector("[data-base-clear]")?.addEventListener("click", () => {
     base = null;
     baseInput.value = "";
     baseLabel.textContent = "No file selected";
-    baseMode.textContent = "";
+    baseMode.textContent = "TMS Data Dump or existing On Time output";
+    baseWell.classList.remove("is-ready");
     syncRun();
     ctx.log("Base file cleared.");
   });
 
-  shell.body.querySelector("[data-carrier-clear]")?.addEventListener("click", () => {
+  shellBody.querySelector("[data-carrier-clear]")?.addEventListener("click", () => {
     carrier = null;
     carrierInput.value = "";
     carrierLabel.textContent = "No carrier file selected";
+    carrierWell?.classList.remove("is-ready");
     ctx.log("Carrier file cleared.");
   });
 
@@ -199,10 +179,11 @@ export async function loadGui(parent, ctx) {
         mode: append ? "append" : "dump",
         name: file.name,
       };
-      baseLabel.textContent = `Loaded: ${file.name}`;
+      baseLabel.textContent = file.name;
       baseMode.textContent = append
-        ? "Mode: Append (existing On Time output)"
-        : "Mode: Dump (TMS Data Dump)";
+        ? "Append — existing On Time output"
+        : "Dump — TMS Data Dump";
+      baseWell.classList.add("is-ready");
       ctx.log(
         append
           ? `Loaded existing On Time output: ${file.name} (${rows.length.toLocaleString()} rows)`
@@ -212,7 +193,8 @@ export async function loadGui(parent, ctx) {
     } catch (err) {
       base = null;
       baseLabel.textContent = "No file selected";
-      baseMode.textContent = "";
+      baseMode.textContent = "TMS Data Dump or existing On Time output";
+      baseWell.classList.remove("is-ready");
       syncRun();
       ctx.log(`Error loading base file: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -228,10 +210,12 @@ export async function loadGui(parent, ctx) {
       if (!headers.length) throw new Error("Carrier file has no headers.");
       carrier = { headers, rows, name: file.name };
       carrierLabel.textContent = file.name;
+      carrierWell?.classList.add("is-ready");
       ctx.log(`Loaded carrier file: ${file.name} (sheet: ${sheetName}, ${rows.length.toLocaleString()} rows)`);
     } catch (err) {
       carrier = null;
       carrierLabel.textContent = "No carrier file selected";
+      carrierWell?.classList.remove("is-ready");
       ctx.log(`Failed to load carrier file: ${err instanceof Error ? err.message : String(err)}`);
     }
   });
@@ -244,7 +228,6 @@ export async function loadGui(parent, ctx) {
 
     runBtn.disabled = true;
     runBtn.textContent = "Processing…";
-    shell.setStatus("Processing…");
     ctx.log("Carrier On Time Merger — Process Started");
     ctx.log("----------------------------------------------");
 
@@ -297,10 +280,8 @@ export async function loadGui(parent, ctx) {
 
       ctx.log("----------------------------------------------");
       ctx.log(`Process complete. ${finalRows.length.toLocaleString()} rows → ${name}`);
-      shell.setStatus("Complete");
     } catch (err) {
       ctx.log(`Error: ${err instanceof Error ? err.message : String(err)}`);
-      shell.setStatus("Error");
     } finally {
       runBtn.textContent = "Run";
       syncRun();

@@ -1,5 +1,5 @@
 import { getValue, safeFloat, monthKeyFromDateValue } from "../data/context.js";
-import { analyzeAccessorialsByPosition } from "./accessorials.js?v=20260916-focusui";
+import { analyzeAccessorialsByPosition } from "./accessorials.js?v=20261001-accfocus";
 
 const MIN_LOADS_FOR_Z_SCORE = 10;
 
@@ -13,9 +13,10 @@ function entityKey(value) {
  * @param {unknown[][]} rows
  * @param {import("../data/context.js").HeaderMaps} maps
  * @param {unknown[]} headers
+ * @param {string[] | null} [accessorialTypes]
  */
-export function runAnalysis(rows, maps, headers) {
-  const accessorials = analyzeAccessorialsByPosition(rows, headers, maps);
+export function runAnalysis(rows, maps, headers, accessorialTypes = null) {
+  const accessorials = analyzeAccessorialsByPosition(rows, headers, maps, accessorialTypes);
   return {
     executive: analyzeExecutive(rows, maps, accessorials.kpis),
     customers: analyzeCustomers(rows, maps),

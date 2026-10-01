@@ -9,10 +9,10 @@ ES modules require a local web server (opening `index.html` directly may block m
 Double-click `run-server.bat`, or from this folder:
 
 ```powershell
-python -m http.server 8080
+python tools/dat-proxy.py
 ```
 
-Then open [http://localhost:8080](http://localhost:8080).
+Then open [http://localhost:8080](http://localhost:8080). That one process serves the site and the DAT RateView / FMCSA QCMobile API. Credentials stay in `.env.dat.staging` and are not sent to the page.
 
 ## Microsoft sign-in
 

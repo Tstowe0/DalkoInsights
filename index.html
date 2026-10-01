@@ -1,86 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="harbor" data-shell="merged">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="DALKO — Data &amp; Analytics tools. Sign in with your Microsoft account to choose a portal." />
-  <title>DALKO</title>
+  <meta name="description" content="DALKO — Insights and Glass Box in one home." />
+  <title>DALKO Insights</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="shared/css/theme.css" />
-  <link rel="stylesheet" href="shared/css/shell.css?v=20260915-land" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared/css/theme.css?v=20261001-daybreak" />
+  <link rel="stylesheet" href="portals/dalko/css/portal.css?v=20261001-focusbold" />
+  <link rel="stylesheet" href="portals/glassbox/css/portal.css?v=20261001-stageall" />
+  <link rel="stylesheet" href="shared/css/index-test.css?v=20261001-calgrid" />
+  <script>
+    try {
+      var themeId = localStorage.getItem("dalko-shell-theme");
+      var known = {
+        harbor: 1,
+        "midnight-gold": 1,
+        "ocean-steel": 1,
+        "night-void": 1,
+        "forest-pine": 1,
+        "ember-forge": 1,
+        "graphite-lime": 1,
+        "slate-coral": 1,
+        "hallowed-night": 1,
+        "yule-night": 1,
+      };
+      if (themeId && known[themeId]) {
+        document.documentElement.dataset.theme = themeId;
+        document.documentElement.style.colorScheme = themeId === "harbor" ? "light" : "dark";
+      }
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <div class="boot-banner hidden" id="boot-banner" role="alert"></div>
-
-  <section class="insights-hub" id="insights-hub" aria-label="DALKO">
-    <div class="hub-user hidden" id="hub-user">
-      <button type="button" class="hub-user-btn" id="btn-hub-user" aria-haspopup="menu" aria-expanded="false" aria-controls="hub-user-menu" title="Account">
-        <span id="hub-user-initials">D</span>
-      </button>
-      <div class="hub-user-menu hidden" id="hub-user-menu" role="menu">
-        <p class="hub-user-name" id="hub-user-name"></p>
-        <p class="hub-user-email" id="hub-user-email"></p>
-        <button type="button" class="hub-user-signout" id="btn-sign-out" role="menuitem">Sign out</button>
+  <section class="splash" id="splash" aria-labelledby="splash-title">
+    <div class="splash-card">
+      <div class="splash-mark-wrap">
+        <img class="splash-mark" src="shared/images/earth.png" width="72" height="72" alt="" />
       </div>
+      <h1 class="splash-title" id="splash-title">Welcome to DALKO Insights!</h1>
+      <p class="splash-error hidden" id="splash-error" role="alert"></p>
+      <button type="button" class="btn btn-primary splash-signin" id="btn-splash-signin" disabled>
+        <svg class="splash-ms" width="16" height="16" viewBox="0 0 21 21" aria-hidden="true">
+          <rect fill="#f25022" x="1" y="1" width="9" height="9" />
+          <rect fill="#7fba00" x="11" y="1" width="9" height="9" />
+          <rect fill="#00a4ef" x="1" y="11" width="9" height="9" />
+          <rect fill="#ffb900" x="11" y="11" width="9" height="9" />
+        </svg>
+        Sign in with Microsoft
+      </button>
     </div>
-    <div class="insights-hub-glow" aria-hidden="true"></div>
-    <div class="portal-menu-card landing-card">
-      <header class="portal-menu-header">
-        <div class="portal-menu-brand">
-          <div class="portal-menu-mark">
-            <img class="portal-menu-logo" src="shared/images/earth.png" width="48" height="48" alt="" />
+  </section>
+  <div class="app" aria-hidden="true">
+    <aside class="sidebar" aria-label="DALKO">
+      <div class="brand">
+        <img class="brand-mark" src="shared/images/earth.png" width="32" height="32" alt="" />
+        <div class="brand-hello">
+          <p class="brand-name" id="brand-hello">Hello!</p>
+          <button type="button" class="brand-signout" id="btn-brand-signout">Sign out</button>
+        </div>
+        <div class="menu brand-alerts" data-menu="alerts">
+          <button type="button" class="icon-btn" id="alert-btn" aria-label="Notifications" aria-expanded="false">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+              <path d="M10 18.5a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+            <span class="dot hidden" id="alert-dot"></span>
+          </button>
+          <div class="menu-pop alerts-pop" id="alert-list" hidden>
+            <div class="alerts-head">
+              <h2>Notifications</h2>
+              <span class="alerts-count is-zero">0</span>
+            </div>
+            <div class="alerts-empty">
+              <p><strong>All clear</strong></p>
+              <p>No connection issues right now.</p>
+            </div>
           </div>
-          <h1 class="portal-menu-brand-name" id="landing-title">DALKO</h1>
-          <p class="portal-menu-prompt" id="landing-prompt">Let's grow together</p>
+        </div>
+      </div>
+
+      <nav class="nav" id="app-nav">
+        <button type="button" class="nav-item is-active" data-view="home">
+          <span class="nav-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          </span>
+          Today
+        </button>
+
+        <button type="button" class="nav-item" data-view="client-reports">
+          <span class="nav-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M7 3.5h7l5 5V20a1.5 1.5 0 0 1-1.5 1.5h-10.5A1.5 1.5 0 0 1 5.5 20V5A1.5 1.5 0 0 1 7 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3.5V9h5.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8.5 13h7M8.5 16.5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </span>
+          Reports
+        </button>
+
+        <button type="button" class="nav-item" data-view="client-uploads">
+          <span class="nav-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 16V6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.5 9.5 12 6l3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 16.5V19a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 19v-2.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </span>
+          Client Uploads
+        </button>
+
+        <button type="button" class="nav-item" data-view="insights">
+          <span class="nav-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9M10 19V5M16 19v-8M22 19H2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 9c2.2-3 4.4-4 6-4 3 0 3 6 6 6 1.6 0 3.8-1 6-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </span>
+          DALKO Insights
+        </button>
+
+        <div class="nav-group" data-group="tools">
+          <button type="button" class="nav-group-btn" data-toggle="tools" aria-expanded="false">
+            <span class="nav-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 4h10a2 2 0 0 1 2 2v3H5V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7"/><path d="M5 9h14v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9Z" stroke="currentColor" stroke-width="1.7"/><path d="M9 13h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </span>
+            Tools
+            <span class="chevron" aria-hidden="true"></span>
+          </button>
+          <div class="nav-sub">
+            <button type="button" class="nav-sub-item" data-view="accounting">Accounting</button>
+            <button type="button" class="nav-sub-item" data-view="tracking">Tracking Apps</button>
+            <button type="button" class="nav-sub-item" data-view="ops">Ops Apps</button>
+            <button type="button" class="nav-sub-item" data-view="data-tools">Data Tools</button>
+            <button type="button" class="nav-sub-item" data-view="carrier-search">Carrier Search</button>
+            <button type="button" class="nav-sub-item" data-view="zip-calculator">Zip Calculator</button>
+            <button type="button" class="nav-sub-item" data-view="currency-converter">Currency Converter</button>
+          </div>
+        </div>
+
+        <div class="nav-group" data-group="settings">
+          <button type="button" class="nav-group-btn" data-toggle="settings" aria-expanded="false">
+            <span class="nav-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M12 3.5v2.2M12 18.3v2.2M4.9 6.5l1.6 1.6M17.5 15.9l1.6 1.6M3.5 12h2.2M18.3 12h2.2M4.9 17.5l1.6-1.6M17.5 8.1l1.6-1.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </span>
+            Settings
+            <span class="chevron" aria-hidden="true"></span>
+          </button>
+          <div class="nav-sub">
+            <button type="button" class="nav-sub-item" data-view="changelog">Change log</button>
+            <button type="button" class="nav-sub-item" data-view="integrations">Integrations</button>
+            <button type="button" class="nav-sub-item" data-view="permissions">Permissions</button>
+            <button type="button" class="nav-sub-item" data-view="themes">Themes</button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="sidebar-cal-wrap">
+        <div class="hallow-tombs" aria-hidden="true">
+          <span class="hallow-tomb hallow-tomb-a"><i></i></span>
+          <span class="hallow-tomb hallow-tomb-b"><i></i></span>
+          <span class="hallow-tomb hallow-tomb-c"><i></i></span>
+          <span class="hallow-pumpkin"></span>
+        </div>
+        <div class="yule-scene" aria-hidden="true">
+          <span class="yule-gift yule-gift-a"></span>
+          <span class="yule-tree-mark">
+            <span class="yule-star"></span>
+            <span class="yule-layer yule-l1"></span>
+            <span class="yule-layer yule-l2"></span>
+            <span class="yule-layer yule-l3"></span>
+            <span class="yule-orn yule-orn-a"></span>
+            <span class="yule-orn yule-orn-b"></span>
+            <span class="yule-orn yule-orn-c"></span>
+            <span class="yule-trunk"></span>
+          </span>
+          <span class="yule-gift yule-gift-b"></span>
+          <span class="yule-gift yule-gift-c"></span>
+        </div>
+        <button type="button" class="sidebar-console" id="gb-btn-console" aria-pressed="false">Console</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-right">
+          <p class="status-text" id="status-text"></p>
+          <button type="button" class="chip-btn hidden" id="btn-clear-focus" hidden>Clear focus</button>
         </div>
       </header>
 
-      <div class="landing-signin" id="landing-signin">
-        <p class="signin-lead">Continue with your Microsoft account.</p>
-        <p class="signin-error hidden" id="signin-error" role="alert"></p>
-        <button type="button" class="btn btn-primary btn-lg signin-ms-btn" id="btn-signin-ms">
-          <svg class="signin-ms-mark" width="16" height="16" viewBox="0 0 21 21" aria-hidden="true">
-            <rect fill="#f25022" x="1" y="1" width="9" height="9" />
-            <rect fill="#7fba00" x="11" y="1" width="9" height="9" />
-            <rect fill="#00a4ef" x="1" y="11" width="9" height="9" />
-            <rect fill="#ffb900" x="11" y="11" width="9" height="9" />
-          </svg>
-          <span id="signin-ms-label">Sign in with Microsoft</span>
-        </button>
-        <p class="signin-foot">Microsoft will sign you in. Dalko does not ask for or store your password.</p>
-      </div>
-
-      <div class="portal-menu-list hidden" id="landing-portals" role="menu">
-        <button type="button" class="portal-menu-item" role="menuitem" data-portal="dalko">
-          <span class="portal-menu-item-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" fill="none">
-              <rect x="6" y="28" width="7" height="12" rx="1.5" fill="currentColor" opacity="0.55" />
-              <rect x="16.5" y="18" width="7" height="22" rx="1.5" fill="currentColor" opacity="0.8" />
-              <rect x="27" y="10" width="7" height="30" rx="1.5" fill="currentColor" />
-              <rect x="37.5" y="22" width="7" height="18" rx="1.5" fill="currentColor" opacity="0.7" />
-            </svg>
-          </span>
-          <span class="portal-menu-item-copy">
-            <span class="portal-menu-item-label">Insights</span>
-            <span class="portal-menu-item-desc">TMS dashboard</span>
-          </span>
-        </button>
-        <button type="button" class="portal-menu-item" role="menuitem" data-portal="glassbox">
-          <span class="portal-menu-item-icon portal-menu-item-icon-logo" aria-hidden="true">
-            <img src="portals/glassbox/images/logo.png" width="48" height="48" alt="" />
-          </span>
-          <span class="portal-menu-item-copy">
-            <span class="portal-menu-item-label">Glass Box</span>
-            <span class="portal-menu-item-desc">Reports &amp; tools</span>
-          </span>
-        </button>
+      <div class="page" id="page" tabindex="-1">
+        <div class="home-root" id="home-root"></div>
+        <div class="insights-host hidden" id="insights-host">
+          <div class="insights-bar">
+            <nav class="insights-inner-nav" id="main-nav" aria-label="DALKO Insights"></nav>
+            <div class="insights-actions">
+              <p class="insights-status" id="insights-status" hidden></p>
+              <button type="button" class="chip-btn chip-primary" id="btn-upload">Upload TMS</button>
+              <button type="button" class="chip-btn hidden" id="btn-clear-data" hidden>Clear data</button>
+              <input type="file" id="file-input" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden />
+            </div>
+          </div>
+          <div class="content-workspace" id="content-workspace">
+            <main class="content" id="main-content">
+              <div class="view-root" id="view-root"></div>
+            </main>
+            <aside class="right-rail hidden" id="right-rail" aria-label="Summary"></aside>
+          </div>
+        </div>
+        <div class="tools-host hidden" id="tools-host">
+          <div class="gb-workspace" id="gb-workspace" tabindex="-1"></div>
+        </div>
+        <div class="home-root settings-root hidden" id="settings-root"></div>
+        <section class="gb-console hidden" id="gb-console" aria-label="Console">
+          <header class="gb-console-bar">
+            <span>Console</span>
+            <button type="button" class="gb-console-x" id="gb-console-close" aria-label="Close console">✕</button>
+          </header>
+          <div class="gb-console-body" id="gb-console-body"></div>
+        </section>
       </div>
     </div>
-  </section>
-
-  <div id="portal-root" aria-live="polite"></div>
+  </div>
 
   <div class="loading-overlay hidden" id="loading-overlay" aria-live="polite">
     <div class="loading-card">
@@ -96,6 +230,8 @@
     </div>
   </div>
 
-  <script type="module" src="shared/js/shell.js?v=20260915-land"></script>
+  <script src="shared/vendor/xlsx-js-style.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script type="module" src="shared/js/index-test.js?v=20261001-log185"></script>
 </body>
 </html>

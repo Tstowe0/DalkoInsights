@@ -1,5 +1,5 @@
 import { loadPortalCss } from "../../../shared/js/router.js";
-import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20260916-xlsxstyle";
+import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20261001-focusbold";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../../../shared/images/earth.png", import.meta.url).href;
@@ -16,15 +16,17 @@ const TEMPLATE = `
           <div class="brand-tagline">Let's grow together</div>
         </div>
       </button>
-      <button type="button" class="nav-back-hub" id="btn-back-hub">
-        <span class="nav-back-hub-arrow" aria-hidden="true">←</span>
-        Back to hub
-      </button>
       <p class="nav-heading">Menu</p>
       <nav class="nav" id="main-nav" aria-label="Main"></nav>
       <div class="sidebar-foot">
-        <p class="sidebar-greeting-hello" data-sidebar-hello>Good Morning</p>
-        <p class="sidebar-greeting-name" data-sidebar-name></p>
+        <div class="sidebar-user">
+          <p class="sidebar-greeting-hello" data-sidebar-hello>Good Morning</p>
+          <p class="sidebar-greeting-name" data-sidebar-name></p>
+        </div>
+        <button type="button" class="nav-back-hub" id="btn-back-hub">
+          <span class="nav-back-hub-arrow" aria-hidden="true">←</span>
+          Back to hub
+        </button>
       </div>
     </aside>
 
@@ -35,7 +37,7 @@ const TEMPLATE = `
             <span class="search-icon" aria-hidden="true">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </span>
-            <input type="search" id="table-search" class="search-input" placeholder="Search customers, carriers, lanes, cities in this view…" autocomplete="off" />
+            <input type="text" id="table-search" class="search-input" placeholder="Search this view…" autocomplete="off" />
           </label>
           <div class="topbar-actions">
             <p class="topbar-status" id="status-text" aria-live="polite"></p>
@@ -79,7 +81,7 @@ function loadScript(src) {
  * @param {{ onHome: () => void }} ctx
  */
 export async function mount(root, ctx) {
-  await loadPortalCss("portals/dalko/css/portal.css?v=20260916-bugsweep");
+  await loadPortalCss("portals/dalko/css/portal.css?v=20261001-focusbold");
 
   await Promise.all([
     loadScript("shared/vendor/xlsx-js-style.min.js"),

@@ -1,4 +1,4 @@
-/** Theme colors — match css/app.css (concept palette) */
+/** Theme colors — CSS variables with midnight-gold fallbacks. */
 const GOLD = "#d9ae42";
 const GOLD_BRIGHT = "#f0c14a";
 const GOLD_DEEP = "#b8922a";
@@ -7,23 +7,82 @@ const NAVY_BLUE = "#5a7fc4";
 const NAVY_DEEP = "#243656";
 const TRIM_STROKE = "#030508";
 
+/** @param {string} name @param {string} fallback */
+function cssVar(name, fallback) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
+function isCorporate() {
+  return cssVar("--chart-style", "") === "corporate";
+}
+
+/** @param {string} color @param {number} alpha */
+function withAlpha(color, alpha) {
+  const c = color.trim();
+  const hex = c.startsWith("#") ? c.slice(1) : "";
+  if (hex.length === 3 || hex.length === 6) {
+    const n = hex.length === 3 ? hex.split("").map((ch) => ch + ch).join("") : hex;
+    return `rgba(${parseInt(n.slice(0, 2), 16)}, ${parseInt(n.slice(2, 4), 16)}, ${parseInt(n.slice(4, 6), 16)}, ${alpha})`;
+  }
+  const rgb = c.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
+  if (rgb) return `rgba(${rgb[1]}, ${rgb[2]}, ${rgb[3]}, ${alpha})`;
+  return color;
+}
+
+function palette() {
+  const accent = cssVar("--accent", GOLD);
+  const accentBright = cssVar("--accent-bright", GOLD_BRIGHT);
+  const accentOrange = cssVar("--accent-orange", GOLD_ORANGE);
+  const accentBlue = cssVar("--accent-blue", NAVY_BLUE);
+  return {
+    accent,
+    accentBright,
+    accentDeep: cssVar("--accent-deep", GOLD_DEEP),
+    accentOrange,
+    accentBlue,
+    navyDeep: cssVar("--chart-navy-deep", NAVY_DEEP),
+    trim: cssVar("--chart-label-stroke", TRIM_STROKE),
+    tick: cssVar("--chart-tick", "#9aa3b8"),
+    grid: cssVar("--chart-grid", "rgba(255,255,255,0.05)"),
+    tooltipBg: cssVar("--chart-tooltip-bg", "#101a2e"),
+    tooltipTitle: cssVar("--chart-tooltip-title", "#ffffff"),
+    tooltipBody: cssVar("--chart-tooltip-body", "#8b9cb8"),
+    tooltipBorder: cssVar("--chart-tooltip-border", "rgba(217, 174, 66, 0.28)"),
+    pointBorder: cssVar("--chart-point-border", "#0c1322"),
+    text: cssVar("--text", GOLD_BRIGHT),
+    danger: cssVar("--accent-red", "#ef6b6b"),
+    barTop: withAlpha(accentBright, isCorporate() ? 0.88 : 0.95),
+    barMid: withAlpha(accent, isCorporate() ? 0.72 : 0.92),
+    barBot: withAlpha(accentOrange, isCorporate() ? 0.55 : 0.78),
+    fillBlue: withAlpha(accentBlue, 0.12),
+  };
+}
+
 /** @param {CanvasRenderingContext2D} ctx @param {string} text @param {number} x @param {number} y @param {string} font */
 function drawGoldTrimmedLabel(ctx, text, x, y, font) {
+  const p = palette();
   ctx.font = font;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  if (isCorporate()) {
+    ctx.fillStyle = p.text;
+    ctx.fillText(text, x, y);
+    return;
+  }
   ctx.lineJoin = "round";
   ctx.lineWidth = 2.25;
-  ctx.strokeStyle = TRIM_STROKE;
+  ctx.strokeStyle = p.trim;
   ctx.strokeText(text, x, y);
-  ctx.fillStyle = GOLD_BRIGHT;
+  ctx.fillStyle = p.accentBright;
   ctx.fillText(text, x, y);
 }
 
 /** @param {number[]} values @param {string} [stroke] */
-export function sparklineSvg(values, stroke = GOLD_BRIGHT) {
+export function sparklineSvg(values, stroke) {
+  const line = stroke || palette().accentBright;
   if (!values.length) {
-    return `<svg class="sparkline" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 14 H80" stroke="${stroke}" stroke-opacity="0.2" fill="none"/></svg>`;
+    return `<svg class="sparkline" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 14 H80" stroke="${line}" stroke-opacity="0.2" fill="none"/></svg>`;
   }
   const w = 80;
   const h = 28;
@@ -41,17 +100,18 @@ export function sparklineSvg(values, stroke = GOLD_BRIGHT) {
   return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
     <defs>
       <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${stroke}" stop-opacity="0.35"/>
-        <stop offset="100%" stop-color="${stroke}" stop-opacity="0.02"/>
+        <stop offset="0%" stop-color="${line}" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="${line}" stop-opacity="0.02"/>
       </linearGradient>
     </defs>
     <path class="spark-area" d="${area}" fill="url(#${gradId})"/>
-    <polyline class="spark-line" points="${pts.join(" ")}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline class="spark-line" points="${pts.join(" ")}" fill="none" stroke="${line}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
 
 /** Shared compact options for right-rail charts */
 function railBaseOptions(/** @type {object} */ extra = {}) {
+  const p = palette();
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -59,10 +119,10 @@ function railBaseOptions(/** @type {object} */ extra = {}) {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: "#101a2e",
-        titleColor: "#ffffff",
-        bodyColor: "#8b9cb8",
-        borderColor: "rgba(217, 174, 66, 0.28)",
+        backgroundColor: p.tooltipBg,
+        titleColor: p.tooltipTitle,
+        bodyColor: p.tooltipBody,
+        borderColor: p.tooltipBorder,
         borderWidth: 1,
         padding: 8,
         cornerRadius: 8,
@@ -93,9 +153,10 @@ export function renderRailSummaryChart(canvas, data) {
   const profit = data.profit.slice(-n);
   if (!labels.length) return null;
 
+  const p = palette();
   const goldGrad = ctx.createLinearGradient(0, 0, 0, 120);
-  goldGrad.addColorStop(0, "rgba(240, 193, 74, 0.95)");
-  goldGrad.addColorStop(1, "rgba(232, 160, 69, 0.75)");
+  goldGrad.addColorStop(0, p.barTop);
+  goldGrad.addColorStop(1, p.barBot);
 
   return new Chart(ctx, {
     type: "bar",
@@ -108,18 +169,19 @@ export function renderRailSummaryChart(canvas, data) {
           backgroundColor: goldGrad,
           borderRadius: 4,
           borderSkipped: false,
+          maxBarThickness: isCorporate() ? 28 : undefined,
           order: 2,
         },
         {
           label: "Profit",
           data: profit,
           type: "line",
-          borderColor: NAVY_BLUE,
-          backgroundColor: "rgba(107, 143, 212, 0.12)",
+          borderColor: p.accentBlue,
+          backgroundColor: p.fillBlue,
           borderWidth: 2,
           tension: 0.35,
           pointRadius: 2,
-          pointBackgroundColor: GOLD_BRIGHT,
+          pointBackgroundColor: p.accentBright,
           fill: true,
           order: 1,
         },
@@ -134,7 +196,7 @@ export function renderRailSummaryChart(canvas, data) {
           display: true,
           position: "bottom",
           labels: {
-            color: "#9aa3b8",
+            color: p.tick,
             boxWidth: 8,
             font: { size: 9 },
             padding: 8,
@@ -159,13 +221,13 @@ export function renderRailSummaryChart(canvas, data) {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: "#9aa3b8", font: { size: 8 }, maxRotation: 0, autoSkipPadding: 4 },
+          ticks: { color: p.tick, font: { size: 8 }, maxRotation: 0, autoSkipPadding: 4 },
         },
         y: {
-          grid: { color: "rgba(255,255,255,0.04)", drawTicks: false },
+          grid: { color: p.grid, drawTicks: false },
           border: { display: false },
           ticks: {
-            color: "#9aa3b8",
+            color: p.tick,
             font: { size: 8 },
             maxTicksLimit: 4,
             callback: (v) => {
@@ -204,6 +266,7 @@ export function renderRailRankChart(canvas, items, opts = {}) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
+  const p = palette();
   const valueLabel = opts.valueLabel ?? "Value";
   const format = opts.format ?? "money";
   const labels = items.map((c) => truncateRailLabel(c.name, 22));
@@ -238,9 +301,9 @@ export function renderRailRankChart(canvas, items, opts = {}) {
         {
           data: values,
           backgroundColor: values.map((v) =>
-            v < 0 ? "rgba(239, 107, 107, 0.85)" : "rgba(240, 193, 74, 0.88)"
+            v < 0 ? withAlpha(p.danger, 0.85) : withAlpha(p.accentBright, 0.88)
           ),
-          borderColor: GOLD_BRIGHT,
+          borderColor: p.accentBright,
           borderWidth: 0,
           borderRadius: 4,
           borderSkipped: false,
@@ -262,10 +325,10 @@ export function renderRailRankChart(canvas, items, opts = {}) {
       },
       scales: {
         x: {
-          grid: { color: "rgba(255,255,255,0.04)", drawTicks: false },
+          grid: { color: p.grid, drawTicks: false },
           border: { display: false },
           ticks: {
-            color: "#9aa3b8",
+            color: p.tick,
             font: { size: 8 },
             maxTicksLimit: 4,
             callback: (v) => formatTick(Number(v)),
@@ -273,7 +336,7 @@ export function renderRailRankChart(canvas, items, opts = {}) {
         },
         y: {
           grid: { display: false },
-          ticks: { color: "#9aa3b8", font: { size: 8 } },
+          ticks: { color: p.tick, font: { size: 8 } },
         },
       },
     },
@@ -290,6 +353,7 @@ export function renderRailSellBuyChart(canvas, rows) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
+  const p = palette();
   return new Chart(ctx, {
     type: "bar",
     data: {
@@ -298,14 +362,14 @@ export function renderRailSellBuyChart(canvas, rows) {
         {
           label: "Sell",
           data: rows.map((r) => r.sell),
-          backgroundColor: "rgba(240, 193, 74, 0.9)",
+          backgroundColor: withAlpha(p.accentBright, 0.9),
           borderRadius: 3,
           borderSkipped: false,
         },
         {
           label: "Buy",
           data: rows.map((r) => r.buy),
-          backgroundColor: "rgba(239, 107, 107, 0.75)",
+          backgroundColor: withAlpha(p.danger, 0.75),
           borderRadius: 3,
           borderSkipped: false,
         },
@@ -320,7 +384,7 @@ export function renderRailSellBuyChart(canvas, rows) {
           display: true,
           position: "bottom",
           labels: {
-            color: "#9aa3b8",
+            color: p.tick,
             boxWidth: 10,
             boxHeight: 10,
             font: { size: 9 },
@@ -346,10 +410,10 @@ export function renderRailSellBuyChart(canvas, rows) {
       },
       scales: {
         x: {
-          grid: { color: "rgba(255,255,255,0.04)", drawTicks: false },
+          grid: { color: p.grid, drawTicks: false },
           border: { display: false },
           ticks: {
-            color: "#9aa3b8",
+            color: p.tick,
             font: { size: 8 },
             maxTicksLimit: 3,
             callback: (v) => {
@@ -362,7 +426,7 @@ export function renderRailSellBuyChart(canvas, rows) {
         },
         y: {
           grid: { display: false },
-          ticks: { color: "#9aa3b8", font: { size: 8 } },
+          ticks: { color: p.tick, font: { size: 8 } },
         },
       },
     },
@@ -374,14 +438,15 @@ export function renderRailSellBuyChart(canvas, rows) {
  * @param {{ onTime: number, late: number }} transit
  */
 export function renderRailTransitChart(canvas, transit) {
+  const p = palette();
   return renderRailSplitDonut(canvas, {
     a: transit.onTime,
     b: transit.late,
     labelA: "On time",
     labelB: "Late",
     centerCaption: "on time",
-    colorA: GOLD_BRIGHT,
-    colorB: "rgba(240, 113, 113, 0.85)",
+    colorA: p.accentBright,
+    colorB: withAlpha(p.danger, 0.85),
   });
 }
 
@@ -398,6 +463,7 @@ export function renderRailSplitDonut(canvas, split) {
   if (total <= 0) return null;
 
   const aPct = Math.round((split.a / total) * 100);
+  const p = palette();
 
   return new Chart(ctx, {
     type: "doughnut",
@@ -406,8 +472,9 @@ export function renderRailSplitDonut(canvas, split) {
       datasets: [
         {
           data: [split.a, split.b],
-          backgroundColor: [split.colorA ?? GOLD_BRIGHT, split.colorB ?? "rgba(90, 127, 196, 0.85)"],
-          borderWidth: 0,
+          backgroundColor: [split.colorA ?? p.accentBright, split.colorB ?? p.accentBlue],
+          borderWidth: isCorporate() ? 3 : 0,
+          borderColor: "#ffffff",
           hoverOffset: 4,
         },
       ],
@@ -438,7 +505,7 @@ export function renderRailSplitDonut(canvas, split) {
           c.save();
           drawGoldTrimmedLabel(c, `${aPct}%`, width / 2, height / 2 - 5, "bold 0.95rem Inter, sans-serif");
           c.font = "0.6rem Inter, sans-serif";
-          c.fillStyle = "#9aa3b8";
+          c.fillStyle = palette().tick;
           c.textAlign = "center";
           c.textBaseline = "middle";
           c.fillText(split.centerCaption, width / 2, height / 2 + 10);
@@ -458,10 +525,11 @@ export function renderMonthlyChart(canvas, data) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
+  const p = palette();
   const goldGrad = ctx.createLinearGradient(0, 0, 0, 260);
-  goldGrad.addColorStop(0, "rgba(240, 193, 74, 0.98)");
-  goldGrad.addColorStop(0.5, "rgba(217, 174, 66, 0.92)");
-  goldGrad.addColorStop(1, "rgba(232, 160, 69, 0.88)");
+  goldGrad.addColorStop(0, p.barTop);
+  goldGrad.addColorStop(0.5, p.barMid);
+  goldGrad.addColorStop(1, p.barBot);
 
   return new Chart(ctx, {
     type: "bar",
@@ -472,22 +540,23 @@ export function renderMonthlyChart(canvas, data) {
           label: "Revenue",
           data: data.revenue,
           backgroundColor: goldGrad,
-          borderColor: GOLD_BRIGHT,
+          borderColor: p.accentBright,
           borderWidth: 0,
           borderRadius: 8,
           borderSkipped: false,
+          maxBarThickness: isCorporate() ? 52 : undefined,
         },
         {
           label: "Profit",
           data: data.profit,
           type: "line",
-          borderColor: NAVY_BLUE,
-          backgroundColor: "rgba(90, 127, 196, 0.12)",
+          borderColor: p.accentBlue,
+          backgroundColor: p.fillBlue,
           borderWidth: 2.5,
           tension: 0.4,
           pointRadius: 4,
-          pointBackgroundColor: GOLD_BRIGHT,
-          pointBorderColor: "#0c1322",
+          pointBackgroundColor: p.accentBright,
+          pointBorderColor: p.pointBorder,
           pointBorderWidth: 2,
           fill: true,
         },
@@ -509,28 +578,31 @@ export function renderMonthlyChart(canvas, data) {
           display: true,
           position: "top",
           align: "end",
-          labels: { color: "#9aa3b8", boxWidth: 10, font: { size: 11, weight: "500" } },
+          labels: { color: p.tick, boxWidth: 10, font: { size: 11, weight: "500" } },
         },
         tooltip: {
-          backgroundColor: "#101a2e",
-          titleColor: "#ffffff",
-          bodyColor: "#8b9cb8",
-          borderColor: "rgba(217, 174, 66, 0.25)",
+          backgroundColor: p.tooltipBg,
+          titleColor: p.tooltipTitle,
+          bodyColor: p.tooltipBody,
+          borderColor: p.tooltipBorder,
           borderWidth: 1,
           padding: 10,
           cornerRadius: 8,
         },
       },
+      datasets: isCorporate()
+        ? { bar: { categoryPercentage: 0.42, barPercentage: 0.72 } }
+        : undefined,
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: "#9aa3b8", font: { size: 10 }, padding: 6 },
+          ticks: { color: p.tick, font: { size: 10 }, padding: 6 },
         },
         y: {
-          grid: { color: "rgba(255,255,255,0.05)", drawTicks: false },
+          grid: { color: p.grid, drawTicks: false },
           border: { display: false },
           ticks: {
-            color: "#9aa3b8",
+            color: p.tick,
             font: { size: 10 },
             padding: 6,
             callback: (v) => {
@@ -558,13 +630,14 @@ export function renderEquipmentDonut(canvas, split) {
   const total = split.ltl + split.truckload + other || 1;
   const ltlPct = Math.round((split.ltl / total) * 100);
 
+  const p = palette();
   const labels = ["LTL", "Truckload"];
   const data = [split.ltl, split.truckload];
-  const colors = [GOLD_BRIGHT, NAVY_DEEP];
+  const colors = [p.accentBright, p.navyDeep];
   if (other > 0) {
     labels.push("Other / unknown");
     data.push(other);
-    colors.push("#6b7280");
+    colors.push(p.tick);
   }
 
   return new Chart(ctx, {
@@ -575,7 +648,8 @@ export function renderEquipmentDonut(canvas, split) {
         {
           data,
           backgroundColor: colors,
-          borderWidth: 0,
+          borderWidth: isCorporate() ? 3 : 0,
+          borderColor: "#ffffff",
           hoverOffset: 6,
         },
       ],
@@ -592,8 +666,10 @@ export function renderEquipmentDonut(canvas, split) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "#101a2e",
-          borderColor: "rgba(217, 174, 66, 0.2)",
+          backgroundColor: p.tooltipBg,
+          titleColor: p.tooltipTitle,
+          bodyColor: p.tooltipBody,
+          borderColor: p.tooltipBorder,
           callbacks: {
             label: (ctx) => {
               const v = ctx.raw;
@@ -613,7 +689,7 @@ export function renderEquipmentDonut(canvas, split) {
           ctx2.save();
           drawGoldTrimmedLabel(ctx2, `${ltlPct}%`, width / 2, height / 2 - 6, "bold 1.1rem Inter, sans-serif");
           ctx2.font = "0.65rem Inter, sans-serif";
-          ctx2.fillStyle = "#9aa3b8";
+          ctx2.fillStyle = palette().tick;
           ctx2.textAlign = "center";
           ctx2.textBaseline = "middle";
           ctx2.fillText("LTL mix", width / 2, height / 2 + 12);

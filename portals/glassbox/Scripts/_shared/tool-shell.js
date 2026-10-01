@@ -34,7 +34,6 @@ function escapeHtml(value) {
 export function mountToolShell(parent, opts) {
   const {
     title,
-    category = "",
     instructions = "This tool module is ready for web logic to be ported in.",
     underConstruction = false,
     log,
@@ -44,7 +43,6 @@ export function mountToolShell(parent, opts) {
     <section class="gb-tool" data-tool="${escapeHtml(title)}">
       <header class="gb-tool-header">
         <div class="gb-tool-heading">
-          ${category ? `<p class="gb-tool-category">${escapeHtml(category)}</p>` : ""}
           <h2 class="gb-tool-title">${escapeHtml(title)}</h2>
         </div>
         <div class="gb-tool-header-actions">

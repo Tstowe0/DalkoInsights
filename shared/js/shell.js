@@ -1,6 +1,6 @@
 import { alertDialog } from "./dialog.js?v=20260915-brand";
 import { openPortal, closePortal } from "./router.js?v=20260915-msauth";
-import { initTheme } from "./theme.js?v=20260915-msauth";
+import { initTheme } from "./theme.js?v=20260925-ghostslow";
 import {
   consumeAuthError,
   getDisplayName,
@@ -31,6 +31,12 @@ export async function initShell() {
   const btnHubUser = document.getElementById("btn-hub-user");
   const hubUserMenu = document.getElementById("hub-user-menu");
   const btnSignOut = document.getElementById("btn-sign-out");
+  const btnHubSettings = document.getElementById("btn-hub-settings");
+  const settingsPanel = document.getElementById("landing-settings");
+  const settingsHome = document.getElementById("settings-home");
+  const settingsApi = document.getElementById("settings-api");
+  const btnSettingsBack = document.getElementById("btn-settings-back");
+  const btnSettingsApi = document.getElementById("btn-settings-api");
 
   if (!hub || !root || !signinPanel || !portalsPanel) return;
 
@@ -83,6 +89,25 @@ export async function initShell() {
     btnHubUser?.setAttribute("aria-expanded", "false");
   }
 
+  function paintSettingsGear() {
+    btnHubSettings?.classList.toggle("is-active", layer === "settings");
+    btnHubSettings?.setAttribute("aria-pressed", layer === "settings" ? "true" : "false");
+  }
+
+  function showSettingsHome() {
+    settingsHome?.classList.remove("hidden");
+    settingsApi?.classList.add("hidden");
+    if (landingTitle) landingTitle.textContent = "Settings";
+    if (landingPrompt) landingPrompt.textContent = "Account";
+  }
+
+  function showSettingsApi() {
+    settingsHome?.classList.add("hidden");
+    settingsApi?.classList.remove("hidden");
+    if (landingTitle) landingTitle.textContent = "API Integrations";
+    if (landingPrompt) landingPrompt.textContent = "Connect outside systems";
+  }
+
   function showSignIn() {
     layer = "signin";
     document.title = "DALKO";
@@ -91,9 +116,11 @@ export async function initShell() {
     hubUser?.classList.add("hidden");
     signinPanel.classList.remove("hidden");
     portalsPanel.classList.add("hidden");
+    settingsPanel?.classList.add("hidden");
     if (landingTitle) landingTitle.textContent = "DALKO";
     if (landingPrompt) landingPrompt.textContent = "Let's grow together";
     closeUserMenu();
+    paintSettingsGear();
     root.classList.remove("active");
   }
 
@@ -106,8 +133,24 @@ export async function initShell() {
     hubUser?.classList.remove("hidden");
     signinPanel.classList.add("hidden");
     portalsPanel.classList.remove("hidden");
+    settingsPanel?.classList.add("hidden");
     paintHubUser();
     closeUserMenu();
+    paintSettingsGear();
+  }
+
+  function showSettings() {
+    layer = "settings";
+    document.title = "Settings · DALKO";
+    hub.classList.remove("hidden");
+    hub.classList.add("is-authed");
+    hubUser?.classList.remove("hidden");
+    signinPanel.classList.add("hidden");
+    portalsPanel.classList.add("hidden");
+    settingsPanel?.classList.remove("hidden");
+    showSettingsHome();
+    closeUserMenu();
+    paintSettingsGear();
   }
 
   /**
@@ -167,6 +210,28 @@ export async function initShell() {
     btnHubUser.setAttribute("aria-expanded", open ? "true" : "false");
   });
 
+  btnHubSettings?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeUserMenu();
+    if (layer === "settings") {
+      void showHub();
+      return;
+    }
+    showSettings();
+  });
+
+  btnSettingsBack?.addEventListener("click", () => {
+    if (settingsApi && !settingsApi.classList.contains("hidden")) {
+      showSettingsHome();
+      return;
+    }
+    void showHub();
+  });
+
+  btnSettingsApi?.addEventListener("click", () => {
+    showSettingsApi();
+  });
+
   btnSignOut?.addEventListener("click", () => {
     void signOut();
   });
@@ -181,6 +246,15 @@ export async function initShell() {
     if (hubUserMenu && !hubUserMenu.classList.contains("hidden")) {
       e.preventDefault();
       closeUserMenu();
+      return;
+    }
+    if (layer === "settings") {
+      e.preventDefault();
+      if (settingsApi && !settingsApi.classList.contains("hidden")) {
+        showSettingsHome();
+        return;
+      }
+      void showHub();
     }
   });
 

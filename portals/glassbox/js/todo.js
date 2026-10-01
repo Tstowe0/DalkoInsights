@@ -15,10 +15,19 @@ const DAILY_IDS = new Set(
   SCHEDULED_REPORTS.filter((r) => r.schedule === "daily").map((r) => r.id)
 );
 
+/** @param {string} reportId */
+function cadenceFor(reportId) {
+  const report = SCHEDULED_REPORTS.find((item) => item.id === reportId);
+  if (!report) return "Report";
+  if (report.schedule === "daily") return "Daily";
+  if (report.schedule === "weekday") return "Weekly";
+  return "Monthly";
+}
+
 const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
- * @typedef {{ kind: "scheduled", id: string, text: string, done: boolean, dueKey: string, meta: string, reportId: string }} TodoRow
+ * @typedef {{ kind: "scheduled", id: string, text: string, done: boolean, dueKey: string, meta: string, cadence: string, reportId: string }} TodoRow
  */
 
 /** @returns {Record<string, boolean>} */
@@ -146,6 +155,7 @@ export function mountSidebarTodo(host, opts = {}) {
         done,
         dueKey: report.dueKey,
         meta: report.scheduleLabel,
+        cadence: cadenceFor(report.id),
         reportId: report.id,
       };
     });
@@ -164,14 +174,16 @@ export function mountSidebarTodo(host, opts = {}) {
       .map(
         (row) => `
       <li class="gb-todo-item${row.done ? " is-done" : ""} is-scheduled" data-id="${escapeAttr(row.id)}">
-        <label class="gb-todo-check">
-          <input type="checkbox" data-todo-toggle ${row.done ? "checked" : ""} />
-          <span class="gb-todo-text-wrap">
-            <span class="gb-todo-text">${escapeHtml(row.text)}</span>
-            <span class="gb-todo-meta">${escapeHtml(row.meta)}</span>
-          </span>
-        </label>
-        <span class="gb-todo-badge" title="Client report">Report</span>
+        <div class="gb-todo-row">
+          <label class="gb-todo-check">
+            <input type="checkbox" data-todo-toggle ${row.done ? "checked" : ""} />
+            <span class="gb-todo-text-wrap">
+              <span class="gb-todo-text">${escapeHtml(row.text)}</span>
+            </span>
+          </label>
+          <span class="gb-todo-badge" title="${escapeAttr(row.meta)}">${escapeHtml(row.cadence)}</span>
+        </div>
+        <button type="button" class="gb-todo-goto" data-todo-goto="${escapeAttr(row.reportId)}">Go To</button>
       </li>`
       )
       .join("");
@@ -208,6 +220,21 @@ export function mountSidebarTodo(host, opts = {}) {
     { signal: opts.signal }
   );
 
+  listEl.addEventListener(
+    "click",
+    (e) => {
+      const btn = /** @type {HTMLElement | null} */ (
+        /** @type {HTMLElement} */ (e.target).closest("[data-todo-goto]")
+      );
+      if (!btn) return;
+      e.preventDefault();
+      const toolId = btn.getAttribute("data-todo-goto");
+      if (!toolId) return;
+      window.dispatchEvent(new CustomEvent("glassbox:open-tool", { detail: { toolId } }));
+    },
+    { signal: opts.signal }
+  );
+
   window.addEventListener(
     "glassbox:date-selected",
     (e) => {
@@ -221,14 +248,9 @@ export function mountSidebarTodo(host, opts = {}) {
   );
 
   const onMaybeNewDay = () => {
-    if (!refreshDailyBucket()) {
-      window.dispatchEvent(
-        new CustomEvent("glassbox:todo-updated", { detail: { day: viewDay } })
-      );
-      return;
-    }
-    // Real day flipped — if we were viewing the previous "today", follow along.
-    viewDay = realDay;
+    const wasViewingToday = viewDay === realDay;
+    if (!refreshDailyBucket()) return;
+    if (wasViewingToday) viewDay = realDay;
     paint();
   };
   window.addEventListener("focus", onMaybeNewDay, { signal: opts.signal });

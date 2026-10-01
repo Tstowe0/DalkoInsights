@@ -1,12 +1,12 @@
 import { formatCell, fmtMoney, fmtPct, fmtInt } from "./format.js";
 import { attachTableSort, setSortValue } from "./table-sort.js";
-import { CHANGELOG_TEXT } from "../changelog.js?v=20260916-xlsxstyle";
-import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js?v=20260916-focusui";
-import { navTitle } from "./nav.js?v=20260916-focusui";
-import { renderReportsView } from "./report.js";
-import { aggregateMonthRows } from "../analytics/accessorials.js?v=20260916-focusui";
-import { focusFieldLabel, hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
-import { renderFocusBuilder } from "./focus-builder.js?v=20260916-bugsweep";
+import { CHANGELOG_TEXT } from "../changelog.js?v=20260918-home";
+import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js?v=20260922-corp2";
+import { navTitle } from "./nav.js?v=20260923-reports";
+import { renderReportsView, teardownExecReport } from "./report.js?v=20261001-nohier";
+import { aggregateMonthRows } from "../analytics/accessorials.js?v=20261001-accfocus";
+import { hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
+import { renderFocusBuilder } from "./focus-builder.js?v=20261001-focusbold";
 
 /** @param {string | undefined} tone */
 function toneClass(tone) {
@@ -107,20 +107,6 @@ function tableHeading(pageTitle, subtitle) {
 }
 
 /**
- * @param {HTMLElement} root
- * @param {import("../data/filters.js").FilterState} filters
- */
-function prependFocusBanner(root, filters) {
-  if (!hasFocuses(filters)) return;
-  const banner = document.createElement("div");
-  banner.className = "focus-banner";
-  banner.textContent = `Focus: ${filters.focuses
-    .map((f) => `${focusFieldLabel(f.column)} = ${f.value}`)
-    .join(" · ")}`;
-  root.insertBefore(banner, root.firstChild);
-}
-
-/**
  * @param {{
  *   pageTitle?: string,
  *   title?: string,
@@ -216,6 +202,7 @@ export function renderDataTable(opts) {
  * @param {{ onRemoveFocus?: (col: string, val: string) => void, onListFocusValues?: (layer: object) => string[], onAddFocuses?: (items: { column: string, value: string }[]) => void, onRunReport?: (reportId: string) => void }} handlers
  * @param {boolean} [hasData=false]
  * @param {boolean} [analysisComplete=false]
+ * @param {string | null} [fileName=null]
  */
 export function renderView(
   root,
@@ -224,10 +211,30 @@ export function renderView(
   filters,
   handlers,
   hasData = false,
-  analysisComplete = false
+  analysisComplete = false,
+  fileName = null
 ) {
   teardownDashboardCharts();
+  teardownExecReport();
   root.innerHTML = "";
+
+  if (viewId === "home") {
+    const logo = new URL("../../../../shared/images/earth.png", import.meta.url).href;
+    const home = document.createElement("section");
+    home.className = "di-home";
+    home.setAttribute("aria-label", "DALKO Insights home");
+    home.innerHTML = `
+      <div class="di-home-glow" aria-hidden="true"></div>
+      <img class="di-home-logo" src="${logo}" width="220" height="220" alt="" />
+      <h1 class="di-home-title">DALKO Insights</h1>
+      <button type="button" class="di-home-upload">Upload TMS Datadump</button>
+    `;
+    home.querySelector(".di-home-upload")?.addEventListener("click", () => {
+      document.getElementById("btn-upload")?.click();
+    });
+    root.appendChild(home);
+    return;
+  }
 
   if (viewId === "changelog") {
     const surface = document.createElement("div");
@@ -244,7 +251,17 @@ export function renderView(
   }
 
   if (viewId === "reports") {
-    renderReportsView(root, !!results, (reportId) => handlers.onRunReport?.(reportId));
+    renderReportsView(
+      root,
+      {
+        results,
+        filters,
+        fileName,
+        analysisComplete,
+        hasData,
+      },
+      () => handlers.onRunReport?.("executive-analytics")
+    );
     return;
   }
 
@@ -259,9 +276,15 @@ export function renderView(
     if (!hasData) {
       surface.innerHTML = "<p>Upload a TMS Excel file to see this view.</p>";
     } else if (filters.dateFilterEnabled || hasFocuses(filters)) {
+      const parts = [];
+      if (filters.dateFilterEnabled) parts.push("date range");
+      if (hasFocuses(filters)) parts.push("focus");
+      const hint = hasFocuses(filters)
+        ? " Clear focus and try again."
+        : " Widen the date range and try again.";
       surface.innerHTML = `
         <h3 class="block-title">No matching rows</h3>
-        <p>Nothing matches the current focus. Clear focus and try again.</p>`;
+        <p>Nothing matches the current ${parts.join(" and ")}.${hint}</p>`;
     } else if (analysisComplete) {
       surface.innerHTML = `
         <h3 class="block-title">No analysis results</h3>
@@ -277,11 +300,8 @@ export function renderView(
 
   if (viewId === "dashboard") {
     renderConceptDashboard(root, results);
-    prependFocusBanner(root, filters);
     return;
   }
-
-  prependFocusBanner(root, filters);
 
   const pageTitle = navTitle(viewId);
 
@@ -859,78 +879,28 @@ function renderFocusesWorkspace(filters, handlers) {
   const page = document.createElement("div");
   page.className = "focuses-page";
 
-  const selector = document.createElement("div");
-  selector.className = "surface focuses-selector-tile";
-  const selectorHead = document.createElement("div");
-  selectorHead.className = "block-head";
-  const selectorTitle = document.createElement("h3");
-  selectorTitle.className = "block-title";
-  selectorTitle.textContent = "Focus selector";
-  selectorHead.appendChild(selectorTitle);
-  selector.append(
-    selectorHead,
-    renderFocusBuilder({
-      existingFocuses: filters.focuses ?? [],
-      listValues: (layer) => handlers.onListFocusValues?.(layer) ?? [],
-      onApply: (items) => handlers.onAddFocuses?.(items),
-    })
-  );
-
-  page.append(selector, renderActiveFocusesTable(filters, handlers));
-  return page;
-}
-
-/** @param {import("../data/filters.js").FilterState} filters @param {object} handlers */
-function renderActiveFocusesTable(filters, handlers) {
   const panel = document.createElement("div");
-  panel.className = "surface table-section focuses-table-tile";
-
+  panel.className = "surface focuses-tree-tile";
   const head = document.createElement("div");
   head.className = "block-head";
   const title = document.createElement("h3");
   title.className = "block-title";
-  title.textContent = "Active focuses";
-  head.appendChild(title);
-  panel.appendChild(head);
-
-  const scroll = document.createElement("div");
-  scroll.className = "table-scroll focuses-table-scroll";
-  const table = document.createElement("table");
-  table.className = "data-table focuses-table";
-  table.innerHTML = `<thead><tr><th class="col-text">Field</th><th class="col-text">Value</th><th class="col-center">Action</th></tr></thead>`;
-  const tbody = document.createElement("tbody");
-  const focuses = filters.focuses ?? [];
-  if (!focuses.length) {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 3;
-    td.className = "table-empty-cell";
-    td.textContent = "No active focuses. Use the selector above to add one.";
-    tr.appendChild(td);
-    tbody.appendChild(tr);
-  } else {
-    for (const item of focuses) {
-      const tr = document.createElement("tr");
-      const fieldTd = document.createElement("td");
-      fieldTd.className = "col-text";
-      fieldTd.textContent = focusFieldLabel(item.column);
-      const valueTd = document.createElement("td");
-      valueTd.className = "col-text";
-      valueTd.textContent = item.value;
-      const actionTd = document.createElement("td");
-      actionTd.className = "col-center";
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "btn-sm focuses-remove";
-      remove.textContent = "Delete";
-      remove.addEventListener("click", () => handlers.onRemoveFocus?.(item.column, item.value));
-      actionTd.appendChild(remove);
-      tr.append(fieldTd, valueTd, actionTd);
-      tbody.appendChild(tr);
-    }
-  }
-  table.appendChild(tbody);
-  scroll.appendChild(table);
-  panel.appendChild(scroll);
-  return panel;
+  title.textContent = "Focuses";
+  const hint = document.createElement("p");
+  hint.className = "focus-tree-hint";
+  hint.textContent = "Open a category and check the values to focus. Checks on the same field match any of them. Checks on different fields must all match.";
+  head.append(title, hint);
+  panel.append(
+    head,
+    renderFocusBuilder({
+      existingFocuses: filters.focuses ?? [],
+      listValues: (layer) => handlers.onListFocusValues?.(layer) ?? [],
+      onApply: (items) => handlers.onAddFocuses?.(items),
+      onRemove: (column, value) => handlers.onRemoveFocus?.(column, value),
+      onRemoveMany: (items) => handlers.onRemoveFocuses?.(items),
+    })
+  );
+  page.appendChild(panel);
+  return page;
 }
+

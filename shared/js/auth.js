@@ -18,6 +18,10 @@ let activeAccount = null;
 
 export function getRedirectUri() {
   const { origin, pathname } = window.location;
+  if (/\/index-test\.html$/i.test(pathname)) {
+    const dir = pathname.replace(/index-test\.html$/i, "");
+    return `${origin}${dir.endsWith("/") ? dir : `${dir}/`}`;
+  }
   const dir = pathname.replace(/\/index\.html$/i, "/");
   const withSlash = dir.endsWith("/") ? dir : `${dir}/`;
   return `${origin}${withSlash}`;
@@ -178,6 +182,44 @@ export function getEmail() {
   return emailOf(activeAccount);
 }
 
+function nameKey(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+}
+
+/** Only Terry Stowe (@shipdalko.com) may reveal DAT service-account secrets. */
+export function canRevealDatSecrets() {
+  const email = getEmail();
+  if (!email.endsWith(`@${AUTH_ALLOWED_DOMAIN}`)) return false;
+  const name = nameKey(activeAccount?.name || getDisplayName());
+  const local = email.split("@")[0].replaceAll(".", "");
+  return name === "terrystowe" || name === "stoweterry" || local === "tstowe" || local === "terrystowe";
+}
+
+export async function getAccessToken(opts = {}) {
+  if (!pca || !activeAccount) return null;
+  const interactive = opts.interactive !== false;
+  const scopes = Array.isArray(opts.scopes) && opts.scopes.length ? opts.scopes : AUTH_SCOPES;
+  const request = { scopes, account: activeAccount };
+  try {
+    const silent = await pca.acquireTokenSilent(request);
+    return silent?.accessToken ?? null;
+  } catch {
+    if (!interactive) return null;
+    try {
+      const popup = await pca.acquireTokenPopup(request);
+      if (popup?.account) {
+        pca.setActiveAccount(popup.account);
+        activeAccount = popup.account;
+      }
+      return popup?.accessToken ?? null;
+    } catch {
+      return null;
+    }
+  }
+}
+
 const GREETING_NAME_KEY = "dalko.insights.greetingName";
 
 /**
@@ -278,6 +320,16 @@ export function getInitials() {
 export async function signIn() {
   if (!pca) throw new Error("Sign-in is not ready.");
   await pca.loginRedirect(loginRequest());
+}
+
+export async function signInPopup() {
+  if (!pca) throw new Error("Sign-in is not ready.");
+  const result = await pca.loginPopup(loginRequest());
+  if (!result?.account) return null;
+  pca.setActiveAccount(result.account);
+  activeAccount = await rejectIfDisallowed(result.account);
+  rememberGreetingName(activeAccount);
+  return activeAccount;
 }
 
 export async function signOut() {

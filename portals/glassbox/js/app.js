@@ -1,7 +1,7 @@
-import { NAV_ITEMS } from "./catalog.js?v=20260819-fxsweep";
+import { NAV_ITEMS, findTool } from "./catalog.js?v=20260923-fmcsa";
 import { launchTool } from "./tool-loader.js?v=20260819-fxsweep";
-import { mountSidebarCalendar } from "./calendar.js?v=20260819-fxsweep";
-import { mountSidebarTodo } from "./todo.js?v=20260819-fxsweep";
+import { mountSidebarCalendar } from "./calendar.js?v=20260923-holiday";
+import { mountSidebarTodo } from "./todo.js?v=20260923-sweep";
 import {
   renderGlassNav,
   renderHome,
@@ -9,7 +9,7 @@ import {
   renderClientReports,
   renderChangelog,
   renderThemes,
-} from "./views.js?v=20260819-fxsweep";
+} from "./views.js?v=20260923-ghost";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;
@@ -38,6 +38,7 @@ export function initGlassBox(ctx) {
   const btnConsole = document.getElementById("gb-btn-console");
   const btnConsoleClose = document.getElementById("gb-console-close");
   const btnPortals = document.getElementById("gb-btn-portals");
+  const btnBackHub = document.getElementById("btn-back-hub");
   const calendarHost = document.getElementById("gb-calendar");
   const todoHost = document.getElementById("gb-todo");
 
@@ -75,6 +76,22 @@ export function initGlassBox(ctx) {
     });
   };
 
+  window.addEventListener(
+    "glassbox:open-tool",
+    (e) => {
+      const toolId = /** @type {CustomEvent} */ (e).detail?.toolId;
+      if (typeof toolId !== "string") return;
+      const tool = findTool(toolId);
+      if (!tool || tool.disabled || tool.skipped) {
+        selectNav("client-reports");
+        return;
+      }
+      returnView = "client-reports";
+      openTool(tool);
+    },
+    { signal }
+  );
+
   /**
    * @param {string} id
    */
@@ -87,6 +104,21 @@ export function initGlassBox(ctx) {
 
     if (item.kind === "home") {
       renderHome(workspace, LOGO);
+      return;
+    }
+    if (item.kind === "tool") {
+      const tool = findTool(item.toolId || item.label);
+      if (!tool || tool.disabled || tool.skipped) {
+        renderSection(workspace, "data-tools", openTool);
+        return;
+      }
+      returnView = "data-tools";
+      activeView = `tool:${tool.id}`;
+      renderGlassNav(nav, id, selectNav);
+      void launchTool(tool.script, workspace, {
+        onBack: () => selectNav(returnView || "home"),
+        log: appendConsole,
+      });
       return;
     }
     if (item.kind === "section") {
@@ -113,7 +145,7 @@ export function initGlassBox(ctx) {
     if (!changelogCache) {
       try {
         const url = new URL("../ChangeLog.txt", import.meta.url);
-        url.searchParams.set("v", "20260916-xlsxstyle");
+        url.searchParams.set("v", "20260916-console");
         const res = await fetch(url);
         changelogCache = res.ok ? await res.text() : "Could not load ChangeLog.txt.";
       } catch {
@@ -134,6 +166,7 @@ export function initGlassBox(ctx) {
   }
 
   btnPortals?.addEventListener("click", () => ctx.onHome(), { signal });
+  btnBackHub?.addEventListener("click", () => ctx.onHome(), { signal });
   btnConsole?.addEventListener("click", () => toggleConsole(), { signal });
   btnConsoleClose?.addEventListener("click", () => toggleConsole(false), { signal });
 

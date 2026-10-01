@@ -1,4 +1,4 @@
-import { mountToolShell } from "../_shared/tool-shell.js";
+import { mountAboutSlide } from "../_shared/about-slide.js";
 
 export const meta = {
   id: "Zip Calculator",
@@ -219,55 +219,82 @@ function saveLocalCache(cache) {
  * @param {HTMLElement} parent
  * @param {{ onBack: () => void, log: (msg: string) => void }} ctx
  */
+function formatMiles(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function countryChoices(name) {
+  return ["auto", "us", "ca", "mx"]
+    .map(
+      (value) =>
+        `<label class="${value === "auto" ? "is-on" : ""}"><input type="radio" name="${name}" value="${value}"${value === "auto" ? " checked" : ""} tabindex="-1" /> ${value === "auto" ? "Auto" : value.toUpperCase()}</label>`
+    )
+    .join("");
+}
+
 export async function loadGui(parent, ctx) {
-  const shell = mountToolShell(parent, {
-    title: meta.title,
-    category: meta.category,
-    instructions: `1. Enter two postal codes (US, Canada, or Mexico) to calculate straight-line and truck mileage.
-2. Results are displayed below, and cached for faster lookups.
-3. Use country overrides if automatic detection is incorrect. If a Zip Code is shared between countries this forces which country to use.`,
-    onBack: ctx.onBack,
-    log: ctx.log,
-  });
+  parent.classList.add("zx-host");
+  parent.innerHTML = `
+    <section class="zx">
+      <header class="zx-bar">
+        <h1>Zip Calculator</h1>
+        <div class="zx-about" data-about-slot></div>
+      </header>
+      <div class="zx-grid">
+        <section class="zx-guide">
+          <p class="zx-kicker">How to use</p>
+          <ol class="zx-steps">
+            <li><span class="zx-num">1</span><p>Enter two postal codes (US, Canada, or Mexico) to calculate straight-line and truck mileage.</p></li>
+            <li><span class="zx-num">2</span><p>Results are displayed below, and cached for faster lookups.</p></li>
+            <li><span class="zx-num">3</span><p>Use country overrides if automatic detection is incorrect. If a Zip Code is shared between countries this forces which country to use.</p></li>
+          </ol>
+        </section>
 
-  shell.body.innerHTML = `
-    <div class="gb-zip-panel">
-      <div class="gb-zip-block">
-        <p class="gb-zip-block-title">Origin Postal Code</p>
-        <label class="gb-zip-field">Postal Code 1
-          <input data-z1 placeholder="16150" autocomplete="off" />
-        </label>
-        <fieldset class="gb-zip-countries">
-          <legend>Origin Country</legend>
-          <label><input type="radio" name="c1" value="auto" checked tabindex="-1" /> Auto</label>
-          <label><input type="radio" name="c1" value="us" tabindex="-1" /> US</label>
-          <label><input type="radio" name="c1" value="ca" tabindex="-1" /> CA</label>
-          <label><input type="radio" name="c1" value="mx" tabindex="-1" /> MX</label>
-        </fieldset>
+        <form class="zx-lane" data-form>
+          <div class="zx-end">
+            <p class="zx-kicker">Origin</p>
+            <input data-z1 placeholder="16150" autocomplete="off" spellcheck="false" aria-label="Origin postal code" />
+            <div class="zx-countries" role="radiogroup" aria-label="Origin country">${countryChoices("c1")}</div>
+          </div>
+          <div class="zx-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="zx-end">
+            <p class="zx-kicker">Destination</p>
+            <input data-z2 placeholder="60606" autocomplete="off" spellcheck="false" aria-label="Destination postal code" />
+            <div class="zx-countries" role="radiogroup" aria-label="Destination country">${countryChoices("c2")}</div>
+          </div>
+          <div class="zx-actions">
+            <button type="submit" class="btn btn-primary" data-calc>Calculate</button>
+            <button type="button" class="btn btn-ghost" data-clear>Clear</button>
+          </div>
+        </form>
+
+        <section class="zx-result" data-result aria-live="polite">
+          <p class="zx-kicker">Result</p>
+          <div class="zx-miles">
+            <div><strong data-straight>—</strong><span>Straight miles</span></div>
+            <div><strong data-truck>—</strong><span>Truck miles</span></div>
+          </div>
+          <p class="zx-places" data-places>Enter postal codes and click Calculate.</p>
+          <p class="zx-source" data-source hidden></p>
+        </section>
       </div>
-
-      <div class="gb-zip-block">
-        <p class="gb-zip-block-title">Destination Postal Code</p>
-        <label class="gb-zip-field">Postal Code 2
-          <input data-z2 placeholder="60606" autocomplete="off" />
-        </label>
-        <fieldset class="gb-zip-countries">
-          <legend>Destination Country</legend>
-          <label><input type="radio" name="c2" value="auto" checked tabindex="-1" /> Auto</label>
-          <label><input type="radio" name="c2" value="us" tabindex="-1" /> US</label>
-          <label><input type="radio" name="c2" value="ca" tabindex="-1" /> CA</label>
-          <label><input type="radio" name="c2" value="mx" tabindex="-1" /> MX</label>
-        </fieldset>
-      </div>
-
-      <div class="gb-zip-actions">
-        <button type="button" class="btn btn-primary" data-calc>Calculate</button>
-        <button type="button" class="btn btn-ghost" data-clear>Clear</button>
-      </div>
-
-      <pre class="gb-zip-result" data-result>Enter postal codes and click Calculate.</pre>
-    </div>
+    </section>
   `;
+
+  const aboutSlot = /** @type {HTMLElement | null} */ (parent.querySelector("[data-about-slot]"));
+  if (aboutSlot) {
+    try {
+      mountAboutSlide(aboutSlot, { title: meta.title });
+    } catch (err) {
+      ctx.log(`About control failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  ctx.log(`Loaded tool module: ${meta.title}`);
 
   /** @type {Record<string, any>} */
   let cache = { ...loadLocalCache() };
@@ -282,11 +309,16 @@ export async function loadGui(parent, ctx) {
     ctx.log("Bundled mileage cache not found — will geocode when needed.");
   }
 
-  const z1Input = /** @type {HTMLInputElement} */ (shell.body.querySelector("[data-z1]"));
-  const z2Input = /** @type {HTMLInputElement} */ (shell.body.querySelector("[data-z2]"));
-  const resultEl = /** @type {HTMLElement} */ (shell.body.querySelector("[data-result]"));
-  const calcBtn = /** @type {HTMLButtonElement} */ (shell.body.querySelector("[data-calc]"));
-  const clearBtn = /** @type {HTMLButtonElement} */ (shell.body.querySelector("[data-clear]"));
+  const z1Input = /** @type {HTMLInputElement} */ (parent.querySelector("[data-z1]"));
+  const z2Input = /** @type {HTMLInputElement} */ (parent.querySelector("[data-z2]"));
+  const resultEl = /** @type {HTMLElement} */ (parent.querySelector("[data-result]"));
+  const straightEl = /** @type {HTMLElement} */ (parent.querySelector("[data-straight]"));
+  const truckEl = /** @type {HTMLElement} */ (parent.querySelector("[data-truck]"));
+  const placesEl = /** @type {HTMLElement} */ (parent.querySelector("[data-places]"));
+  const sourceEl = /** @type {HTMLElement} */ (parent.querySelector("[data-source]"));
+  const formEl = /** @type {HTMLFormElement} */ (parent.querySelector("[data-form]"));
+  const calcBtn = /** @type {HTMLButtonElement} */ (parent.querySelector("[data-calc]"));
+  const clearBtn = /** @type {HTMLButtonElement} */ (parent.querySelector("[data-clear]"));
 
   // Country radios are clickable but skipped in Tab order: Postal 1 → Postal 2 → Calculate.
   // Enter/Space on Calculate uses native button activation (fires click).
@@ -295,41 +327,80 @@ export async function loadGui(parent, ctx) {
   /** @param {string} name */
   function selectedCountry(name) {
     const el = /** @type {HTMLInputElement | null} */ (
-      shell.body.querySelector(`input[name="${name}"]:checked`)
+      parent.querySelector(`input[name="${name}"]:checked`)
     );
     return el?.value ?? "auto";
   }
+
+  function paintCountries() {
+    parent.querySelectorAll(".zx-countries label").forEach((label) => {
+      const input = label.querySelector("input");
+      label.classList.toggle("is-on", Boolean(input?.checked));
+    });
+  }
+
+  function showIdle(message) {
+    resultEl.classList.remove("is-error", "is-live", "is-cache");
+    straightEl.textContent = "—";
+    truckEl.textContent = "—";
+    truckEl.classList.remove("is-na");
+    placesEl.textContent = message;
+    sourceEl.hidden = true;
+    sourceEl.textContent = "";
+  }
+
+  /**
+   * @param {{ straight: number, truck: number | null, origin: string, destination: string, source: string }} hit
+   */
+  function showHit(hit) {
+    const unavailable = hit.truck == null || !Number.isFinite(Number(hit.truck));
+    resultEl.classList.remove("is-error");
+    resultEl.classList.toggle("is-live", hit.source === "Live lookup");
+    resultEl.classList.toggle("is-cache", hit.source === "Cache");
+    straightEl.textContent = formatMiles(hit.straight);
+    truckEl.textContent = unavailable ? "Unavailable" : formatMiles(hit.truck);
+    truckEl.classList.toggle("is-na", unavailable);
+    placesEl.textContent = `${hit.origin}  →  ${hit.destination}`;
+    sourceEl.hidden = false;
+    sourceEl.textContent = hit.source === "Cache" ? "From cache" : "Live lookup";
+  }
+
+  formEl.addEventListener("change", (event) => {
+    const target = /** @type {HTMLInputElement} */ (event.target);
+    if (target?.name === "c1" || target?.name === "c2") paintCountries();
+  });
 
   clearBtn?.addEventListener("click", () => {
     z1Input.value = "";
     z2Input.value = "";
     for (const name of ["c1", "c2"]) {
       const auto = /** @type {HTMLInputElement | null} */ (
-        shell.body.querySelector(`input[name="${name}"][value="auto"]`)
+        parent.querySelector(`input[name="${name}"][value="auto"]`)
       );
       if (auto) auto.checked = true;
     }
-    resultEl.textContent = "Fields cleared. Enter postal codes and click Calculate again.";
-    shell.setStatus("Ready");
+    paintCountries();
+    showIdle("Fields cleared. Enter postal codes and click Calculate again.");
     ctx.log("Fields cleared.");
     z1Input.focus();
   });
 
-  calcBtn?.addEventListener("click", async () => {
+  formEl.addEventListener("submit", async (event) => {
+    event.preventDefault();
     const z1 = z1Input.value.trim();
     const z2 = z2Input.value.trim();
     const c1 = selectedCountry("c1");
     const c2 = selectedCountry("c2");
 
     if (!z1 || !z2) {
-      resultEl.textContent = "Please enter both postal codes before calculating.";
+      showIdle("Please enter both postal codes before calculating.");
       ctx.log("Both postal codes are required.");
       return;
     }
 
     calcBtn.disabled = true;
     clearBtn.disabled = true;
-    shell.setStatus("Calculating…");
+    showIdle("Calculating…");
     ctx.log(`Starting distance lookup: ${z1} (${c1}) → ${z2} (${c2})`);
 
     try {
@@ -338,19 +409,13 @@ export async function loadGui(parent, ctx) {
         const distances = orientResult(hit.entry, z1, c1);
         const straight = Number(distances.straight_distance);
         const truck = distances.truck_distance == null ? null : Number(distances.truck_distance);
-        resultEl.textContent = [
-          `Straight Distance: ${straight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} miles`,
-          `Truck Distance: ${
-            truck == null
-              ? "Unavailable"
-              : `${truck.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} miles`
-          }`,
-          `Source: Cache`,
-          "",
-          `Origin: ${distances.city1 || ""}, ${distances.state1 || ""} (${distances.zip1})`,
-          `Destination: ${distances.city2 || ""}, ${distances.state2 || ""} (${distances.zip2})`,
-        ].join("\n");
-        shell.setStatus("Complete");
+        showHit({
+          straight,
+          truck,
+          origin: `${distances.city1 || ""}, ${distances.state1 || ""} (${distances.zip1})`,
+          destination: `${distances.city2 || ""}, ${distances.state2 || ""} (${distances.zip2})`,
+          source: "Cache",
+        });
         ctx.log(
           `Cache hit — straight ${straight.toFixed(2)} mi | truck ${truck == null ? "n/a" : truck.toFixed(2)} mi`
         );
@@ -386,26 +451,24 @@ export async function loadGui(parent, ctx) {
       local[key] = entry;
       saveLocalCache(local);
 
-      resultEl.textContent = [
-        `Straight Distance: ${straight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} miles`,
-        `Truck Distance: ${
-          truck == null
-            ? "Unavailable"
-            : `${truck.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} miles`
-        }`,
-        `Source: Live lookup`,
-        "",
-        `Origin: ${g1.city}, ${g1.state} (${g1.zip})`,
-        `Destination: ${g2.city}, ${g2.state} (${g2.zip})`,
-      ].join("\n");
-      shell.setStatus("Complete");
+      showHit({
+        straight,
+        truck,
+        origin: `${g1.city}, ${g1.state} (${g1.zip})`,
+        destination: `${g2.city}, ${g2.state} (${g2.zip})`,
+        source: "Live lookup",
+      });
       ctx.log(
         `Live — straight ${straight.toFixed(2)} mi | truck ${truck == null ? "n/a" : truck.toFixed(2)} mi`
       );
     } catch (err) {
-      shell.setStatus("Error");
       const msg = err instanceof Error ? err.message : String(err);
-      resultEl.textContent = `Lookup failed — ${msg}`;
+      resultEl.classList.add("is-error");
+      straightEl.textContent = "—";
+      truckEl.textContent = "—";
+      truckEl.classList.remove("is-na");
+      placesEl.textContent = `Lookup failed — ${msg}`;
+      sourceEl.hidden = true;
       ctx.log(msg);
     } finally {
       calcBtn.disabled = false;

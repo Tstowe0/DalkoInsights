@@ -12,6 +12,9 @@ export function iconUrl(relativePath) {
  * @param {string} label
  */
 export function menuIconUrl(label) {
+  if (label === "Carrier Search") {
+    return iconUrl("menuicons/Data Tools.png");
+  }
   return iconUrl(`menuicons/${label}.png`);
 }
 
@@ -26,6 +29,7 @@ export function tileIconUrl(label) {
   }
   /** @type {Record<string, string>} */
   const aliases = {
+    "Carrier Search": "Carrier Performance.png",
     "DATs Weekly": "DATS Weekly.png",
     "Data Dump Merger": "Data Dump Breakdown.png",
   };
