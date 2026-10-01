@@ -39,7 +39,7 @@ import {
   signOut,
 } from "./auth.js?v=20261001-splash";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, isLocalBuild } from "./ftp-rack.js?v=20260930-ftprack";
+import { fetchRack, isLocalBuild, RACK_ORIGIN } from "./ftp-rack.js?v=20261001-rackapi";
 import {
   allowsMenu,
   allowsTool,
@@ -452,7 +452,7 @@ function renderIntegrationsHtml() {
       <section class="integ-section">
         <h2>Carrier safety</h2>
         <div class="integ-grid">
-          ${integTile("fmcsa", "FMCSA QCMobile", "USDOT / MC / name lookup. Web key stays on the local proxy.")}
+          ${integTile("fmcsa", "FMCSA QCMobile", "USDOT / MC / name lookup. Web key stays on the office rack.")}
         </div>
       </section>
 
@@ -576,17 +576,17 @@ function renderFmcsaHtml() {
   return renderIntegRefHtml({
     id: "fmcsa",
     title: "FMCSA QCMobile",
-    lead: "Free USDOT safety lookup. The web key stays in .env.dat.staging and is served by the local proxy.",
+    lead: "Free USDOT safety lookup. The web key stays on the office rack.",
     pill: "Needs setup",
     pillOn: false,
     rows: [
       { label: "Provider", value: "mobile.fmcsa.dot.gov/qc/services" },
+      { label: "Rack", value: "http://10.0.0.201:8090/" },
       { label: "Lookup", value: "Name, USDOT, or MC / docket" },
-      { label: "Auth", value: "FMCSA_WEBKEY on the local proxy" },
-      { label: "Key source", value: "Login.gov → QCMobile developer site → My WebKeys" },
+      { label: "Auth", value: "FMCSA web key on the rack" },
     ],
     usedBy: "Data & Tools → Carrier Search.",
-    note: "Copy .env.example into .env.dat.staging, paste the web key, then restart run-server.bat. The page never sees the key.",
+    note: "The page asks the rack at 10.0.0.201:8090. The key stays on that machine.",
   });
 }
 
@@ -617,7 +617,7 @@ function renderDatNutsHtml() {
         <div class="integ-detail-top">
           <div>
             <h1>DAT RateView API</h1>
-            <p>Organization token, user token, then Rate Lookup. Staging credentials stay on the local proxy — not in this page.</p>
+            <p>Organization token, user token, then Rate Lookup. Staging credentials stay on the office rack.</p>
           </div>
           ${integStatusPill("dat")}
         </div>
@@ -692,7 +692,14 @@ function renderDatNutsHtml() {
     </div>`;
 }
 
-const DAT_PROXY = "";
+const DAT_PROXY = RACK_ORIGIN;
+
+function rackUnreachable() {
+  if (location.protocol === "https:" && RACK_ORIGIN.startsWith("http:")) {
+    return "This site is secure, so the browser blocks the office rack at 10.0.0.201:8090.";
+  }
+  return "Could not reach the rack at 10.0.0.201:8090.";
+}
 /** @type {{ orgUsername?: string, orgPassword?: string } | null} */
 let datSecrets = null;
 /** @type {{ user: boolean, pass: boolean }} */
@@ -735,7 +742,7 @@ function paintDatSecretsGate() {
     maskDatSecrets();
     return;
   }
-  note.textContent = "Use the eye next to a field to show it. Microsoft confirms your identity before the local proxy returns the secret.";
+  note.textContent = "Use the eye next to a field to show it. Microsoft confirms your identity before the rack returns the secret.";
 }
 
 async function ensureDatSecrets() {
@@ -758,7 +765,7 @@ async function ensureDatSecrets() {
     datSecrets = { orgUsername: data.orgUsername, orgPassword: data.orgPassword };
     return datSecrets;
   } catch {
-    if (note) note.textContent = "Open the site from run-server.bat, then try again.";
+    if (note) note.textContent = rackUnreachable();
     return null;
   }
 }
@@ -1060,7 +1067,7 @@ async function probeFmcsa() {
         "fmcsa",
         "setup",
         "Needs setup",
-        data.error || "Add FMCSA_WEBKEY to .env.dat.staging, then restart the local proxy."
+        data.error || "The FMCSA web key is missing on the rack."
       );
       return;
     }
@@ -1074,7 +1081,7 @@ async function probeFmcsa() {
       "fmcsa",
       "setup",
       "Needs setup",
-      "Open the site from run-server.bat so FMCSA can be reached, then test again."
+      rackUnreachable()
     );
   }
 }
@@ -1180,12 +1187,9 @@ async function testDatConnection() {
       "dat",
       "setup",
       "Needs setup",
-      "Open the site from run-server.bat so DAT can be reached, then test again."
+      rackUnreachable()
     );
-    if (sample) {
-      sample.innerHTML =
-        "<p>Open the site from <code>run-server.bat</code> so DAT can be reached, then test again.</p>";
-    }
+    if (sample) sample.innerHTML = `<p>${esc(rackUnreachable())}</p>`;
   }
 }
 

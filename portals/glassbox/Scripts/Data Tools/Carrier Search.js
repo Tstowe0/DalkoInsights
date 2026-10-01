@@ -1,4 +1,5 @@
 import { mountAboutSlide } from "../_shared/about-slide.js";
+import { RACK_ORIGIN } from "../../../../shared/js/ftp-rack.js?v=20261001-rackapi";
 
 export const meta = {
   id: "Carrier Search",
@@ -7,7 +8,7 @@ export const meta = {
   script: "Data Tools/Carrier Search.js",
 };
 
-const PROXY = "";
+const PROXY = RACK_ORIGIN;
 
 const SEARCH_ICO = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.25" stroke="currentColor" stroke-width="1.8"/><path d="M16 16.5 20 20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
 
@@ -183,9 +184,9 @@ export async function loadGui(parent, ctx) {
         setLive("ok", "Connected");
         return;
       }
-      setLive("setup", "Add FMCSA_WEBKEY, then restart run-server.bat");
+      setLive("setup", "The FMCSA web key is missing on the rack.");
     } catch {
-      setLive("setup", "Open the site from run-server.bat to search");
+      setLive("setup", "Could not reach the rack at 10.0.0.201:8090.");
     }
   }
 
@@ -345,7 +346,7 @@ export async function loadGui(parent, ctx) {
       renderSnapshot(data);
       ctx.log(`FMCSA snapshot: USDOT ${dot}`);
     } catch {
-      emptyDossier("Open the site from run-server.bat so FMCSA can be reached.");
+      emptyDossier("Could not reach the rack at 10.0.0.201:8090.");
     }
   }
 
@@ -398,8 +399,8 @@ export async function loadGui(parent, ctx) {
         void loadSnapshot(String(carriers[0].dotNumber));
       }
     } catch {
-      setLive("setup", "Open the site from run-server.bat to search");
-      resultsEl.innerHTML = `<p class="cs-muted">Could not reach FMCSA from this server.</p>`;
+      setLive("setup", "Could not reach the rack at 10.0.0.201:8090.");
+      resultsEl.innerHTML = `<p class="cs-muted">Could not reach the rack at 10.0.0.201:8090.</p>`;
     } finally {
       goBtn.disabled = false;
     }
