@@ -39,7 +39,7 @@ import {
   signOut,
 } from "./auth.js?v=20261001-splash";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, isLocalBuild, RACK_ORIGIN } from "./ftp-rack.js?v=20261002-https";
+import { fetchRack, RACK_ORIGIN } from "./ftp-rack.js?v=20261002-ftpback";
 import {
   allowsMenu,
   allowsTool,
@@ -457,11 +457,11 @@ function renderIntegrationsHtml() {
       </section>
 
       ${
-        isLocalBuild() && allowsMenu("integrations-ftp")
+        allowsMenu("integrations-ftp")
           ? `<section class="integ-section">
         <h2>File transfer</h2>
         <div class="integ-grid">
-          ${integTile("ftp", "FTP Rack", "DELTA takes a finished Phinia file and FTPs it into the TMS.")}
+          ${integTile("ftp", "FTP Rack", "DELTA takes a finished file and FTPs it into the TMS.")}
         </div>
       </section>`
           : ""
@@ -973,7 +973,6 @@ function setIntegHealth(id, kind, label, detail) {
 function integAlerts() {
   return Object.entries(integStatus)
     .filter(([id, status]) => {
-      if (id === "ftp" && !isLocalBuild()) return false;
       if (status.kind === "failed") return true;
       if (status.kind !== "setup") return false;
       if (id === "entra" && !getAccount()) return false;
@@ -1087,10 +1086,6 @@ async function probeFmcsa() {
 }
 
 async function probeFtp() {
-  if (!isLocalBuild()) {
-    setIntegHealth("ftp", "setup", "Office only", "Open the office site to reach the FTP rack at https://delta.shipdalko.com.");
-    return;
-  }
   setIntegHealth("ftp", "testing", "Checking");
   try {
     const rack = await fetchRack();
@@ -1123,14 +1118,14 @@ async function probeAllIntegrations() {
     setIntegHealth("fmcsa", "testing", "Checking");
     setIntegHealth("currency", "testing", "Checking");
     setIntegHealth("zip", "testing", "Checking");
-    if (isLocalBuild()) setIntegHealth("ftp", "testing", "Checking");
+    setIntegHealth("ftp", "testing", "Checking");
     await Promise.all([
       probeEntra(),
       testDatConnection(),
       probeFmcsa(),
       probeCurrency(),
       probeZip(),
-      ...(isLocalBuild() ? [probeFtp()] : []),
+      probeFtp(),
     ]);
   })().finally(() => {
     integProbe = null;

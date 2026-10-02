@@ -1,6 +1,6 @@
 import { mountFileTool } from "../_shared/file-ui.js?v=20260930-demo";
 import { downloadBlob, stampName } from "../_shared/excel.js";
-import { isLocalBuild, sendToRack } from "../../../../shared/js/ftp-rack.js?v=20260930-ftprack";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261002-ftpback";
 
 export const meta = {
   id: "Demo Upload",
@@ -9,7 +9,7 @@ export const meta = {
   script: "Client Uploads/Demo Upload.js",
 };
 
-const officeSite = isLocalBuild();
+const officeSite = true;
 
 /**
  * @param {File} file

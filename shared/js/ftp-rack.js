@@ -1,6 +1,6 @@
 /**
- * Office-only bridge to the FTP rack on DELTA.
- * The public GitHub Pages site cannot call a private address.
+ * Bridge to the FTP rack on DELTA at https://delta.shipdalko.com.
+ * The name resolves to the office network, so a computer off that network cannot reach it.
  */
 
 export const RACK_ORIGIN = "https://delta.shipdalko.com";

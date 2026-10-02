@@ -8,7 +8,7 @@ import {
   stampName,
 } from "../_shared/excel.js";
 import { pickVal, normKey } from "../_shared/report-helpers.js";
-import { isLocalBuild, sendToRack } from "../../../../shared/js/ftp-rack.js?v=20260930-ftprack";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261002-ftpback";
 
 export const meta = {
   id: "Phinia Shipment Upload",
@@ -69,7 +69,7 @@ const OUTPUT_COLUMNS = [
   "Carrier",
 ];
 
-const officeSite = isLocalBuild();
+const officeSite = true;
 
 /**
  * @param {Record<string, unknown>[]} rows
