@@ -1,5 +1,5 @@
 import { mountAboutSlide } from "../_shared/about-slide.js";
-import { RACK_ORIGIN } from "../../../../shared/js/ftp-rack.js?v=20261001-rackapi";
+import { RACK_ORIGIN } from "../../../../shared/js/ftp-rack.js?v=20261002-https";
 
 export const meta = {
   id: "Carrier Search",
@@ -186,7 +186,7 @@ export async function loadGui(parent, ctx) {
       }
       setLive("setup", "The FMCSA web key is missing on the rack.");
     } catch {
-      setLive("setup", "Could not reach the rack at 10.0.0.201:8090.");
+      setLive("setup", "Could not reach the rack at https://delta.shipdalko.com.");
     }
   }
 
@@ -346,7 +346,7 @@ export async function loadGui(parent, ctx) {
       renderSnapshot(data);
       ctx.log(`FMCSA snapshot: USDOT ${dot}`);
     } catch {
-      emptyDossier("Could not reach the rack at 10.0.0.201:8090.");
+      emptyDossier("Could not reach the rack at https://delta.shipdalko.com.");
     }
   }
 
@@ -399,8 +399,8 @@ export async function loadGui(parent, ctx) {
         void loadSnapshot(String(carriers[0].dotNumber));
       }
     } catch {
-      setLive("setup", "Could not reach the rack at 10.0.0.201:8090.");
-      resultsEl.innerHTML = `<p class="cs-muted">Could not reach the rack at 10.0.0.201:8090.</p>`;
+      setLive("setup", "Could not reach the rack at https://delta.shipdalko.com.");
+      resultsEl.innerHTML = `<p class="cs-muted">Could not reach the rack at https://delta.shipdalko.com.</p>`;
     } finally {
       goBtn.disabled = false;
     }

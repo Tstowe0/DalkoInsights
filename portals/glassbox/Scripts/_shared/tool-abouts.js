@@ -78,7 +78,7 @@ Workflow:
   "Carrier Search": {
     about: "Look up a US motor carrier in FMCSA QCMobile by name, USDOT, or MC number. Authority, insurance on file, BASICs, and out-of-service rates come back from the public safety file.",
     technical: `Concept:
-The page never holds the FMCSA web key. It asks the office rack at 10.0.0.201:8090, and that machine calls mobile.fmcsa.dot.gov/qc/services.
+The page never holds the FMCSA web key. It asks the office rack at https://delta.shipdalko.com, and that machine calls mobile.fmcsa.dot.gov/qc/services.
 
 Lookup:
 • Auto — digits are USDOT; MC123456 is a docket; anything else is a name
@@ -92,7 +92,7 @@ Snapshot (after you click a match):
 • MC dockets, BASICs percentiles, OOS rates, cargo classes
 
 Setup:
-The web key stays on the office rack at 10.0.0.201:8090. This page only asks that rack.`,
+The web key stays on the office rack at https://delta.shipdalko.com. This page only asks that rack.`,
   },
   "Carrier Performance": {
     about: "Rank carriers by on-time % and Z-score from a TMS Data Dump — same transit math as Dalko Analysis, built for large files.",

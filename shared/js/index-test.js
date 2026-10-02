@@ -39,7 +39,7 @@ import {
   signOut,
 } from "./auth.js?v=20261001-splash";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, isLocalBuild, RACK_ORIGIN } from "./ftp-rack.js?v=20261001-rackapi";
+import { fetchRack, isLocalBuild, RACK_ORIGIN } from "./ftp-rack.js?v=20261002-https";
 import {
   allowsMenu,
   allowsTool,
@@ -563,12 +563,12 @@ function renderFtpHtml() {
     title: "FTP Rack",
     lead: "DELTA accepts a finished file from this office site and FTPs it into the TMS. The FTP password stays on the server.",
     rows: [
-      { label: "Rack", value: "http://10.0.0.201:8090/" },
+      { label: "Rack", value: "https://delta.shipdalko.com/" },
       { label: "Phinia send", value: "POST /api/connections/phinia/send → /PHINIA" },
       { label: "Demo send", value: "POST /api/connections/demo/send → /DALKO" },
     ],
     usedBy: "Client Uploads → Demo Upload and Phinia Shipment Upload → Send to TMS.",
-    note: "This check runs from the office site. The public GitHub Pages site cannot reach 10.0.0.201.",
+    note: "The rack is https://delta.shipdalko.com. A computer on the office network can reach it.",
   });
 }
 
@@ -581,12 +581,12 @@ function renderFmcsaHtml() {
     pillOn: false,
     rows: [
       { label: "Provider", value: "mobile.fmcsa.dot.gov/qc/services" },
-      { label: "Rack", value: "http://10.0.0.201:8090/" },
+      { label: "Rack", value: "https://delta.shipdalko.com/" },
       { label: "Lookup", value: "Name, USDOT, or MC / docket" },
       { label: "Auth", value: "FMCSA web key on the rack" },
     ],
     usedBy: "Data & Tools → Carrier Search.",
-    note: "The page asks the rack at 10.0.0.201:8090. The key stays on that machine.",
+    note: "The page asks the rack at https://delta.shipdalko.com. The key stays on that machine.",
   });
 }
 
@@ -696,9 +696,9 @@ const DAT_PROXY = RACK_ORIGIN;
 
 function rackUnreachable() {
   if (location.protocol === "https:" && RACK_ORIGIN.startsWith("http:")) {
-    return "This site is secure, so the browser blocks the office rack at 10.0.0.201:8090.";
+    return "This site is secure, so the browser blocks an office rack that is still on HTTP.";
   }
-  return "Could not reach the rack at 10.0.0.201:8090.";
+  return "Could not reach the rack at https://delta.shipdalko.com.";
 }
 /** @type {{ orgUsername?: string, orgPassword?: string } | null} */
 let datSecrets = null;
@@ -1088,7 +1088,7 @@ async function probeFmcsa() {
 
 async function probeFtp() {
   if (!isLocalBuild()) {
-    setIntegHealth("ftp", "setup", "Office only", "Open the office site to reach the FTP rack. The public site cannot call 10.0.0.201.");
+    setIntegHealth("ftp", "setup", "Office only", "Open the office site to reach the FTP rack at https://delta.shipdalko.com.");
     return;
   }
   setIntegHealth("ftp", "testing", "Checking");
@@ -1108,7 +1108,7 @@ async function probeFtp() {
       "ftp",
       "failed",
       "Offline",
-      "Could not reach the FTP rack at 10.0.0.201:8090. Leave the server window open."
+      "Could not reach the FTP rack at https://delta.shipdalko.com. Leave the server window open."
     );
   }
 }

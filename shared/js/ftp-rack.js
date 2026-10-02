@@ -3,7 +3,7 @@
  * The public GitHub Pages site cannot call a private address.
  */
 
-export const RACK_ORIGIN = "http://10.0.0.201:8090";
+export const RACK_ORIGIN = "https://delta.shipdalko.com";
 
 export function isLocalBuild() {
   const host = location.hostname;
