@@ -46,8 +46,10 @@ import {
   bindPermissionsPage,
   hiddenInsightPages,
   loadDalkoDirectory,
+  pullPermissions,
   renderPermissionsPage,
-} from "./permissions.js?v=20261001-permnames";
+  resetPermissions,
+} from "./permissions.js?v=20261002-permreach";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -477,134 +479,236 @@ function renderIntegrationsHtml() {
     </div>`;
 }
 
-/**
- * @param {{ id: string, title: string, lead: string, pill: string, pillOn?: boolean, rows: { label: string, value: string }[], usedBy: string, note: string }} spec
- */
-function renderIntegRefHtml(spec) {
-  const rows = spec.rows
-    .map((row) => `<div><dt>${esc(row.label)}</dt><dd>${esc(row.value)}</dd></div>`)
-    .join("");
-  return `
-    <div class="page-canvas integ-page">
-      <header class="integ-head">
-        <button type="button" class="integ-back" id="integ-back">
-          <span aria-hidden="true">←</span> Back
-        </button>
-        <div class="integ-detail-top">
-          <div>
-            <h1>${esc(spec.title)}</h1>
-            <p>${esc(spec.lead)}</p>
-          </div>
-          ${integStatusPill(spec.id)}
-        </div>
-      </header>
-      <div class="integ-bolts">
-        <section class="integ-detail">
-          <h2>Health</h2>
-          <p id="${esc(spec.id)}-health">Checking this connection…</p>
-        </section>
-        <section class="integ-detail">
-          <h2>Connection</h2>
-          <dl class="integ-meta">${rows}</dl>
-        </section>
-        <section class="integ-detail">
-          <h2>Used by</h2>
-          <p>${esc(spec.usedBy)}</p>
-        </section>
-        <section class="integ-detail">
-          <h2>Notes</h2>
-          <p>${esc(spec.note)}</p>
-        </section>
+function integCred(label, value, extra = "") {
+  return `<article class="integ-cred">
+    <strong>${esc(label)}</strong>
+    <span>${esc(value)}</span>
+    <span>${esc(extra)}</span>
+  </article>`;
+}
+
+function integBlock(title, rows) {
+  return `<section class="integ-access">
+    <h2>${esc(title)}</h2>
+    <div class="integ-creds">${rows}</div>
+  </section>`;
+}
+
+function integLab(id, subtitle) {
+  return `<section class="integ-lab">
+    <div class="integ-lab-top">
+      <div>
+        <h2>Testing</h2>
+        <p>${esc(subtitle)}</p>
       </div>
-    </div>`;
+      <button type="button" class="chip-btn chip-primary" id="${esc(id)}-test">Test</button>
+    </div>
+    <div class="integ-lab-body" id="${esc(id)}-sample"></div>
+  </section>`;
+}
+
+function integHead(title, host, id) {
+  return `<header class="integ-head">
+    <button type="button" class="integ-back" id="integ-back">
+      <span aria-hidden="true">←</span> Back
+    </button>
+    <div class="integ-detail-top">
+      <div>
+        <h1>${esc(title)}</h1>
+        <p class="integ-host">${esc(host)}</p>
+      </div>
+      ${integStatusPill(id)}
+    </div>
+  </header>`;
 }
 
 function renderEntraHtml() {
-  const signedIn = Boolean(getAccount());
-  return renderIntegRefHtml({
-    id: "entra",
-    title: "Microsoft Entra / Graph",
-    lead: "DALKO Insights SPA sign-in. Graph User.Read confirms the signed-in @shipdalko.com account.",
-    pill: signedIn ? "Connected" : "Sign in",
-    pillOn: signedIn,
-    rows: [
-      { label: "App", value: "DALKO Insights" },
-      { label: "Tenant", value: AUTH_TENANT_ID },
-      { label: "Client ID", value: AUTH_CLIENT_ID },
-      { label: "Allowed domain", value: `@${AUTH_ALLOWED_DOMAIN}` },
-      { label: "Scopes", value: "openid, profile, email, User.Read" },
-      { label: "Signed in", value: signedIn ? getEmail() : "No" },
-    ],
-    usedBy: "Hub sign-in, merged dashboard account menu, and the DAT secrets reveal (Terry Stowe only).",
-    note: "Cataloged for reference. Credentials live in Entra, not in this page.",
-  });
+  const tenant = `https://login.microsoftonline.com/${AUTH_TENANT_ID}`;
+  return `
+    <div class="page-canvas integ-page">
+      ${integHead("Microsoft Entra", "shipdalko.com", "entra")}
+      <section class="integ-access">
+        <h2>Info</h2>
+        <div class="integ-creds" id="entra-info"></div>
+      </section>
+      ${integBlock(
+        "Environment",
+        integCred("Sign-in", tenant) +
+          integCred("Graph", "https://graph.microsoft.com/v1.0/me") +
+          integCred("Scopes", "openid, profile, email, User.Read")
+      )}
+      ${integBlock("Credentials", integCred("Client ID", AUTH_CLIENT_ID))}
+      ${integLab("entra", "Graph /me")}
+    </div>`;
+}
+
+let entraWho = "";
+
+function paintEntraBoard() {
+  const host = document.getElementById("entra-info");
+  if (host) {
+    const signed = Boolean(getAccount());
+    const who = entraWho || (signed ? getEmail() : "");
+    host.innerHTML = [
+      integCred("App", "DALKO Insights"),
+      integCred("Domain", `@${AUTH_ALLOWED_DOMAIN}`),
+      integCred("Signed in", who || "No"),
+    ].join("");
+  }
+  paintIntegLab("entra");
 }
 
 function renderCurrencyHtml() {
-  return renderIntegRefHtml({
-    id: "currency",
-    title: "Currency Converter",
-    lead: "Open Exchange Rates public feed. No Dalko account or API key.",
-    pill: "Public",
-    pillOn: true,
-    rows: [
-      { label: "Provider", value: "open.er-api.com" },
-      { label: "Endpoint", value: "https://open.er-api.com/v6/latest/{base}" },
-      { label: "Auth", value: "None" },
-    ],
-    usedBy: "Glass Box → Data Tools → Currency Converter.",
-    note: "Cataloged for reference. If this feed ever needs a key or a replacement, this is the tile to update.",
-  });
+  return `
+    <div class="page-canvas integ-page">
+      ${integHead("Currency Converter", "open.er-api.com", "currency")}
+      ${integBlock(
+        "Info",
+        integCred("Tool", "Currency Converter") + integCred("Used by", "Glass Box · Data Tools")
+      )}
+      ${integBlock("Environment", integCred("Endpoint", "https://open.er-api.com/v6/latest/USD"))}
+      ${integBlock("Credentials", integCred("Auth", "None"))}
+      ${integLab("currency", "USD book")}
+    </div>`;
 }
 
 function renderFtpHtml() {
-  return renderIntegRefHtml({
-    id: "ftp",
-    title: "FTP Rack",
-    lead: "DELTA accepts a finished file from this office site and FTPs it into the TMS. The FTP password stays on the server.",
-    rows: [
-      { label: "Rack", value: "https://delta.shipdalko.com/" },
-      { label: "Phinia send", value: "POST /api/connections/phinia/send → /PHINIA" },
-      { label: "Demo send", value: "POST /api/connections/demo/send → /DALKO" },
-    ],
-    usedBy: "Client Uploads → Demo Upload and Phinia Shipment Upload → Send to TMS.",
-    note: "The rack is https://delta.shipdalko.com. A computer on the office network can reach it.",
+  return `
+    <div class="page-canvas integ-page">
+      ${integHead("FTP Rack", "delta.shipdalko.com", "ftp")}
+      <section class="integ-access">
+        <h2>Info</h2>
+        <div class="integ-creds">${integCred("Used by", "Phinia Shipment Upload · Demo Upload")}</div>
+        <div class="integ-units" id="ftp-units"></div>
+      </section>
+      ${integBlock("Environment", integCred("Rack", "https://delta.shipdalko.com"))}
+      <section class="integ-access" id="ftp-access" hidden>
+        <h2>Credentials</h2>
+        <div class="integ-creds" id="ftp-creds"></div>
+      </section>
+      ${integLab("ftp", "DELTA")}
+    </div>`;
+}
+
+/** @type {Array<{ name?: string, remoteDir?: string, phase?: string, host?: string, port?: number, protocol?: string, username?: string, passwordSet?: boolean }> | null} */
+let ftpUnits = null;
+let ftpDown = false;
+
+function ftpPhaseWord(phase) {
+  if (phase === "ok") return "Online";
+  if (phase === "ready") return "Ready";
+  if (phase === "fault") return "Fault";
+  if (phase === "busy") return "Busy";
+  return "Off";
+}
+
+function serviceUrl(unit) {
+  const host = String(unit.host || "").trim();
+  if (!host) return "";
+  const ftp = unit.protocol === "ftp" || unit.protocol === "ftps";
+  const scheme = ftp ? unit.protocol : "https";
+  const port = Number(unit.port) || 0;
+  const skipPort = ftp ? port === 21 || port === 0 : port === 443 || port === 0;
+  const dir = String(unit.remoteDir || "");
+  const path = ftp && dir && dir !== "/" ? (dir.startsWith("/") ? dir : `/${dir}`) : "";
+  return `${scheme}://${host}${skipPort ? "" : `:${port}`}${path}`;
+}
+
+function credentialLabel(unit) {
+  const user = String(unit.username || "").trim();
+  if (user && unit.passwordSet) return `${user} · saved`;
+  if (user) return user;
+  if (unit.passwordSet) return "Saved";
+  return "";
+}
+
+function paintFtpAccess() {
+  const section = document.getElementById("ftp-access");
+  const host = document.getElementById("ftp-creds");
+  if (!section || !host) return;
+  if (ftpDown || !ftpUnits) {
+    section.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
+  const rows = [];
+  ftpUnits.forEach((unit) => {
+    const url = serviceUrl(unit);
+    const login = credentialLabel(unit);
+    if (!url && !login) return;
+    rows.push(`<article class="integ-cred">
+      <strong>${esc(unit.name || "Service")}</strong>
+      <span>${esc(url)}</span>
+      <span>${esc(login)}</span>
+    </article>`);
   });
+  if (!rows.length) {
+    section.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
+  host.innerHTML = rows.join("");
+  section.hidden = false;
+}
+
+function paintFtpBoard() {
+  const host = document.getElementById("ftp-units");
+  paintFtpAccess();
+  if (!host) return;
+  if (ftpDown) {
+    host.innerHTML = `<p class="integ-unit-empty">The rack did not answer.</p>`;
+    return;
+  }
+  if (!ftpUnits) {
+    host.innerHTML = `<p class="integ-unit-empty">Checking the rack…</p>`;
+    return;
+  }
+  if (!ftpUnits.length) {
+    host.innerHTML = `<p class="integ-unit-empty">No services on the rack.</p>`;
+    return;
+  }
+  host.innerHTML = ftpUnits
+    .map((unit) => {
+      const phase = unit.phase || "off";
+      return `<article class="integ-unit">
+        <strong>${esc(unit.name || "Service")}</strong>
+        <span>${esc(unit.remoteDir || "")}</span>
+        <em class="is-${esc(phase)}">${esc(ftpPhaseWord(phase))}</em>
+      </article>`;
+    })
+    .join("");
 }
 
 function renderFmcsaHtml() {
-  return renderIntegRefHtml({
-    id: "fmcsa",
-    title: "FMCSA QCMobile",
-    lead: "Free USDOT safety lookup. The web key stays on the office rack.",
-    pill: "Needs setup",
-    pillOn: false,
-    rows: [
-      { label: "Provider", value: "mobile.fmcsa.dot.gov/qc/services" },
-      { label: "Rack", value: "https://delta.shipdalko.com/" },
-      { label: "Lookup", value: "Name, USDOT, or MC / docket" },
-      { label: "Auth", value: "FMCSA web key on the rack" },
-    ],
-    usedBy: "Data & Tools → Carrier Search.",
-    note: "The page asks the rack at https://delta.shipdalko.com. The key stays on that machine.",
-  });
+  return `
+    <div class="page-canvas integ-page">
+      ${integHead("FMCSA QCMobile", "mobile.fmcsa.dot.gov", "fmcsa")}
+      ${integBlock(
+        "Info",
+        integCred("Tool", "Carrier Search") + integCred("Lookup", "Name, USDOT, or MC")
+      )}
+      ${integBlock(
+        "Environment",
+        integCred("Provider", "https://mobile.fmcsa.dot.gov/qc/services") +
+          integCred("Rack", "https://delta.shipdalko.com/api/fmcsa/test")
+      )}
+      ${integBlock("Credentials", integCred("Web key", "On the rack"))}
+      ${integLab("fmcsa", "USDOT 44110")}
+    </div>`;
 }
 
 function renderZipHtml() {
-  return renderIntegRefHtml({
-    id: "zip",
-    title: "Zip Calculator",
-    lead: "Zippopotam postal lookup. No Dalko account or API key.",
-    pill: "Public",
-    pillOn: true,
-    rows: [
-      { label: "Provider", value: "api.zippopotam.us" },
-      { label: "Endpoint", value: "https://api.zippopotam.us/{country}/{postal}" },
-      { label: "Auth", value: "None" },
-    ],
-    usedBy: "Glass Box → Data Tools → Zip Calculator.",
-    note: "Cataloged for reference. City, state, and country come back from the public lookup.",
-  });
+  return `
+    <div class="page-canvas integ-page">
+      ${integHead("Zip Calculator", "api.zippopotam.us", "zip")}
+      ${integBlock(
+        "Info",
+        integCred("Tool", "Zip Calculator") + integCred("Used by", "Glass Box · Data Tools")
+      )}
+      ${integBlock("Environment", integCred("Endpoint", "https://api.zippopotam.us/us/{postal}"))}
+      ${integBlock("Credentials", integCred("Auth", "None"))}
+      ${integLab("zip", "16150")}
+    </div>`;
 }
 
 function renderDatNutsHtml() {
@@ -616,79 +720,87 @@ function renderDatNutsHtml() {
         </button>
         <div class="integ-detail-top">
           <div>
-            <h1>DAT RateView API</h1>
-            <p>Organization token, user token, then Rate Lookup. Staging credentials stay on the office rack.</p>
+            <h1>DAT RateView</h1>
+            <p class="integ-host">identity.api.staging.dat.com</p>
           </div>
           ${integStatusPill("dat")}
         </div>
       </header>
 
-      <div class="integ-bolts">
-        <section class="integ-detail">
-          <h2>Health</h2>
-          <p id="dat-health">Checking this connection…</p>
-        </section>
-        <section class="integ-detail">
-          <h2>Connection</h2>
-          <dl class="integ-meta">
-            <div><dt>Environment</dt><dd>staging</dd></div>
-            <div><dt>Partner ID</dt><dd>001f400001M339EAAR</dd></div>
-            <div><dt>DAT user</dt><dd>sscarmack@dalkoresources.com</dd></div>
-          </dl>
-        </section>
+      <section class="integ-access">
+        <h2>Info</h2>
+        <div class="integ-creds">
+          <article class="integ-cred">
+            <strong>Partner ID</strong>
+            <span>001f400001M339EAAR</span>
+            <span></span>
+          </article>
+          <article class="integ-cred">
+            <strong>DAT user</strong>
+            <span>sscarmack@dalkoresources.com</span>
+            <span></span>
+          </article>
+        </div>
+      </section>
 
-        <section class="integ-detail" id="dat-secrets">
-          <h2>Service account</h2>
-          <p id="dat-secrets-note">Username and password stay hidden until Terry Stowe signs in and reveals them.</p>
-          <dl class="integ-meta integ-secrets">
-            <div>
-              <dt>Username</dt>
-              <dd class="integ-secret-row">
-                <code id="dat-secret-user">${DAT_SECRET_MASK}</code>
-                <button type="button" class="integ-eye" id="dat-eye-user" hidden aria-label="Show username">${EYE_ICO}</button>
-              </dd>
-            </div>
-            <div>
-              <dt>Password</dt>
-              <dd class="integ-secret-row">
-                <code id="dat-secret-pass">${DAT_SECRET_MASK}</code>
-                <button type="button" class="integ-eye" id="dat-eye-pass" hidden aria-label="Show password">${EYE_ICO}</button>
-              </dd>
-            </div>
-          </dl>
-        </section>
+      <section class="integ-access">
+        <h2>Environment</h2>
+        <div class="integ-creds">
+          <article class="integ-cred">
+            <strong>Environment</strong>
+            <span>staging</span>
+            <span></span>
+          </article>
+          <article class="integ-cred">
+            <strong>Organization</strong>
+            <span>https://identity.api.staging.dat.com/access/v1/token/organization</span>
+            <span></span>
+          </article>
+          <article class="integ-cred">
+            <strong>User token</strong>
+            <span>https://identity.api.staging.dat.com/access/v1/token/user</span>
+            <span></span>
+          </article>
+          <article class="integ-cred">
+            <strong>Rate lookup</strong>
+            <span>https://analytics.api.staging.dat.com/linehaulrates/v1/lookups</span>
+            <span></span>
+          </article>
+          <article class="integ-cred">
+            <strong>Rack</strong>
+            <span>https://delta.shipdalko.com/api/dat/test</span>
+            <span></span>
+          </article>
+        </div>
+      </section>
 
-        <section class="integ-detail">
-          <h2>Authentication</h2>
-          <ol class="integ-steps">
-            <li>
-              <strong>Organization token</strong>
-              <span>POST identity.api.staging.dat.com/access/v1/token/organization</span>
-            </li>
-            <li>
-              <strong>User token</strong>
-              <span>POST identity.api.staging.dat.com/access/v1/token/user with the org bearer token</span>
-            </li>
-            <li>
-              <strong>Rate Lookup</strong>
-              <span>POST analytics.api.staging.dat.com/linehaulrates/v1/lookups as a JSON array</span>
-            </li>
-          </ol>
-        </section>
+      <section class="integ-access" id="dat-secrets">
+        <h2>Credentials</h2>
+        <p class="integ-cred-note" id="dat-secrets-note" hidden></p>
+        <div class="integ-creds">
+          <article class="integ-cred">
+            <strong>Username</strong>
+            <code id="dat-secret-user">${DAT_SECRET_MASK}</code>
+            <button type="button" class="integ-eye" id="dat-eye-user" hidden aria-label="Show username">${EYE_ICO}</button>
+          </article>
+          <article class="integ-cred">
+            <strong>Password</strong>
+            <code id="dat-secret-pass">${DAT_SECRET_MASK}</code>
+            <button type="button" class="integ-eye" id="dat-eye-pass" hidden aria-label="Show password">${EYE_ICO}</button>
+          </article>
+        </div>
+      </section>
 
-        <section class="integ-detail">
-          <div class="integ-detail-top">
-            <div>
-              <h2>Live test</h2>
-              <p>Dallas → Pittsburgh van, shipper-to-broker spot. The result shows linehaul and the average fuel surcharge.</p>
-            </div>
-            <button type="button" class="chip-btn chip-primary" id="dat-test">Test connection</button>
+      <section class="integ-lab">
+        <div class="integ-lab-top">
+          <div>
+            <h2>Testing</h2>
+            <p>Dallas → Pittsburgh · van</p>
           </div>
-          <div id="dat-sample">
-            <p>Testing the Dallas → Pittsburgh sample lane…</p>
-          </div>
-        </section>
-      </div>
+          <button type="button" class="chip-btn chip-primary" id="dat-test">Test</button>
+        </div>
+        <div class="integ-lab-body" id="dat-sample"></div>
+      </section>
     </div>`;
 }
 
@@ -733,16 +845,19 @@ function paintDatSecretsGate() {
   userEye.hidden = !allowed;
   passEye.hidden = !allowed;
   if (!getAccount()) {
-    note.textContent = "Sign in with your Dalko Microsoft account. Only Terry Stowe can reveal the service-account username and password.";
+    note.hidden = false;
+    note.textContent = "Sign in to reveal the service account.";
     maskDatSecrets();
     return;
   }
   if (!allowed) {
-    note.textContent = `Signed in as ${getEmail()}. Only Terry Stowe can reveal these credentials.`;
+    note.hidden = false;
+    note.textContent = "Only Terry Stowe can reveal these.";
     maskDatSecrets();
     return;
   }
-  note.textContent = "Use the eye next to a field to show it. Microsoft confirms your identity before the rack returns the secret.";
+  note.hidden = true;
+  note.textContent = "";
 }
 
 async function ensureDatSecrets() {
@@ -750,7 +865,10 @@ async function ensureDatSecrets() {
   const note = document.getElementById("dat-secrets-note");
   const token = await getAccessToken();
   if (!token) {
-    if (note) note.textContent = "Microsoft would not issue a token. Sign in again, then retry.";
+    if (note) {
+      note.hidden = false;
+      note.textContent = "Microsoft would not issue a token. Sign in again, then retry.";
+    }
     return null;
   }
   try {
@@ -759,13 +877,19 @@ async function ensureDatSecrets() {
     });
     const data = await res.json();
     if (!res.ok || !data.ok) {
-      if (note) note.textContent = String(data.error || "Could not reveal credentials.");
+      if (note) {
+        note.hidden = false;
+        note.textContent = String(data.error || "Could not reveal credentials.");
+      }
       return null;
     }
     datSecrets = { orgUsername: data.orgUsername, orgPassword: data.orgPassword };
     return datSecrets;
   } catch {
-    if (note) note.textContent = rackUnreachable();
+    if (note) {
+      note.hidden = false;
+      note.textContent = rackUnreachable();
+    }
     return null;
   }
 }
@@ -840,10 +964,11 @@ async function bootAuth() {
   }
   paintSplashError(consumeAuthError(), bootErr);
   paintUserChrome();
+  const authed = Boolean(getAccount());
+  if (authed) await pullPermissions();
   paintNav();
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
-  const authed = Boolean(getAccount());
   if (authed) revealApp();
   else lockApp();
   setSplashReady(!authed);
@@ -861,6 +986,8 @@ async function signInFromSplash() {
     return;
   }
   paintUserChrome();
+  if (getAccount()) await pullPermissions();
+  else resetPermissions();
   paintNav();
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
@@ -889,6 +1016,8 @@ async function onAuthAction() {
     window.alert("Sign-in was cancelled or the popup was blocked.");
   }
   paintUserChrome();
+  if (getAccount()) await pullPermissions();
+  else resetPermissions();
   paintNav();
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
@@ -942,6 +1071,41 @@ const INTEG_NAMES = {
 /** @type {Record<string, { kind: string, label: string, detail: string }>} */
 const integStatus = {};
 
+/** @type {Record<string, { idle: string, busy: string, html: string }>} */
+const integLabs = {
+  entra: { idle: "Check the signed-in account.", busy: "Checking Graph…", html: "" },
+  ftp: { idle: "Check the rack.", busy: "Checking DELTA…", html: "" },
+  fmcsa: { idle: "Look up USDOT 44110.", busy: "Checking USDOT 44110…", html: "" },
+  currency: { idle: "Load the USD book.", busy: "Checking USD…", html: "" },
+  zip: { idle: "Look up 16150.", busy: "Checking 16150…", html: "" },
+};
+
+function labLine(text) {
+  return `<p class="integ-lab-empty">${esc(text)}</p>`;
+}
+
+function labLane(title, sub) {
+  return `<p class="integ-lane">${esc(title)}</p><p class="integ-lane-sub">${esc(sub)}</p>`;
+}
+
+function paintIntegLab(id) {
+  const lab = integLabs[id];
+  if (!lab) return;
+  const button = document.getElementById(`${id}-test`);
+  const testing = integStatus[id]?.kind === "testing";
+  if (button instanceof HTMLButtonElement) {
+    button.disabled = testing;
+    button.textContent = testing ? "Testing…" : "Test";
+  }
+  const sample = document.getElementById(`${id}-sample`);
+  if (!sample) return;
+  if (lab.html) {
+    sample.innerHTML = lab.html;
+    return;
+  }
+  sample.innerHTML = labLine(testing ? lab.busy : lab.idle);
+}
+
 /** @type {Promise<void> | null} */
 let integProbe = null;
 /** @type {Promise<boolean>} */
@@ -967,6 +1131,7 @@ function paintIntegHealth(id) {
 function setIntegHealth(id, kind, label, detail) {
   integStatus[id] = { kind, label, detail: detail || "" };
   paintIntegHealth(id);
+  paintIntegLab(id);
   if (kind !== "testing") paintAlerts();
 }
 
@@ -989,18 +1154,15 @@ function integAlerts() {
 async function probeEntra() {
   setIntegHealth("entra", "testing", "Checking");
   if (!getAccount()) {
-    setIntegHealth("entra", "setup", "Sign in", "No Microsoft session. Sign in from the account menu, then reopen Integrations.");
+    integLabs.entra.html = labLine("Sign in to check Graph.");
+    setIntegHealth("entra", "setup", "Sign in", "No Microsoft session.");
     return;
   }
   let token = await getAccessToken({ interactive: false });
   if (!token) token = await getAccessToken({ interactive: false });
   if (!token) {
-    setIntegHealth(
-      "entra",
-      "setup",
-      "Refresh",
-      "You're signed in, but Microsoft did not issue a Graph token. Sign out and sign in again if this stays."
-    );
+    integLabs.entra.html = labLine("Microsoft did not issue a Graph token.");
+    setIntegHealth("entra", "setup", "Refresh", "Microsoft did not issue a Graph token.");
     return;
   }
   try {
@@ -1009,12 +1171,18 @@ async function probeEntra() {
     });
     const data = await res.json();
     if (!res.ok) {
-      setIntegHealth("entra", "failed", "Failed", String(data.error?.message || `Graph returned ${res.status}.`));
+      const detail = String(data.error?.message || `Graph returned ${res.status}.`);
+      integLabs.entra.html = labLine(detail);
+      setIntegHealth("entra", "failed", "Failed", detail);
       return;
     }
     const who = data.userPrincipalName || data.mail || getEmail();
-    setIntegHealth("entra", "healthy", "Healthy", `Graph /me answered for ${who}.`);
+    entraWho = String(who || "");
+    integLabs.entra.html = labLane(entraWho || "Microsoft account", `@${AUTH_ALLOWED_DOMAIN}`);
+    paintEntraBoard();
+    setIntegHealth("entra", "healthy", "Healthy", entraWho || "Graph answered.");
   } catch {
+    integLabs.entra.html = labLine("Could not reach Microsoft Graph.");
     setIntegHealth("entra", "failed", "Failed", "Could not reach Microsoft Graph.");
   }
 }
@@ -1026,11 +1194,21 @@ async function probeCurrency() {
     const data = await res.json();
     const usdEur = Number(data.rates?.EUR);
     if (data.result !== "success" || !Number.isFinite(usdEur)) {
+      integLabs.currency.html = labLine("The USD book was empty.");
       setIntegHealth("currency", "failed", "Failed", "The FX feed answered, but the USD book was empty.");
       return;
     }
-    setIntegHealth("currency", "healthy", "Healthy", `USD → EUR ${usdEur.toFixed(4)}. Provider ${data.provider || "open.er-api.com"}.`);
+    const keys = ["EUR", "GBP", "CAD", "MXN"];
+    integLabs.currency.html = `<div class="integ-kpis">${keys
+      .map((code) => {
+        const rate = Number(data.rates?.[code]);
+        const shown = Number.isFinite(rate) ? rate.toFixed(4) : "—";
+        return `<div><strong>${esc(shown)}</strong><span>USD → ${esc(code)}</span></div>`;
+      })
+      .join("")}</div>`;
+    setIntegHealth("currency", "healthy", "Healthy", `USD → EUR ${usdEur.toFixed(4)}`);
   } catch {
+    integLabs.currency.html = labLine("Could not reach open.er-api.com.");
     setIntegHealth("currency", "failed", "Failed", "Could not reach open.er-api.com.");
   }
 }
@@ -1042,16 +1220,16 @@ async function probeZip() {
     const data = await res.json();
     const place = data.places?.[0];
     if (!res.ok || !place) {
-      setIntegHealth("zip", "failed", "Failed", "Zippopotam did not return Sharpsville, PA (16150).");
+      integLabs.zip.html = labLine("Zippopotam did not return 16150.");
+      setIntegHealth("zip", "failed", "Failed", "Zippopotam did not return 16150.");
       return;
     }
-    setIntegHealth(
-      "zip",
-      "healthy",
-      "Healthy",
-      `16150 → ${place["place name"]}, ${place["state abbreviation"]}.`
-    );
+    const city = String(place["place name"] || "");
+    const state = String(place["state abbreviation"] || "");
+    integLabs.zip.html = labLane("16150", [city, state].filter(Boolean).join(", "));
+    setIntegHealth("zip", "healthy", "Healthy", `16150 → ${city}, ${state}`);
   } catch {
+    integLabs.zip.html = labLine("Could not reach api.zippopotam.us.");
     setIntegHealth("zip", "failed", "Failed", "Could not reach api.zippopotam.us.");
   }
 }
@@ -1061,49 +1239,50 @@ async function probeFmcsa() {
   try {
     const res = await fetch(`${DAT_PROXY}/api/fmcsa/test`);
     const data = await res.json();
-    if (data.needKey || !data.ok && /WEBKEY/i.test(String(data.error || ""))) {
-      setIntegHealth(
-        "fmcsa",
-        "setup",
-        "Needs setup",
-        data.error || "The FMCSA web key is missing on the rack."
-      );
+    if (data.needKey || (!data.ok && /WEBKEY/i.test(String(data.error || "")))) {
+      const detail = String(data.error || "The FMCSA web key is missing on the rack.");
+      integLabs.fmcsa.html = labLine(detail);
+      setIntegHealth("fmcsa", "setup", "Needs setup", detail);
       return;
     }
     if (!data.ok) {
-      setIntegHealth("fmcsa", "failed", "Failed", String(data.error || "FMCSA lookup failed."));
+      const detail = String(data.error || "FMCSA lookup failed.");
+      integLabs.fmcsa.html = labLine(detail);
+      setIntegHealth("fmcsa", "failed", "Failed", detail);
       return;
     }
-    setIntegHealth("fmcsa", "healthy", "Healthy", String(data.detail || "QCMobile answered for the Greyhound sample DOT."));
+    const detail = String(data.detail || "QCMobile answered for USDOT 44110.");
+    const named = detail.match(/\(([^)]+)\)/);
+    integLabs.fmcsa.html = labLane("USDOT 44110", named ? named[1] : detail);
+    setIntegHealth("fmcsa", "healthy", "Healthy", named ? named[1] : "USDOT 44110");
   } catch {
-    setIntegHealth(
-      "fmcsa",
-      "setup",
-      "Needs setup",
-      rackUnreachable()
-    );
+    integLabs.fmcsa.html = labLine(rackUnreachable());
+    setIntegHealth("fmcsa", "setup", "Needs setup", rackUnreachable());
   }
 }
 
 async function probeFtp() {
   setIntegHealth("ftp", "testing", "Checking");
+  if (!ftpUnits && !ftpDown) paintFtpBoard();
   try {
     const rack = await fetchRack();
-    const units = (rack.connections || [])
-      .map((unit) => `${unit.name} ${unit.remoteDir} (${unit.phase})`)
-      .join("; ");
-    setIntegHealth(
-      "ftp",
-      "healthy",
-      "Healthy",
-      `${rack.hostname || "DELTA"} is listening at ${rack.listen}. ${units}`
-    );
+    ftpDown = false;
+    ftpUnits = Array.isArray(rack.connections)
+      ? rack.connections.filter((unit) => unit && unit.protocol !== "permissions" && unit.id !== "permissions")
+      : [];
+    integLabs.ftp.html = labLane("DELTA", `${ftpUnits.length} services`);
+    paintFtpBoard();
+    setIntegHealth("ftp", "healthy", "Healthy", "DELTA");
   } catch {
+    ftpUnits = null;
+    ftpDown = true;
+    integLabs.ftp.html = labLine("The rack did not answer.");
+    paintFtpBoard();
     setIntegHealth(
       "ftp",
       "failed",
       "Offline",
-      "Could not reach the FTP rack at https://delta.shipdalko.com. Leave the server window open."
+      "The rack did not answer."
     );
   }
 }
@@ -1133,22 +1312,42 @@ async function probeAllIntegrations() {
   return integProbe;
 }
 
+/** @type {string} */
+let datSampleHtml = "";
+
+function paintDatSample() {
+  const sample = document.getElementById("dat-sample");
+  const button = /** @type {HTMLButtonElement | null} */ (document.getElementById("dat-test"));
+  if (button) {
+    button.disabled = integStatus.dat?.state === "testing";
+    button.textContent = integStatus.dat?.state === "testing" ? "Testing…" : "Test";
+  }
+  if (!sample) return;
+  if (datSampleHtml) {
+    sample.innerHTML = datSampleHtml;
+    return;
+  }
+  sample.innerHTML = integStatus.dat?.state === "testing"
+    ? `<p class="integ-lab-empty">Checking Dallas → Pittsburgh…</p>`
+    : `<p class="integ-lab-empty">Run the sample lane.</p>`;
+}
+
 function renderDatSampleHtml(payload) {
   const item = payload?.rateResponses?.[0];
   const rate = item?.response?.rate;
   const req = item?.request;
   const escalation = item?.response?.escalation;
   if (!rate || !req) {
-    return `<p>Connected, but DAT did not return a rate for the sample lane.</p>`;
+    return `<p class="integ-lab-empty">Connected. DAT did not return a rate for this lane.</p>`;
   }
   const origin = [req.origin?.city, req.origin?.stateOrProvince].filter(Boolean).join(", ");
   const dest = [req.destination?.city, req.destination?.stateOrProvince].filter(Boolean).join(", ");
   const market = escalation
-    ? `${escalation.origin?.name ?? ""} → ${escalation.destination?.name ?? ""} · ${String(escalation.timeframe ?? "").replaceAll("_", " ").toLowerCase()}`
+    ? `${escalation.origin?.name ?? ""} → ${escalation.destination?.name ?? ""}`
     : "";
   return `
     <p class="integ-lane">${esc(origin)} → ${esc(dest)}</p>
-    <p class="integ-lane-sub">${esc(req.equipment ?? "VAN")} · ${esc(String(req.rateType ?? "").replaceAll("_", " ").toLowerCase())}</p>
+    <p class="integ-lane-sub">${esc(req.equipment ?? "VAN")} · ${esc(String(req.rateType ?? "").replaceAll("_", " ").toLowerCase())}${market ? ` · ${esc(market)}` : ""}</p>
     <div class="integ-kpis">
       <div><strong>${usd(rate.perMile?.rateUsd)}</strong><span>Linehaul / mile</span></div>
       <div><strong>${usd(rate.averageFuelSurchargePerMileUsd)}</strong><span>Fuel / mile</span></div>
@@ -1157,12 +1356,12 @@ function renderDatSampleHtml(payload) {
       <div><strong>${usd(rate.perMile?.lowUsd)} – ${usd(rate.perMile?.highUsd)}</strong><span>Mile range</span></div>
       <div><strong>${Number(rate.mileage ?? 0).toLocaleString()}</strong><span>Miles</span></div>
     </div>
-    <p class="integ-note">Linehaul does not include fuel. ${Number(rate.reports ?? 0)} reports · ${Number(rate.companies ?? 0)} companies · strength ${esc(String(rate.rateStrength ?? "—"))}${market ? ` · ${esc(market)}` : ""}</p>`;
+    <p class="integ-lab-meta">${Number(rate.reports ?? 0)} reports · ${Number(rate.companies ?? 0)} companies · strength ${esc(String(rate.rateStrength ?? "—"))}</p>`;
 }
 
 async function testDatConnection() {
-  const sample = document.getElementById("dat-sample");
   setIntegHealth("dat", "testing", "Checking");
+  paintDatSample();
   try {
     const res = await fetch(`${DAT_PROXY}/api/dat/test`, { method: "POST" });
     const data = await res.json();
@@ -1171,20 +1370,18 @@ async function testDatConnection() {
         data.error ||
         data.result?.errors?.[0]?.message ||
         "DAT lookup failed.";
+      datSampleHtml = `<p class="integ-lab-empty">${esc(String(detail))}</p>`;
       setIntegHealth("dat", "failed", "Failed", String(detail));
-      if (sample) sample.innerHTML = `<p>${esc(String(detail))}</p>`;
+      paintDatSample();
       return;
     }
-    setIntegHealth("dat", "healthy", "Healthy", "Staging Rate Lookup answered for Dallas → Pittsburgh van.");
-    if (sample) sample.innerHTML = renderDatSampleHtml(data.result);
+    datSampleHtml = renderDatSampleHtml(data.result);
+    setIntegHealth("dat", "healthy", "Healthy", "Dallas → Pittsburgh van");
+    paintDatSample();
   } catch {
-    setIntegHealth(
-      "dat",
-      "setup",
-      "Needs setup",
-      rackUnreachable()
-    );
-    if (sample) sample.innerHTML = `<p>${esc(rackUnreachable())}</p>`;
+    datSampleHtml = `<p class="integ-lab-empty">${esc(rackUnreachable())}</p>`;
+    setIntegHealth("dat", "setup", "Needs setup", rackUnreachable());
+    paintDatSample();
   }
 }
 
@@ -1446,9 +1643,23 @@ function paintSettings() {
   document.getElementById("dat-test")?.addEventListener("click", () => void testDatConnection());
   document.getElementById("dat-eye-user")?.addEventListener("click", () => void toggleDatSecret("user"));
   document.getElementById("dat-eye-pass")?.addEventListener("click", () => void toggleDatSecret("pass"));
+  document.getElementById("entra-test")?.addEventListener("click", () => void probeEntra());
+  document.getElementById("ftp-test")?.addEventListener("click", () => void probeFtp());
+  document.getElementById("fmcsa-test")?.addEventListener("click", () => void probeFmcsa());
+  document.getElementById("currency-test")?.addEventListener("click", () => void probeCurrency());
+  document.getElementById("zip-test")?.addEventListener("click", () => void probeZip());
   Object.keys(integStatus).forEach((id) => paintIntegHealth(id));
+  if (shellView === "integrations-ftp") paintFtpBoard();
+  if (shellView === "integrations-entra") paintEntraBoard();
+  if (shellView === "integrations-fmcsa") paintIntegLab("fmcsa");
+  if (shellView === "integrations-currency") paintIntegLab("currency");
+  if (shellView === "integrations-zip") paintIntegLab("zip");
+  if (shellView === "integrations-ftp") paintIntegLab("ftp");
   if (String(shellView).startsWith("integrations")) void probeAllIntegrations();
-  if (shellView === "integrations-dat") paintDatSecretsGate();
+  if (shellView === "integrations-dat") {
+    paintDatSecretsGate();
+    paintDatSample();
+  }
 }
 
 function appendConsole(line) {

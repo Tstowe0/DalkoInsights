@@ -7,7 +7,8 @@
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CLIENT_REPORT_BANDS, SECTIONS } from "../../portals/glassbox/js/catalog.js?v=20260923-fmcsa";
 import { AUTH_ALLOWED_DOMAIN } from "./auth-config.js?v=20260915-app3";
-import { getAccessToken, getEmail } from "./auth.js?v=20260930-directory";
+import { getAccessToken, getAccount, getEmail } from "./auth.js?v=20261001-splash";
+import { RACK_ORIGIN } from "./ftp-rack.js?v=20261002-ftpback";
 
 const STORAGE_KEY = "dalko.permissions.v1";
 const KNOWN_KEY = "dalko.permissions.known";
@@ -193,37 +194,183 @@ function ensureStaff(store) {
 }
 
 /** @returns {PermStore} */
-function readPermissions() {
+function normalizeStore(data) {
+  const groups = Array.isArray(data?.groups) ? data.groups : [];
+  const members = Array.isArray(data?.members) ? data.members : [];
+  return {
+    groups: groups
+      .filter((group) => group && typeof group.id === "string")
+      .map((group) => ({
+        id: group.id,
+        name: String(group.name || "Group").slice(0, 60),
+        menus: Array.isArray(group.menus) ? group.menus.map(String) : [],
+        tools: Array.isArray(group.tools) ? group.tools.map(String) : [],
+      })),
+    members: [...members.reduce((map, member) => {
+      if (!member || typeof member.email !== "string" || typeof member.groupId !== "string") return map;
+      const email = member.email.trim().toLowerCase();
+      if (email.includes("@")) map.set(email, member.groupId);
+      return map;
+    }, new Map())].map(([email, groupId]) => ({ email, groupId })),
+    released: [...new Set(
+      (Array.isArray(data?.released) ? data.released : [])
+        .map((email) => String(email || "").trim().toLowerCase())
+        .filter((email) => email.includes("@"))
+    )],
+  };
+}
+
+function cloneStore(store) {
+  return normalizeStore(JSON.parse(JSON.stringify(store)));
+}
+
+/** @type {PermStore | null} */
+let memory = null;
+let hydrated = false;
+let remoteNote = "";
+let pushChain = Promise.resolve();
+let pushGen = 0;
+
+/** @param {PermStore} store */
+function viewerCanWrite(store) {
+  const email = String(getEmail() || "").trim().toLowerCase();
+  if (!email) return false;
+  if (email === OWNER_EMAIL) return true;
+  return store.members.some((member) => member.email === email && member.groupId === ADMIN_ID);
+}
+
+function paintRemoteNote() {
+  const note = document.getElementById("perm-remote-note");
+  if (!(note instanceof HTMLElement)) return;
+  note.hidden = !remoteNote;
+  note.textContent = remoteNote;
+}
+
+/** @returns {PermStore} */
+function readLocalStore() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return emptyStore();
-    const data = JSON.parse(raw);
-    const groups = Array.isArray(data?.groups) ? data.groups : [];
-    const members = Array.isArray(data?.members) ? data.members : [];
-    return {
-      groups: groups
-        .filter((group) => group && typeof group.id === "string")
-        .map((group) => ({
-          id: group.id,
-          name: String(group.name || "Group").slice(0, 60),
-          menus: Array.isArray(group.menus) ? group.menus.map(String) : [],
-          tools: Array.isArray(group.tools) ? group.tools.map(String) : [],
-        })),
-      members: [...members.reduce((map, member) => {
-        if (!member || typeof member.email !== "string" || typeof member.groupId !== "string") return map;
-        const email = member.email.trim().toLowerCase();
-        if (email.includes("@")) map.set(email, member.groupId);
-        return map;
-      }, new Map())].map(([email, groupId]) => ({ email, groupId })),
-      released: [...new Set(
-        (Array.isArray(data?.released) ? data.released : [])
-          .map((email) => String(email || "").trim().toLowerCase())
-          .filter((email) => email.includes("@"))
-      )],
-    };
+    return normalizeStore(JSON.parse(raw));
   } catch {
     return emptyStore();
   }
+}
+
+function localStoreIsCustom(store) {
+  if (store.released.length > 0) return true;
+  if (store.groups.some((group) => group.id !== ADMIN_ID && group.id !== STAFF_ID)) return true;
+  if (store.members.some((member) => member.email !== OWNER_EMAIL)) return true;
+  return false;
+}
+
+async function rackToken() {
+  let token = await getAccessToken({ interactive: false });
+  if (!token && getAccount()) token = await getAccessToken({ interactive: true });
+  return token || "";
+}
+
+function rackLoadError(status, data) {
+  if (status === 401) return "Microsoft did not confirm this sign-in. Sign out and sign in again.";
+  if (status === 403) return String(data?.error || "This account cannot load permissions.");
+  return String(data?.error || "DELTA did not answer. Changes on this page are not saved.");
+}
+
+/** @param {PermStore} store */
+async function pushStore(store) {
+  const token = await rackToken();
+  if (!token) {
+    remoteNote = "Sign in again to save permissions.";
+    paintRemoteNote();
+    return;
+  }
+  try {
+    const res = await fetch(`${RACK_ORIGIN}/api/permissions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ store }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok || !data.store) {
+      remoteNote = res.status === 403
+        ? "Only an Admin can save permissions."
+        : "DELTA did not save this change.";
+      paintRemoteNote();
+      return;
+    }
+    memory = normalizeStore(data.store);
+    remoteNote = "";
+    paintRemoteNote();
+  } catch {
+    remoteNote = "DELTA did not answer. Changes on this page are not saved.";
+    paintRemoteNote();
+  }
+}
+
+/** @param {PermStore} store */
+function savePermissions(store) {
+  if (!hydrated) return;
+  if (!viewerCanWrite(store)) return;
+  memory = cloneStore(store);
+  const gen = ++pushGen;
+  const snapshot = cloneStore(store);
+  pushChain = pushChain
+    .then(async () => {
+      if (gen !== pushGen) return;
+      await pushStore(snapshot);
+    })
+    .catch(() => {});
+}
+
+/** Load the shared permissions from DELTA. */
+export async function pullPermissions() {
+  const token = await rackToken();
+  if (!token) {
+    hydrated = false;
+    remoteNote = getAccount()
+      ? "Microsoft did not confirm this sign-in. Sign out and sign in again."
+      : "Sign in to load permissions from DELTA.";
+    return;
+  }
+  try {
+    const res = await fetch(`${RACK_ORIGIN}/api/permissions`, {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok || !data.store) {
+      hydrated = false;
+      remoteNote = rackLoadError(res.status, data);
+      return;
+    }
+    hydrated = true;
+    remoteNote = "";
+    memory = normalizeStore(data.store);
+    if (Number(data.revision) === 0 && viewerCanWrite(memory)) {
+      const local = readLocalStore();
+      if (localStoreIsCustom(local)) memory = local;
+    }
+    loadPermissions();
+  } catch {
+    hydrated = false;
+    remoteNote = "The browser could not reach DELTA. Changes on this page are not saved.";
+  }
+}
+
+export function resetPermissions() {
+  memory = null;
+  hydrated = false;
+  remoteNote = "";
+  pushGen += 1;
+}
+
+/** @returns {PermStore} */
+function readPermissions() {
+  if (!memory) return emptyStore();
+  return cloneStore(memory);
 }
 
 /** @returns {PermStore} */
@@ -233,7 +380,11 @@ export function loadPermissions() {
   const staffChanged = ensureStaff(store);
   const repaired = repairMembers(store);
   const parents = repairGrantParents(store);
-  if (adminChanged || staffChanged || repaired || parents) savePermissions(store);
+  if (adminChanged || staffChanged || repaired || parents) {
+    if (!hydrated) return store;
+    if (viewerCanWrite(store)) savePermissions(store);
+    else memory = cloneStore(store);
+  }
   return store;
 }
 
@@ -260,11 +411,6 @@ function repairMembers(store) {
     changed = true;
   }
   return changed;
-}
-
-/** @param {PermStore} store */
-function savePermissions(store) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
 }
 
 function newId() {
@@ -795,6 +941,7 @@ export function renderPermissionsPage(focus) {
       <header class="hero">
         <h1>Permissions</h1>
         <p>Click a group to list its people. Click a person to show their group. Edit opens the settings.</p>
+        <p class="perm-hint" id="perm-remote-note"${remoteNote ? "" : " hidden"}>${esc(remoteNote)}</p>
       </header>
       <div class="perm-split">
         <section class="perm-card" aria-label="Groups">
