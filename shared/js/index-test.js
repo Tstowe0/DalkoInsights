@@ -14,7 +14,7 @@ import {
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20260918-home";
 import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261001-daybreak";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261001-log185";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261005-log186";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261001-accfocus";

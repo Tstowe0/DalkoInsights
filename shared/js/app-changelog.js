@@ -12,6 +12,16 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "DATs Weekly is now DATs Weekly Upload under Client Uploads, with the same cloud icon as Demo and Phinia.",
+      "Run and Save downloads the weekly DAT workbook. Run and Send hands that same file to the DATs FTP connection on the rack.",
+      "With Send to DAT off, the rack keeps the file in client uploads/dat. With it on, the rack uploads the file.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "Insights and Glass Box stay one dashboard. Microsoft sign-in (@shipdalko.com) opens the desk on Today.",
       "Permissions lists groups and people from the Dalko directory, with first and last names. New people start in Everything no FTP. Admin can always open Permissions.",
       "Themes: Harbor and Daybreak for daylight, night palettes (Midnight Gold, Ocean Steel, Night Void, Forest Pine, Ember Forge, Graphite Lime, Slate Coral), plus Hallowed Night and Yule Night.",
