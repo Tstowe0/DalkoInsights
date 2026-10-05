@@ -1,14 +1,17 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261001-stageall";
-import { workbookToObjects } from "../_shared/excel.js";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261005-datsname";
+import { workbookToObjects, workbookBlob } from "../_shared/excel.js?v=20261005-dats";
 import { rowsToSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
 import { pickVal, pickCol, fmtMDY } from "../_shared/report-helpers.js";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261005-dats";
 
 export const meta = {
-  id: "DATs Weekly",
-  title: "DATs Weekly",
-  category: "Client Reports",
-  script: "Client Reports/DATs Weekly.js",
+  id: "DATs Weekly Upload",
+  title: "DATs Weekly Upload",
+  category: "Client Uploads",
+  script: "Client Uploads/DATs Weekly Upload.js",
 };
+
+const RACK_ID = "dats";
 
 // Exact EXCLUDE_EQUIPMENT list from DATs Weekly.py.
 const EXCLUDE_EQUIPMENT = [
@@ -16,7 +19,7 @@ const EXCLUDE_EQUIPMENT = [
   "Guaranteed LTL", "Master Bill", "Rail", "Storage", "Warehouse",
 ];
 
-/** @param {Record<string, unknown>} row @param {number} i */
+/** @param {Record<string, unknown>} row */
 function getLinehaul(row) {
   for (let i = 1; i <= 10; i++) {
     const accCol = pickCol(row, [`ACCESSORIAL${i}`]);
@@ -64,17 +67,16 @@ export async function loadGui(parent, ctx) {
     title: meta.title,
     category: meta.category,
     instructions: `Concept:
-Generates a formatted weekly report for DATs contribution by processing TMS Data Dump
-files. Filters for TL (Truckload) shipments only, excludes specific equipment types
-(INT, Ocean, Air Freight, etc.), and formats the data for submission to the DATs
-contribution server.
+Builds the weekly DAT contribution file from a TMS Data Dump. Keeps truckload rows, drops INT, Ocean, Air, and the other excluded equipment, and writes the DAT column layout.
 
 Workflow:
 1. Run a TMS Data Dump for all clients, TL only, covering the previous calendar week (Sun–Sat). Use Ship Date.
-2. Upload the TL Data Dump Excel file.
-3. Click 'Run' to generate the formatted report.
-4. SFTP upload to DATs is desktop-only and is not available in the web portal — upload the file manually if needed.`,
+2. Upload the dump.
+3. Run and Save downloads the contribution workbook.
+4. Run and Send hands that same file to the DATs FTP connection. If Send to DAT is off on the rack, the file is saved in client uploads\\dat.`,
     sheetName: "Data",
+    runLabel: "Run and Save",
+    sendLabel: "Run and Send",
     async buildWorkbook(buffer, bctx) {
       const { rows } = workbookToObjects(buffer, "DataDump");
 
@@ -146,6 +148,18 @@ Workflow:
 
       const name = `rates-783793-200409_${fmtMDY(bctx.sun, ".")}_${fmtMDY(bctx.sat, ".")}.xlsx`;
       return { workbook: wb, name, rowCount: out.length };
+    },
+    async onSend(built, ui) {
+      const ok = window.confirm(`Send ${built.name} (${built.rowCount.toLocaleString()} rows) to DAT?`);
+      if (!ok) {
+        ui.setStatus("Ready");
+        ctx.log("DATs Weekly Upload: send cancelled.");
+        return;
+      }
+      const message = await sendToRack(RACK_ID, built.name, workbookBlob(built.workbook));
+      const held = message.startsWith("Held ");
+      ui.setStatus(held ? "Saved" : "Sent");
+      ctx.log(`${held ? "Saved" : "Sent"} ${built.rowCount.toLocaleString()} rows as ${built.name}. ${message}`);
     },
   });
 }

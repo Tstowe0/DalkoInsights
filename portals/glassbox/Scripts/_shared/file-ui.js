@@ -3,7 +3,7 @@
  */
 
 import { openMailDraft } from "./mailto.js";
-import { mountAboutSlide } from "./about-slide.js?v=20261001-aboutswap";
+import { mountAboutSlide } from "./about-slide.js?v=20261005-datsname";
 
 /**
  * @param {string} value
@@ -53,9 +53,10 @@ function parseStageGuide(instructions) {
  * @param {string} opts.accept
  * @param {boolean} opts.multiple
  * @param {string} [opts.sendLabel]
+ * @param {string} [opts.runLabel]
  */
 function classicMarkup(opts) {
-  const { title, instructions, skipped, skipReason, accept, multiple, sendLabel = "" } = opts;
+  const { title, instructions, skipped, skipReason, accept, multiple, sendLabel = "", runLabel = "Run" } = opts;
   return `
     <section class="gb-tool${skipped ? " gb-tool-skipped" : ""}" data-tool="${escapeHtml(title)}">
       <header class="gb-tool-header">
@@ -116,7 +117,7 @@ function classicMarkup(opts) {
                 <footer class="gb-ws-actions">
                   <span class="gb-email-slot" data-email-slot></span>
                   ${sendLabel ? `<button type="button" class="btn btn-secondary" data-send disabled>${escapeHtml(sendLabel)}</button>` : ""}
-                  <button type="button" class="btn btn-primary" data-run disabled>Run</button>
+                  <button type="button" class="btn btn-primary" data-run disabled>${escapeHtml(runLabel)}</button>
                 </footer>
               </div>
             `
@@ -133,7 +134,7 @@ function classicMarkup(opts) {
  * @param {Parameters<typeof classicMarkup>[0]} opts
  */
 function stageMarkup(opts) {
-  const { title, instructions, skipped, skipReason, accept, multiple, sendLabel = "", stepStyle = "cards" } = opts;
+  const { title, instructions, skipped, skipReason, accept, multiple, sendLabel = "", runLabel = "Run", stepStyle = "cards" } = opts;
   const { description, steps } = parseStageGuide(instructions);
   const prose = stepStyle === "prose";
   const guide = steps.length
@@ -176,7 +177,7 @@ function stageMarkup(opts) {
                 <button type="button" class="btn btn-secondary" data-browse>Browse</button>
                 <button type="button" class="btn btn-ghost" data-clear>Clear</button>
                 ${sendLabel ? `<button type="button" class="btn btn-secondary" data-send disabled>${escapeHtml(sendLabel)}</button>` : ""}
-                <button type="button" class="btn btn-primary" data-run disabled>Run</button>
+                <button type="button" class="btn btn-primary" data-run disabled>${escapeHtml(runLabel)}</button>
               </div>
             </div>
             <div class="gb-stage-extra" data-extra-step hidden>
@@ -222,6 +223,7 @@ function stageMarkup(opts) {
  * @property {string} [skipReason]
  * @property {(files: File[], ui: { setStatus: (t: string) => void, setBusy: (b: boolean) => void, extra: HTMLElement }) => Promise<void>} [onRun]
  * @property {string} [sendLabel]
+ * @property {string} [runLabel]
  * @property {(files: File[], ui: { setStatus: (t: string) => void, setBusy: (b: boolean) => void, extra: HTMLElement }) => Promise<void>} [onSend]
  * @property {(extra: HTMLElement) => void} [buildExtra]
  * @property {import("./mailto.js").MailDraft | import("./mailto.js").MailDraft[] | (() => import("./mailto.js").MailDraft | import("./mailto.js").MailDraft[])} [emailDraft]
@@ -245,6 +247,7 @@ export function mountFileTool(parent, opts) {
     skipReason = "This tool cannot run in the browser.",
     onRun,
     sendLabel = "",
+    runLabel = "Run",
     onSend,
     buildExtra,
     emailDraft,
@@ -257,8 +260,8 @@ export function mountFileTool(parent, opts) {
 
   const markup =
     layout === "stage"
-      ? stageMarkup({ title, category, instructions, skipped, skipReason, accept, multiple, sendLabel, stepStyle })
-      : classicMarkup({ title, category, instructions, skipped, skipReason, accept, multiple, sendLabel });
+      ? stageMarkup({ title, category, instructions, skipped, skipReason, accept, multiple, sendLabel, runLabel, stepStyle })
+      : classicMarkup({ title, category, instructions, skipped, skipReason, accept, multiple, sendLabel, runLabel });
 
   parent.innerHTML = markup;
 
@@ -289,7 +292,7 @@ export function mountFileTool(parent, opts) {
     const blocked = busy || files.length === 0;
     if (runBtn) {
       runBtn.disabled = blocked;
-      runBtn.textContent = busy && activeAction === "run" ? "Running…" : "Run";
+      runBtn.textContent = busy && activeAction === "run" ? (runLabel === "Run" ? "Running…" : "Saving…") : runLabel;
     }
     if (sendBtn) {
       sendBtn.disabled = blocked;

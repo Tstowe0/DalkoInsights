@@ -91,6 +91,7 @@ export const SECTIONS = [
       makeTool("Client Uploads/Demo Upload.js"),
       makeTool("Client Uploads/Phinia Shipment Upload.js"),
       makeTool("Client Uploads/Phinia Operational Report.js"),
+      makeTool("Client Uploads/DATs Weekly Upload.js"),
       makeTool("Client Uploads/Guardian Shipment Upload.js"),
     ],
   },
@@ -113,11 +114,6 @@ export const CLIENT_REPORT_BANDS = [
       makeTool("Client Reports/Phinia Weekly.js"),
       makeTool("Client Reports/Quality Turbocharger Weekly.js"),
     ],
-  },
-  {
-    id: "thursday",
-    label: "Thursday",
-    tools: [makeTool("Client Reports/DATs Weekly.js")],
   },
   {
     id: "friday",

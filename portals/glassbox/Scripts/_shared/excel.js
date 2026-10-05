@@ -179,7 +179,7 @@ export function objectsToWorkbook(rows, sheetName = "Sheet1") {
  * @param {object} workbook
  * @param {string} filename
  */
-export function downloadWorkbook(workbook, filename) {
+export function workbookBlob(workbook) {
   const XLSX = globalThis.XLSX;
   const data = XLSX.write(workbook, {
     bookType: "xlsx",
@@ -187,7 +187,15 @@ export function downloadWorkbook(workbook, filename) {
     cellStyles: true,
     cellDates: true,
   });
-  downloadBlob(new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), filename);
+  return new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+
+/**
+ * @param {object} workbook
+ * @param {string} filename
+ */
+export function downloadWorkbook(workbook, filename) {
+  downloadBlob(workbookBlob(workbook), filename);
 }
 
 /**

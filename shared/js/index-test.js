@@ -19,11 +19,11 @@ import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261001-accfocus";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
-import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20260930-demo";
+import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261005-datsname";
 import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20260819-fxsweep";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20260930-demo";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261005-datsname";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20260923-holiday";
-import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20260923-sweep";
+import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261005-datsname";
 import {
   canRevealDatSecrets,
   getAccessToken,
@@ -49,7 +49,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261002-permreach";
+} from "./permissions.js?v=20261005-datsname";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [

@@ -5,7 +5,7 @@
  */
 
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
-import { CLIENT_REPORT_BANDS, SECTIONS } from "../../portals/glassbox/js/catalog.js?v=20260923-fmcsa";
+import { CLIENT_REPORT_BANDS, SECTIONS } from "../../portals/glassbox/js/catalog.js?v=20261005-datsname";
 import { AUTH_ALLOWED_DOMAIN } from "./auth-config.js?v=20260915-app3";
 import { getAccessToken, getAccount, getEmail } from "./auth.js?v=20261001-splash";
 import { RACK_ORIGIN } from "./ftp-rack.js?v=20261002-ftpback";

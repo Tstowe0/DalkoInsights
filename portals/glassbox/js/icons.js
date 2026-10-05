@@ -30,7 +30,6 @@ export function tileIconUrl(label) {
   /** @type {Record<string, string>} */
   const aliases = {
     "Carrier Search": "Carrier Performance.png",
-    "DATs Weekly": "DATS Weekly.png",
     "Data Dump Merger": "Data Dump Breakdown.png",
   };
   const file = aliases[label] ?? `${label}.png`;

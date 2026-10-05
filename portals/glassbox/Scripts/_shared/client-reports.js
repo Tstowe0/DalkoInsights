@@ -7,7 +7,7 @@ import {
   workbookToObjects,
   downloadWorkbook,
   readCellA1,
-} from "./excel.js?v=20260916-xlsxstyle";
+} from "./excel.js?v=20261005-dats";
 import { applyClientReportStyle, rowsToSheetWorkbook, XL } from "./report-format.js?v=20260916-xlsxstyle";
 import {
   pickVal,
@@ -24,7 +24,7 @@ import {
   VETPET_EXCLUDE,
   todayNy,
 } from "./tracking-layout.js";
-import { mountFileTool } from "./file-ui.js?v=20261001-aboutswap";
+import { mountFileTool } from "./file-ui.js?v=20261005-datsname";
 
 /**
  * Dump-style report with optional filters + Python-parity styling.
@@ -53,45 +53,41 @@ export function mountDumpFilterReport(parent, ctx, cfg) {
     emailDraft = null,
     requireClientNameA1 = true,
     layout = "stage",
+    sendLabel = "",
+    runLabel = "Run",
+    onSend = null,
   } = cfg;
 
-  mountFileTool(parent, {
-    title,
-    category,
-    instructions,
-    onBack: ctx.onBack,
-    log: ctx.log,
-    emailDraft,
-    layout,
-    async onRun(files, ui) {
-      await ensureXlsx();
-      const buffer = await readFileBuffer(files[0]);
-      if (requireClientNameA1 && readCellA1(buffer).toUpperCase() !== "CLIENT NAME") {
-        const ok = window.confirm(
-          "Cell A1 is not CLIENT NAME — this may not be a TMS Data Dump.\n\nClick OK to run anyway, or Cancel to abort."
-        );
-        if (!ok) {
-          ui.setStatus("Ready");
-          ctx.log(`${title}: aborted (A1 check).`);
-          return;
-        }
-        ctx.log("Warning: A1 may not be CLIENT NAME — continuing after confirm.");
+  /**
+   * @param {File[]} files
+   * @param {{ setStatus: (t: string) => void }} ui
+   */
+  const produce = async (files, ui) => {
+    await ensureXlsx();
+    const buffer = await readFileBuffer(files[0]);
+    if (requireClientNameA1 && readCellA1(buffer).toUpperCase() !== "CLIENT NAME") {
+      const ok = window.confirm(
+        "Cell A1 is not CLIENT NAME — this may not be a TMS Data Dump.\n\nClick OK to run anyway, or Cancel to abort."
+      );
+      if (!ok) {
+        ui.setStatus("Ready");
+        ctx.log(`${title}: aborted (A1 check).`);
+        return null;
       }
+      ctx.log("Warning: A1 may not be CLIENT NAME — continuing after confirm.");
+    }
 
-      if (buildWorkbook) {
-        const { workbook, name, rowCount } = await buildWorkbook(buffer, {
-          sun: prevSunSat().sun,
-          sat: prevSunSat().sat,
-          monthLabel: prevMonthRange().label,
-          fmtMDY,
-          fmtShort,
-          log: ctx.log,
-        });
-        downloadWorkbook(workbook, name);
-        ui.setStatus("Complete");
-        ctx.log(`${title}: ${rowCount.toLocaleString()} rows → ${name}`);
-        return;
-      }
+    if (buildWorkbook) {
+      const built = await buildWorkbook(buffer, {
+        sun: prevSunSat().sun,
+        sat: prevSunSat().sat,
+        monthLabel: prevMonthRange().label,
+        fmtMDY,
+        fmtShort,
+        log: ctx.log,
+      });
+      return built;
+    }
 
       let { rows, headers: sourceHeaders } = workbookToObjects(buffer);
 
@@ -192,9 +188,30 @@ export function mountDumpFilterReport(parent, ctx, cfg) {
         autosizePad: 2,
         ...resolvedStyle,
       });
-      downloadWorkbook(wb, name);
+      return { workbook: wb, name, rowCount: out.length };
+  };
+
+  mountFileTool(parent, {
+    title,
+    category,
+    instructions,
+    onBack: ctx.onBack,
+    log: ctx.log,
+    emailDraft,
+    layout,
+    sendLabel,
+    runLabel,
+    async onRun(files, ui) {
+      const built = await produce(files, ui);
+      if (!built) return;
+      downloadWorkbook(built.workbook, built.name);
       ui.setStatus("Complete");
-      ctx.log(`${title}: ${out.length.toLocaleString()} rows → ${name}`);
+      ctx.log(`${title}: ${built.rowCount.toLocaleString()} rows → ${built.name}`);
+    },
+    async onSend(files, ui) {
+      const built = await produce(files, ui);
+      if (!built || typeof onSend !== "function") return;
+      await onSend(built, ui);
     },
   });
 }

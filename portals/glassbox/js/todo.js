@@ -6,7 +6,7 @@ import {
   getReportsDueToday,
   toDateKey,
   SCHEDULED_REPORTS,
-} from "./report-schedule.js?v=20260804-calclick";
+} from "./report-schedule.js?v=20261005-datsname";
 
 const SCHEDULED_DONE_KEY = "glassbox.todo.scheduled.v1";
 const DAILY_DONE_KEY = "glassbox.todo.daily.v1";

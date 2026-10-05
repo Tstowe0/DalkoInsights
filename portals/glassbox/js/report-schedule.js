@@ -25,7 +25,7 @@ export const SCHEDULED_REPORTS = [
   { id: "Vet-Pet Daily Shipment Report", label: "Vet-Pet Daily Shipment Report", schedule: "daily" },
   { id: "Phinia Weekly", label: "Phinia Weekly", schedule: "weekday", weekday: MON },
   { id: "Quality Turbocharger Weekly", label: "Quality Turbocharger Weekly", schedule: "weekday", weekday: MON },
-  { id: "DATs Weekly", label: "DATs Weekly", schedule: "weekday", weekday: THU },
+  { id: "DATs Weekly Upload", label: "DATs Weekly Upload", schedule: "weekday", weekday: THU },
   { id: "Kansas Canadian Pacific Weekly", label: "Kansas Canadian Pacific Weekly", schedule: "weekday", weekday: FRI },
   { id: "FCA Active Shipments", label: "FCA Active Shipments", schedule: "weekday", weekday: FRI },
   { id: "UTLXA Monthly", label: "UTLXA Monthly", schedule: "monthDay", day: 1 },
