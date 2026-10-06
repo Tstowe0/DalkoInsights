@@ -4,6 +4,7 @@
 
 import { openMailDraft } from "./mailto.js";
 import { mountAboutSlide } from "./about-slide.js?v=20261005-datsname";
+import { alertDialog } from "../../../../shared/js/dialog.js?v=20261006-popup";
 
 /**
  * @param {string} value
@@ -283,6 +284,7 @@ export function mountFileTool(parent, opts) {
   const extra = /** @type {HTMLElement | null} */ (parent.querySelector("[data-tool-extra]"));
   /** @type {"" | "run" | "send"} */
   let activeAction = "";
+  let notice = "";
 
   /** @param {string} text */
   const statusEl = /** @type {HTMLElement | null} */ (parent.querySelector("[data-tool-status]"));
@@ -292,6 +294,7 @@ export function mountFileTool(parent, opts) {
       statusEl.hidden = !show;
       statusEl.textContent = show ? text : "";
     }
+    if (show && !isProgress(text)) notice = text;
     if (show) log?.(text);
   };
 
@@ -325,13 +328,19 @@ export function mountFileTool(parent, opts) {
     const handler = kind === "send" ? onSend : onRun;
     if (!files.length || !handler) return;
     activeAction = kind;
+    notice = "";
     setBusy(true);
     setStatus(kind === "send" ? "Sending…" : "Running…");
     try {
       await handler(files, { setStatus, setBusy, extra: /** @type {HTMLElement} */ (extra) });
+      if (notice && !/^send cancelled\.?$/i.test(notice)) {
+        const failed = /fail|error|refused|could not|unable|timed out/i.test(notice);
+        await alertDialog(notice, { title: failed ? "Failed" : "Succeeded", okLabel: "OK" });
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setStatus(msg);
+      await alertDialog(msg, { title: "Failed", okLabel: "OK" });
     } finally {
       activeAction = "";
       setBusy(false);
@@ -371,6 +380,11 @@ export function mountFileTool(parent, opts) {
 
   log?.(skipped ? `Skipped tool (web): ${title}` : `Loaded tool module: ${title}`);
   return { setStatus, setBusy };
+}
+
+/** @param {string} text */
+function isProgress(text) {
+  return /^(Running…|Saving…|Sending…|Building the file…|Sending .+…)$/.test(text);
 }
 
 /**

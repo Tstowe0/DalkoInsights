@@ -1,8 +1,9 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-sendstatus";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-popup";
 import { workbookToObjects, workbookBlob } from "../_shared/excel.js?v=20261005-dats";
 import { rowsToSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
 import { pickVal, pickCol, fmtMDY } from "../_shared/report-helpers.js";
 import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261005-dats";
+import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-popup";
 
 export const meta = {
   id: "DATs Weekly Upload",
@@ -77,7 +78,10 @@ Workflow:
     sheetName: "Data",
     runLabel: "Run and Save",
     sendLabel: "Run and Send",
-    confirmSend: () => window.confirm("Send this DAT file to the rack? It will be saved in client uploads\\dat."),
+    confirmSend: () => confirmDialog(
+      "Send this DAT file to the rack? It will be saved in client uploads\\dat.",
+      { title: "Send to DAT", okLabel: "Send", cancelLabel: "Cancel" }
+    ),
     async buildWorkbook(buffer, bctx) {
       const { rows } = workbookToObjects(buffer, "DataDump");
 

@@ -24,7 +24,7 @@ import {
   VETPET_EXCLUDE,
   todayNy,
 } from "./tracking-layout.js";
-import { mountFileTool } from "./file-ui.js?v=20261006-sendstatus";
+import { mountFileTool } from "./file-ui.js?v=20261006-popup";
 
 /**
  * Dump-style report with optional filters + Python-parity styling.
@@ -206,11 +206,11 @@ export function mountDumpFilterReport(parent, ctx, cfg) {
       const built = await produce(files, ui);
       if (!built) return;
       downloadWorkbook(built.workbook, built.name);
-      ui.setStatus("Complete");
+      ui.setStatus(`Saved ${built.name}`);
       ctx.log(`${title}: ${built.rowCount.toLocaleString()} rows → ${built.name}`);
     },
     async onSend(files, ui) {
-      if (typeof confirmSend === "function" && !confirmSend()) {
+      if (typeof confirmSend === "function" && !(await confirmSend())) {
         ui.setStatus("Send cancelled.");
         return;
       }
