@@ -1979,28 +1979,6 @@ html[data-theme="yule-night"] .yule-scene {
   color: #b42318;
 }
 
-.app-dialog-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  margin-bottom: 1rem;
-}
-
-.app-dialog-logo {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: contain;
-}
-
-.app-dialog-brand-name {
-  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--ink);
-}
-
 .gb-console {
   background: var(--card);
   color: var(--text);

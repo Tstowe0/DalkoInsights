@@ -7,8 +7,6 @@ let root = null;
 /** @type {((value: boolean) => void) | null} */
 let pendingResolve = null;
 
-const LOGO_SRC = new URL("../images/earth.png", import.meta.url).href;
-
 function ensureDialog() {
   if (root) return root;
   root = document.createElement("div");
@@ -19,10 +17,6 @@ function ensureDialog() {
   root.innerHTML = `
     <div class="app-dialog-backdrop" data-dialog-dismiss="true"></div>
     <div class="app-dialog-card">
-      <div class="app-dialog-brand">
-        <img class="app-dialog-logo" src="${LOGO_SRC}" width="28" height="28" alt="" />
-        <span class="app-dialog-brand-name">DALKO</span>
-      </div>
       <div class="app-dialog-mark" aria-hidden="true">
         <svg class="mark-ok" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.2 17 19 7"/></svg>
         <svg class="mark-bad" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg>
