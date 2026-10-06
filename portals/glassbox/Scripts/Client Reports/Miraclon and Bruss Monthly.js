@@ -2,7 +2,7 @@ import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261001-s
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
-import { pickVal, prevMonthRange, normKey, sellAccessorialDescIndex } from "../_shared/report-helpers.js";
+import { pickVal, prevMonthRange, normKey, sellAccessorialDescIndex } from "../_shared/report-helpers.js?v=20261006-opcarrier";
 
 export const meta = {
   id: "Miraclon and Bruss Monthly",

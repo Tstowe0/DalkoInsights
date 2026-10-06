@@ -2,7 +2,7 @@ import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261001-s
 import { prevMondayFriday, fmtSlashMDY } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
-import { pickVal, pickCol, parseDate, startOfDay, sumMatching, sellAccessorialDescIndex } from "../_shared/report-helpers.js";
+import { pickVal, pickCol, parseDate, startOfDay, sumMatching, sellAccessorialDescIndex } from "../_shared/report-helpers.js?v=20261006-opcarrier";
 
 export const meta = {
   id: "Phinia Weekly",

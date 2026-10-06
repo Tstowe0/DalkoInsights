@@ -2,7 +2,7 @@
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
-import { normKey, sellAccessorialDescIndex } from "../_shared/report-helpers.js";
+import { normKey, sellAccessorialDescIndex } from "../_shared/report-helpers.js?v=20261006-opcarrier";
 
 export const meta = {
   id: "Maddox Monthly",
