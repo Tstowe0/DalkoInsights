@@ -1574,6 +1574,65 @@ button.gb-cal-day:hover:not(.is-empty) {
   gap: 0.65rem;
 }
 
+.phinia-ship {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.phinia-ship-label {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.phinia-ship-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.phinia-ship-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.phinia-ship-custom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.phinia-ship-custom[hidden] {
+  display: none !important;
+}
+
+.phinia-ship-custom input[type="text"] {
+  box-sizing: border-box;
+  width: 9.5rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg-solid, #1f2937);
+  color: var(--input-fg, var(--text));
+  font: inherit;
+}
+
+.phinia-ship-picker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .gb-ws-step--extra[hidden] {
   display: none !important;
 }

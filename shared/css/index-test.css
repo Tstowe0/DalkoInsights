@@ -1924,6 +1924,7 @@ html[data-theme="yule-night"] .yule-scene {
   line-height: 1.5;
   text-align: center;
   overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .app-dialog-actions {
