@@ -46,7 +46,7 @@ export async function testRackConnection(connectionId) {
   }
   if (typeof data.ok === "boolean" || data.error) return data;
 
-  const deadline = Date.now() + 20000;
+  const deadline = Date.now() + 100000;
   while (Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 700));
     const rack = await fetchRack();
@@ -90,7 +90,7 @@ export async function sendToRack(connectionId, filename, body) {
  * @param {string} filename
  */
 async function waitForSend(connectionId, filename) {
-  const deadline = Date.now() + 45000;
+  const deadline = Date.now() + 100000;
   while (Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 700));
     const rack = await fetchRack();

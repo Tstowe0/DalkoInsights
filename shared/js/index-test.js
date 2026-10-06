@@ -14,7 +14,7 @@ import {
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20260918-home";
 import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261001-daybreak";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261005-ftpsplit";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261006-dump187";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
@@ -39,7 +39,7 @@ import {
   signOut,
 } from "./auth.js?v=20261001-splash";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261005-demoname";
+import { fetchRack, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261006-queue";
 import {
   allowsMenu,
   allowsTool,
@@ -583,7 +583,7 @@ let ftpDown = false;
 /** @param {{ protocol?: string, id?: string }} unit */
 function isFtpService(unit) {
   const protocol = String(unit?.protocol || "").toLowerCase();
-  return protocol === "ftp" || protocol === "ftps";
+  return protocol === "ftp" || protocol === "ftps" || protocol === "sftp";
 }
 
 /** @param {{ id: string }} unit */
@@ -630,19 +630,21 @@ function renderFtpServiceHtml() {
         integCred("Service", url || "No host yet") + integCred("Rack", "https://delta.shipdalko.com")
       )}
       ${integBlock("Credentials", integCred("Login", login || "Not saved"))}
-      ${integLab(id, "FTP login")}
+      ${integLab(id, unit.protocol === "sftp" ? "SFTP login" : "FTP login")}
     </div>`;
 }
 
 function serviceUrl(unit) {
   const host = String(unit.host || "").trim();
   if (!host) return "";
-  const ftp = unit.protocol === "ftp" || unit.protocol === "ftps";
-  const scheme = ftp ? unit.protocol : "https";
+  const protocol = String(unit.protocol || "").toLowerCase();
+  const file = protocol === "ftp" || protocol === "ftps" || protocol === "sftp";
+  const scheme = file ? protocol : "https";
   const port = Number(unit.port) || 0;
-  const skipPort = ftp ? port === 21 || port === 0 : port === 443 || port === 0;
+  const defaultPort = protocol === "sftp" ? 22 : file ? 21 : 443;
+  const skipPort = port === defaultPort || port === 0;
   const dir = String(unit.remoteDir || "");
-  const path = ftp && dir && dir !== "/" ? (dir.startsWith("/") ? dir : `/${dir}`) : "";
+  const path = file && dir && dir !== "/" ? (dir.startsWith("/") ? dir : `/${dir}`) : "";
   return `${scheme}://${host}${skipPort ? "" : `:${port}`}${path}`;
 }
 
@@ -1311,7 +1313,9 @@ async function probeFtpServices() {
     TITLES[`integrations-${ftpStatusId(unit)}`] = unit.name || "File transfer";
   }
   refreshFtpSurface();
-  await Promise.all(ftpUnits.map((unit) => probeFtpService(unit)));
+  for (const unit of ftpUnits) {
+    await probeFtpService(unit);
+  }
 }
 
 function refreshFtpSurface() {

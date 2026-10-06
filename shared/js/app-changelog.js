@@ -12,6 +12,17 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "TMS data dumps can now include OPERATING CARRIER in front of each sell charge. Old dumps and the new layout both still run.",
+      "Phinia Weekly, Maddox Monthly, UTLXA Monthly, and Miraclon and Bruss Monthly read the accessorial description from the ACCESSORIALn column beside SELL ACCESSORIAL. The extra carrier column no longer shifts that description.",
+      "Insights accessorials still pair each description with its buy or sell charge. Sell amounts are counted on the new dump instead of being skipped.",
+      "Reports that already match dump columns by header name are unchanged.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "File transfer lists each FTP service on its own. The health check logs in to that service instead of marking the whole rack healthy.",
       "Run and Save downloads the weekly DAT workbook. Run and Send hands that same file to the DATs FTP connection on the rack.",
       "With Send to DAT off, the rack keeps the file in client uploads/dat. With it on, the rack uploads the file.",
