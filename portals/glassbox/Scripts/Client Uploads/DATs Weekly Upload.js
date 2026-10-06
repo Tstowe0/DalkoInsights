@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261005-datsname";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-sendstatus";
 import { workbookToObjects, workbookBlob } from "../_shared/excel.js?v=20261005-dats";
 import { rowsToSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
 import { pickVal, pickCol, fmtMDY } from "../_shared/report-helpers.js";
@@ -77,6 +77,7 @@ Workflow:
     sheetName: "Data",
     runLabel: "Run and Save",
     sendLabel: "Run and Send",
+    confirmSend: () => window.confirm("Send this DAT file to the rack? It will be saved in client uploads\\dat."),
     async buildWorkbook(buffer, bctx) {
       const { rows } = workbookToObjects(buffer, "DataDump");
 
@@ -150,16 +151,9 @@ Workflow:
       return { workbook: wb, name, rowCount: out.length };
     },
     async onSend(built, ui) {
-      const ok = window.confirm(`Send ${built.name} (${built.rowCount.toLocaleString()} rows) to DAT?`);
-      if (!ok) {
-        ui.setStatus("Ready");
-        ctx.log("DATs Weekly Upload: send cancelled.");
-        return;
-      }
+      ui.setStatus(`Sending ${built.name}…`);
       const message = await sendToRack(RACK_ID, built.name, workbookBlob(built.workbook));
-      const held = message.startsWith("Held ");
-      ui.setStatus(held ? "Saved" : "Sent");
-      ctx.log(`${held ? "Saved" : "Sent"} ${built.rowCount.toLocaleString()} rows as ${built.name}. ${message}`);
+      ui.setStatus(message);
     },
   });
 }

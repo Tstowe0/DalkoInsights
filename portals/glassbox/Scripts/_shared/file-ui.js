@@ -114,6 +114,7 @@ function classicMarkup(opts) {
                   </div>
                 </section>
 
+                <p class="gb-stage-status" data-tool-status hidden></p>
                 <footer class="gb-ws-actions">
                   <span class="gb-email-slot" data-email-slot></span>
                   ${sendLabel ? `<button type="button" class="btn btn-secondary" data-send disabled>${escapeHtml(sendLabel)}</button>` : ""}
@@ -172,6 +173,7 @@ function stageMarkup(opts) {
               <p class="gb-stage-kicker">Source file</p>
               <p class="gb-stage-file" data-file-label>No file selected</p>
               <p class="gb-stage-hint">${fileHint}</p>
+              <p class="gb-stage-status" data-tool-status hidden></p>
               <div class="gb-stage-file-actions">
                 <input type="file" hidden data-file-input accept="${escapeHtml(accept)}" ${multiple ? "multiple" : ""} />
                 <button type="button" class="btn btn-secondary" data-browse>Browse</button>
@@ -283,8 +285,14 @@ export function mountFileTool(parent, opts) {
   let activeAction = "";
 
   /** @param {string} text */
+  const statusEl = /** @type {HTMLElement | null} */ (parent.querySelector("[data-tool-status]"));
   const setStatus = (text) => {
-    if (text && text !== "Ready") log?.(text);
+    const show = Boolean(text && text !== "Ready");
+    if (statusEl) {
+      statusEl.hidden = !show;
+      statusEl.textContent = show ? text : "";
+    }
+    if (show) log?.(text);
   };
 
   /** @param {boolean} busy */
@@ -323,8 +331,7 @@ export function mountFileTool(parent, opts) {
       await handler(files, { setStatus, setBusy, extra: /** @type {HTMLElement} */ (extra) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      setStatus("Error");
-      log?.(`Error: ${msg}`);
+      setStatus(msg);
     } finally {
       activeAction = "";
       setBusy(false);

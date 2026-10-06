@@ -60,7 +60,7 @@ const TEMPLATE = `
  * @param {{ onHome: () => void }} ctx
  */
 export async function mount(root, ctx) {
-  await loadPortalCss("portals/glassbox/css/portal.css?v=20261001-stageall");
+  await loadPortalCss("portals/glassbox/css/portal.css?v=20261006-sendstatus");
   root.innerHTML = TEMPLATE;
   paintSidebarGreeting(root);
   initGlassBox({ onHome: ctx.onHome });

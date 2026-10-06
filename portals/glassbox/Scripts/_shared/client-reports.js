@@ -24,7 +24,7 @@ import {
   VETPET_EXCLUDE,
   todayNy,
 } from "./tracking-layout.js";
-import { mountFileTool } from "./file-ui.js?v=20261005-datsname";
+import { mountFileTool } from "./file-ui.js?v=20261006-sendstatus";
 
 /**
  * Dump-style report with optional filters + Python-parity styling.
@@ -56,6 +56,7 @@ export function mountDumpFilterReport(parent, ctx, cfg) {
     sendLabel = "",
     runLabel = "Run",
     onSend = null,
+    confirmSend = null,
   } = cfg;
 
   /**
@@ -209,6 +210,11 @@ export function mountDumpFilterReport(parent, ctx, cfg) {
       ctx.log(`${title}: ${built.rowCount.toLocaleString()} rows → ${built.name}`);
     },
     async onSend(files, ui) {
+      if (typeof confirmSend === "function" && !confirmSend()) {
+        ui.setStatus("Send cancelled.");
+        return;
+      }
+      ui.setStatus("Building the file…");
       const built = await produce(files, ui);
       if (!built || typeof onSend !== "function") return;
       await onSend(built, ui);

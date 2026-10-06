@@ -2503,6 +2503,13 @@ button.gb-cal-day:hover:not(.is-empty) {
   color: var(--text-muted);
 }
 
+.gb-stage-status {
+  margin: 0.45rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
 .gb-stage-file-actions {
   display: flex;
   flex-wrap: wrap;
