@@ -2,7 +2,7 @@ import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261001-s
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
-import { pickVal, prevMonthRange, normKey } from "../_shared/report-helpers.js";
+import { pickVal, prevMonthRange, normKey, sellAccessorialDescIndex } from "../_shared/report-helpers.js";
 
 export const meta = {
   id: "Miraclon and Bruss Monthly",
@@ -50,14 +50,7 @@ function forceNegative(v) {
   return raw.startsWith("-") ? raw : `-${raw}`;
 }
 
-/** Normalize an Accessorial description column name for the "two-left" match rule. */
-function normAccTwoLeft(name) {
-  let s = String(name || "").replace(/\s+/g, "");
-  s = s.replace(/\.\d+$/, "").replace(/_\d+$/, "");
-  return s.toUpperCase();
-}
-
-/** Legacy two-left rule for Accessorial matching (mirrors _analyze_accessorials). */
+/** Sell-side accessorial description left of SELL ACCESSORIALn (old and new dump layouts). */
 function analyzeAccessorials(headers, limit = 10) {
   let maxI = 0;
   /** @type {Record<number, { sellCol: string | null, accCol: string | null }>} */
@@ -70,11 +63,8 @@ function analyzeAccessorials(headers, limit = 10) {
     if (si !== -1) {
       sellCol = headers[si];
       maxI = Math.max(maxI, i);
-      const li = si - 2;
-      if (li >= 0 && li < headers.length) {
-        const left = headers[li];
-        if (normAccTwoLeft(left) === `ACCESSORIAL${i}`.toUpperCase()) accCol = left;
-      }
+      const li = sellAccessorialDescIndex(headers, si, i);
+      if (li >= 0) accCol = headers[li];
     }
     info[i] = { sellCol, accCol };
   }

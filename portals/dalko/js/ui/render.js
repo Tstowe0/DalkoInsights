@@ -4,7 +4,7 @@ import { CHANGELOG_TEXT } from "../changelog.js?v=20260918-home";
 import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js?v=20260922-corp2";
 import { navTitle } from "./nav.js?v=20260923-reports";
 import { renderReportsView, teardownExecReport } from "./report.js?v=20261001-nohier";
-import { aggregateMonthRows } from "../analytics/accessorials.js?v=20261001-accfocus";
+import { aggregateMonthRows } from "../analytics/accessorials.js?v=20261005-opcarrier";
 import { hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
 import { renderFocusBuilder } from "./focus-builder.js?v=20261001-focusbold";
 

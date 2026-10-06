@@ -1,5 +1,5 @@
 import { getValue, safeFloat, monthKeyFromDateValue } from "../data/context.js";
-import { analyzeAccessorialsByPosition } from "./accessorials.js?v=20261001-accfocus";
+import { analyzeAccessorialsByPosition } from "./accessorials.js?v=20261005-opcarrier";
 
 const MIN_LOADS_FOR_Z_SCORE = 10;
 

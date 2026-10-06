@@ -1,5 +1,5 @@
 /* Module worker — runs aggregations off the UI thread */
-import { runAnalysis } from "../analytics/engine.js?v=20261001-accfocus";
+import { runAnalysis } from "../analytics/engine.js?v=20261005-opcarrier";
 
 self.onmessage = (event) => {
   const { jobId, rows, maps, headers, accessorialTypes } = event.data ?? {};

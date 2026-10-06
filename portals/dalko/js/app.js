@@ -8,8 +8,8 @@ import {
   listFocusLayerValues,
 } from "./data/filters.js?v=20260916-bugsweep";
 import { checkFileSize, checkRowCount, formatFileSize } from "./data/limits.js";
-import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=20261001-accfocus";
-import { runAnalysis } from "./analytics/engine.js?v=20261001-accfocus";
+import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=20261005-opcarrier";
+import { runAnalysis } from "./analytics/engine.js?v=20261005-opcarrier";
 import { nextJobId, workerJob } from "./workers/client.js";
 import { navTitle, renderNav } from "./ui/nav.js?v=20260923-desk";
 import { renderView } from "./ui/render.js?v=20261001-focusbold";
@@ -404,7 +404,7 @@ function getParseWorker() {
 
 function getAnalyzeWorker() {
   if (!analyzeWorker) {
-    analyzeWorker = new Worker(new URL("./workers/analyze-worker.js?v=20261001-accfocus", import.meta.url), {
+    analyzeWorker = new Worker(new URL("./workers/analyze-worker.js?v=20261005-opcarrier", import.meta.url), {
       type: "module",
     });
   }

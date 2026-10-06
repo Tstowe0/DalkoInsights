@@ -2,7 +2,7 @@
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
-import { pickVal, normKey } from "../_shared/report-helpers.js";
+import { pickVal, normKey, sellAccessorialDescIndex } from "../_shared/report-helpers.js";
 
 export const meta = {
   id: "UTLXA Monthly",
@@ -45,14 +45,15 @@ Workflow:
       // Baseline columns present in the dump (exact names — mirrors Python `c in df.columns`).
       const outputCols = BASELINE_COLS.filter((c) => headers.includes(c));
 
-      // Dynamic Accessorial/Sell pairs (up to 10): column two-left of SELL ACCESSORIALi.
+      // Dynamic Accessorial/Sell pairs (up to 10). Description is the ACCESSORIALn
+      // column left of SELL ACCESSORIALn, so OPERATING CARRIER between them is skipped.
       for (let i = 1; i <= 10; i++) {
         const sellName = `SELL ACCESSORIAL${i}`;
         const sellIdx = headers.findIndex((h) => normKey(h) === normKey(sellName));
         if (sellIdx === -1) continue;
-        const accIdx = sellIdx - 2;
-        if (accIdx < 0) continue;
-        outputCols.push(headers[accIdx], headers[sellIdx]);
+        const accIdx = sellAccessorialDescIndex(headers, sellIdx, i);
+        if (accIdx >= 0) outputCols.push(headers[accIdx]);
+        outputCols.push(headers[sellIdx]);
       }
 
       // Rename TOTAL RECEIVABLE AMOUNT -> FREIGHT SPEND (appended at the end).

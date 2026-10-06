@@ -24,6 +24,44 @@ export async function fetchRack() {
 }
 
 /**
+ * Ask DELTA to log in to one service and report that result.
+ * A 4xx with `{ ok: false, error }` is the service's answer, not a transport failure.
+ * @param {string} connectionId
+ * @returns {Promise<{ ok?: boolean, error?: string, detail?: string, message?: string }>}
+ */
+export async function testRackConnection(connectionId) {
+  const res = await fetch(`${RACK_ORIGIN}/api/connections/${encodeURIComponent(connectionId)}/test`, {
+    method: "POST",
+    cache: "no-store",
+  });
+  /** @type {{ ok?: boolean, error?: string, detail?: string, message?: string }} */
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    data = {};
+  }
+  if (!res.ok && data.ok == null && !data.error) {
+    throw new Error(`The rack answered ${res.status}.`);
+  }
+  if (typeof data.ok === "boolean" || data.error) return data;
+
+  const deadline = Date.now() + 20000;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    const rack = await fetchRack();
+    const unit = (rack.connections || []).find((item) => item.id === connectionId);
+    if (!unit) throw new Error("That connection is no longer on the rack.");
+    if (unit.phase === "busy") continue;
+    if (unit.phase === "ok") return { ok: true, detail: unit.detail || "Logged in." };
+    if (unit.phase === "fault" || unit.phase === "off") {
+      return { ok: false, error: unit.detail || "The login failed." };
+    }
+  }
+  throw new Error("The rack started the login check, but did not finish in time.");
+}
+
+/**
  * Post a finished file to one rack unit and wait until that unit finishes the FTP.
  * @param {string} connectionId
  * @param {string} filename

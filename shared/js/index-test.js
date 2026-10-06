@@ -14,10 +14,10 @@ import {
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20260918-home";
 import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261001-daybreak";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261005-log186";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261005-ftpsplit";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
-import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261001-accfocus";
+import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
 import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261005-datsname";
 import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20260819-fxsweep";
@@ -39,7 +39,7 @@ import {
   signOut,
 } from "./auth.js?v=20261001-splash";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, RACK_ORIGIN } from "./ftp-rack.js?v=20261002-ftpback";
+import { fetchRack, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261005-demoname";
 import {
   allowsMenu,
   allowsTool,
@@ -49,7 +49,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261005-datsname";
+} from "./permissions.js?v=20261005-ftpsplit";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -107,7 +107,7 @@ const TITLES = {
   "integrations-currency": "Currency Converter",
   "integrations-zip": "Zip Calculator",
   "integrations-fmcsa": "FMCSA QCMobile",
-  "integrations-ftp": "FTP Rack",
+  "integrations-ftp": "File transfer",
   themes: "Themes",
   permissions: "Permissions",
 };
@@ -462,9 +462,7 @@ function renderIntegrationsHtml() {
         allowsMenu("integrations-ftp")
           ? `<section class="integ-section">
         <h2>File transfer</h2>
-        <div class="integ-grid">
-          ${integTile("ftp", "FTP Rack", "DELTA takes a finished file and FTPs it into the TMS.")}
-        </div>
+        <div class="integ-grid" id="ftp-service-grid"></div>
       </section>`
           : ""
       }
@@ -572,34 +570,68 @@ function renderCurrencyHtml() {
     </div>`;
 }
 
-function renderFtpHtml() {
-  return `
-    <div class="page-canvas integ-page">
-      ${integHead("FTP Rack", "delta.shipdalko.com", "ftp")}
-      <section class="integ-access">
-        <h2>Info</h2>
-        <div class="integ-creds">${integCred("Used by", "Phinia Shipment Upload · Demo Upload")}</div>
-        <div class="integ-units" id="ftp-units"></div>
-      </section>
-      ${integBlock("Environment", integCred("Rack", "https://delta.shipdalko.com"))}
-      <section class="integ-access" id="ftp-access" hidden>
-        <h2>Credentials</h2>
-        <div class="integ-creds" id="ftp-creds"></div>
-      </section>
-      ${integLab("ftp", "DELTA")}
-    </div>`;
-}
+const FTP_USED_BY = {
+  phinia: "Phinia Shipment Upload",
+  dats: "DATs Weekly Upload",
+  demo: "Demo Upload",
+};
 
-/** @type {Array<{ name?: string, remoteDir?: string, phase?: string, host?: string, port?: number, protocol?: string, username?: string, passwordSet?: boolean }> | null} */
+/** @type {Array<{ id: string, name?: string, remoteDir?: string, phase?: string, host?: string, port?: number, protocol?: string, username?: string, passwordSet?: boolean, sendToTms?: boolean, sendLabel?: string, detail?: string, enabled?: boolean }> | null} */
 let ftpUnits = null;
 let ftpDown = false;
 
-function ftpPhaseWord(phase) {
-  if (phase === "ok") return "Online";
-  if (phase === "ready") return "Ready";
-  if (phase === "fault") return "Fault";
-  if (phase === "busy") return "Busy";
-  return "Off";
+/** @param {{ protocol?: string, id?: string }} unit */
+function isFtpService(unit) {
+  const protocol = String(unit?.protocol || "").toLowerCase();
+  return protocol === "ftp" || protocol === "ftps";
+}
+
+/** @param {{ id: string }} unit */
+function ftpStatusId(unit) {
+  return `ftp-${unit.id}`;
+}
+
+/** @param {string} view */
+function isFtpServiceView(view) {
+  return String(view).startsWith("integrations-ftp-");
+}
+
+/** @param {string} view */
+function ftpUnitFromView(view) {
+  const id = String(view).replace(/^integrations-ftp-/, "");
+  return ftpUnits?.find((unit) => unit.id === id) ?? null;
+}
+
+function renderFtpServiceHtml() {
+  const unit = ftpUnitFromView(shellView);
+  if (!unit) {
+    return `
+      <div class="page-canvas integ-page">
+        ${integHead("File transfer", "delta.shipdalko.com", "ftp")}
+        <p class="integ-unit-empty">${ftpDown ? "The rack did not answer." : "Checking this service…"}</p>
+      </div>`;
+  }
+  const id = ftpStatusId(unit);
+  const url = serviceUrl(unit);
+  const login = credentialLabel(unit);
+  const used = FTP_USED_BY[unit.id] || "Glass Box · Client Uploads";
+  const send = unit.sendToTms ? unit.sendLabel || "On" : "Off";
+  return `
+    <div class="page-canvas integ-page">
+      ${integHead(unit.name || "File transfer", url || "delta.shipdalko.com", id)}
+      ${integBlock(
+        "Info",
+        integCred("Used by", used) +
+          integCred("Folder", unit.remoteDir || "/") +
+          integCred("Send", send)
+      )}
+      ${integBlock(
+        "Environment",
+        integCred("Service", url || "No host yet") + integCred("Rack", "https://delta.shipdalko.com")
+      )}
+      ${integBlock("Credentials", integCred("Login", login || "Not saved"))}
+      ${integLab(id, "FTP login")}
+    </div>`;
 }
 
 function serviceUrl(unit) {
@@ -622,61 +654,35 @@ function credentialLabel(unit) {
   return "";
 }
 
-function paintFtpAccess() {
-  const section = document.getElementById("ftp-access");
-  const host = document.getElementById("ftp-creds");
-  if (!section || !host) return;
-  if (ftpDown || !ftpUnits) {
-    section.hidden = true;
-    host.innerHTML = "";
-    return;
-  }
-  const rows = [];
-  ftpUnits.forEach((unit) => {
-    const url = serviceUrl(unit);
-    const login = credentialLabel(unit);
-    if (!url && !login) return;
-    rows.push(`<article class="integ-cred">
-      <strong>${esc(unit.name || "Service")}</strong>
-      <span>${esc(url)}</span>
-      <span>${esc(login)}</span>
-    </article>`);
-  });
-  if (!rows.length) {
-    section.hidden = true;
-    host.innerHTML = "";
-    return;
-  }
-  host.innerHTML = rows.join("");
-  section.hidden = false;
-}
-
-function paintFtpBoard() {
-  const host = document.getElementById("ftp-units");
-  paintFtpAccess();
+function paintFileTransferGrid() {
+  const host = document.getElementById("ftp-service-grid");
   if (!host) return;
   if (ftpDown) {
     host.innerHTML = `<p class="integ-unit-empty">The rack did not answer.</p>`;
     return;
   }
   if (!ftpUnits) {
-    host.innerHTML = `<p class="integ-unit-empty">Checking the rack…</p>`;
+    host.innerHTML = `<p class="integ-unit-empty">${getAccount() ? "Checking file transfer…" : "Sign in to check file transfer."}</p>`;
     return;
   }
   if (!ftpUnits.length) {
-    host.innerHTML = `<p class="integ-unit-empty">No services on the rack.</p>`;
+    host.innerHTML = `<p class="integ-unit-empty">No file transfer services on the rack.</p>`;
     return;
   }
   host.innerHTML = ftpUnits
     .map((unit) => {
-      const phase = unit.phase || "off";
-      return `<article class="integ-unit">
-        <strong>${esc(unit.name || "Service")}</strong>
-        <span>${esc(unit.remoteDir || "")}</span>
-        <em class="is-${esc(phase)}">${esc(ftpPhaseWord(phase))}</em>
-      </article>`;
+      const url = serviceUrl(unit);
+      const blurb = url || unit.detail || "FTP login";
+      return integTile(ftpStatusId(unit), esc(unit.name || "Service"), esc(blurb));
     })
     .join("");
+  host.querySelectorAll("[data-integ]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = /** @type {HTMLElement} */ (btn).dataset.integ;
+      if (id) setShellView(`integrations-${id}`);
+    });
+  });
+  ftpUnits.forEach((unit) => paintIntegHealth(ftpStatusId(unit)));
 }
 
 function renderFmcsaHtml() {
@@ -1063,7 +1069,7 @@ const INTEG_NAMES = {
   entra: "Microsoft Entra / Graph",
   dat: "DAT RateView",
   fmcsa: "FMCSA QCMobile",
-  ftp: "FTP Rack",
+  ftp: "File transfer",
   currency: "Currency Converter",
   zip: "Zip Calculator",
 };
@@ -1261,30 +1267,59 @@ async function probeFmcsa() {
   }
 }
 
-async function probeFtp() {
-  setIntegHealth("ftp", "testing", "Checking");
-  if (!ftpUnits && !ftpDown) paintFtpBoard();
+async function probeFtpService(unit) {
+  const id = ftpStatusId(unit);
+  INTEG_NAMES[id] = unit.name || unit.id;
+  TITLES[`integrations-${id}`] = unit.name || "File transfer";
+  if (!integLabs[id]) integLabs[id] = { idle: "Check the FTP login.", busy: "Checking the login…", html: "" };
+  setIntegHealth(id, "testing", "Checking");
+  try {
+    const data = await testRackConnection(unit.id);
+    if (data.ok) {
+      const detail = String(data.detail || data.message || "Logged in.");
+      integLabs[id].html = labLane(serviceUrl(unit) || unit.name || "FTP", detail);
+      setIntegHealth(id, "healthy", "Healthy", detail);
+      return;
+    }
+    const detail = String(data.error || "The login failed.");
+    integLabs[id].html = labLine(detail);
+    const needsSetup = /host|password|username|credential|turned off|disabled/i.test(detail);
+    setIntegHealth(id, needsSetup ? "setup" : "failed", needsSetup ? "Needs setup" : "Failed", detail);
+  } catch {
+    integLabs[id].html = labLine(rackUnreachable());
+    setIntegHealth(id, "failed", "Offline", rackUnreachable());
+  }
+}
+
+async function probeFtpServices() {
+  delete integStatus.ftp;
   try {
     const rack = await fetchRack();
     ftpDown = false;
-    ftpUnits = Array.isArray(rack.connections)
-      ? rack.connections.filter((unit) => unit && unit.protocol !== "permissions" && unit.id !== "permissions")
-      : [];
-    integLabs.ftp.html = labLane("DELTA", `${ftpUnits.length} services`);
-    paintFtpBoard();
-    setIntegHealth("ftp", "healthy", "Healthy", "DELTA");
+    ftpUnits = Array.isArray(rack.connections) ? rack.connections.filter(isFtpService) : [];
   } catch {
-    ftpUnits = null;
+    ftpUnits = [];
     ftpDown = true;
-    integLabs.ftp.html = labLine("The rack did not answer.");
-    paintFtpBoard();
-    setIntegHealth(
-      "ftp",
-      "failed",
-      "Offline",
-      "The rack did not answer."
-    );
+    INTEG_NAMES.ftp = "File transfer";
+    integLabs.ftp.html = labLine(rackUnreachable());
+    setIntegHealth("ftp", "failed", "Offline", rackUnreachable());
+    refreshFtpSurface();
+    return;
   }
+  for (const unit of ftpUnits) {
+    INTEG_NAMES[ftpStatusId(unit)] = unit.name || unit.id;
+    TITLES[`integrations-${ftpStatusId(unit)}`] = unit.name || "File transfer";
+  }
+  refreshFtpSurface();
+  await Promise.all(ftpUnits.map((unit) => probeFtpService(unit)));
+}
+
+function refreshFtpSurface() {
+  if (document.getElementById("ftp-service-grid")) {
+    paintFileTransferGrid();
+    return;
+  }
+  if (isFtpServiceView(shellView)) paintSettings();
 }
 
 async function probeAllIntegrations() {
@@ -1297,14 +1332,13 @@ async function probeAllIntegrations() {
     setIntegHealth("fmcsa", "testing", "Checking");
     setIntegHealth("currency", "testing", "Checking");
     setIntegHealth("zip", "testing", "Checking");
-    setIntegHealth("ftp", "testing", "Checking");
     await Promise.all([
       probeEntra(),
       testDatConnection(),
       probeFmcsa(),
       probeCurrency(),
       probeZip(),
-      probeFtp(),
+      allowsMenu("integrations-ftp") ? probeFtpServices() : Promise.resolve(),
     ]);
   })().finally(() => {
     integProbe = null;
@@ -1427,7 +1461,7 @@ function renderSettingsHtml() {
   if (shellView === "integrations-currency") return renderCurrencyHtml();
   if (shellView === "integrations-zip") return renderZipHtml();
   if (shellView === "integrations-fmcsa") return renderFmcsaHtml();
-  if (shellView === "integrations-ftp") return renderFtpHtml();
+  if (isFtpServiceView(shellView)) return renderFtpServiceHtml();
   if (shellView === "integrations") return renderIntegrationsHtml();
   return renderChangelogHtml();
 }
@@ -1644,17 +1678,23 @@ function paintSettings() {
   document.getElementById("dat-eye-user")?.addEventListener("click", () => void toggleDatSecret("user"));
   document.getElementById("dat-eye-pass")?.addEventListener("click", () => void toggleDatSecret("pass"));
   document.getElementById("entra-test")?.addEventListener("click", () => void probeEntra());
-  document.getElementById("ftp-test")?.addEventListener("click", () => void probeFtp());
+  ftpUnits?.forEach((unit) => {
+    const id = ftpStatusId(unit);
+    document.getElementById(`${id}-test`)?.addEventListener("click", () => void probeFtpService(unit));
+  });
   document.getElementById("fmcsa-test")?.addEventListener("click", () => void probeFmcsa());
   document.getElementById("currency-test")?.addEventListener("click", () => void probeCurrency());
   document.getElementById("zip-test")?.addEventListener("click", () => void probeZip());
   Object.keys(integStatus).forEach((id) => paintIntegHealth(id));
-  if (shellView === "integrations-ftp") paintFtpBoard();
+  if (shellView === "integrations") paintFileTransferGrid();
   if (shellView === "integrations-entra") paintEntraBoard();
   if (shellView === "integrations-fmcsa") paintIntegLab("fmcsa");
   if (shellView === "integrations-currency") paintIntegLab("currency");
   if (shellView === "integrations-zip") paintIntegLab("zip");
-  if (shellView === "integrations-ftp") paintIntegLab("ftp");
+  if (isFtpServiceView(shellView)) {
+    const unit = ftpUnitFromView(shellView);
+    if (unit) paintIntegLab(ftpStatusId(unit));
+  }
   if (String(shellView).startsWith("integrations")) void probeAllIntegrations();
   if (shellView === "integrations-dat") {
     paintDatSecretsGate();
@@ -1742,7 +1782,7 @@ function paintNav() {
         (el.dataset.view === "integrations" && String(shellView).startsWith("integrations-"))
     );
   });
-  const groupId = GROUP_FOR[shellView];
+  const groupId = GROUP_FOR[shellView] || (String(shellView).startsWith("integrations-ftp-") ? "settings" : undefined);
   document.querySelectorAll(".nav-group").forEach((group) => {
     if (!(group instanceof HTMLElement)) return;
     const open = group.dataset.group === groupId;
@@ -1768,7 +1808,7 @@ function isSettingsView(id) {
     id === "integrations-currency" ||
     id === "integrations-zip" ||
     id === "integrations-fmcsa" ||
-    id === "integrations-ftp" ||
+    isFtpServiceView(id) ||
     id === "themes" ||
     id === "permissions"
   );
@@ -1781,6 +1821,8 @@ function normalizeView(id) {
     insightsPage = id;
     return "insights";
   }
+  if (isFtpServiceView(id)) return id;
+  if (id === "integrations-ftp") return "integrations";
   return TITLES[id] ? id : "home";
 }
 

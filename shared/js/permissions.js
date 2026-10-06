@@ -86,7 +86,7 @@ function permissionTree() {
         {
           label: "Integrations",
           menus: ["integrations"],
-          children: [{ label: "FTP Rack", menus: [FTP_MENU] }],
+          children: [{ label: "File transfer", menus: [FTP_MENU] }],
         },
         { label: "Permissions", menus: ["permissions"] },
         { label: "Themes", menus: ["themes"] },
@@ -760,7 +760,7 @@ function restrictedGroup() {
 export function allowsMenu(view) {
   const group = restrictedGroup();
   if (!group) return true;
-  if (view === FTP_MENU) return group.menus.includes(FTP_MENU);
+  if (view === FTP_MENU || String(view).startsWith("integrations-ftp")) return group.menus.includes(FTP_MENU);
   if (String(view).startsWith("integrations")) return group.menus.includes("integrations");
   return group.menus.includes(view);
 }

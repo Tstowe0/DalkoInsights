@@ -2,7 +2,7 @@ import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261001-s
 import { prevMondayFriday, fmtSlashMDY } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
-import { pickVal, pickCol, parseDate, startOfDay, sumMatching } from "../_shared/report-helpers.js";
+import { pickVal, pickCol, parseDate, startOfDay, sumMatching, sellAccessorialDescIndex } from "../_shared/report-helpers.js";
 
 export const meta = {
   id: "Phinia Weekly",
@@ -63,15 +63,16 @@ function accessorialsAndNotes(row, headers) {
   let total = 0;
   const names = [];
   headers.forEach((h, idx) => {
-    if (!String(h).toUpperCase().includes("SELL ACCESSORIAL")) return;
+    const match = /^SELL ACCESSORIAL(\d+)(?:\.\d+)?$/i.exec(String(h).trim());
+    if (!match) return;
     const raw = row[h];
     if (raw == null || raw === "") return;
     const val = Number(String(raw).replace(/[,$]/g, ""));
     if (Number.isNaN(val) || val === 0) return;
     total += val;
-    if (idx >= 2) {
-      const nameCol = headers[idx - 2];
-      const nameVal = row[nameCol];
+    const descIdx = sellAccessorialDescIndex(headers, idx, Number(match[1]));
+    if (descIdx >= 0) {
+      const nameVal = row[headers[descIdx]];
       if (nameVal != null && String(nameVal).trim()) names.push(String(nameVal).trim());
     }
   });

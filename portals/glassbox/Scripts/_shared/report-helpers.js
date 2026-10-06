@@ -131,3 +131,34 @@ export function sumMatching(row, re) {
   }
   return total;
 }
+
+/**
+ * Header with a pandas duplicate suffix removed: "ACCESSORIAL1.1" → "ACCESSORIAL1".
+ * @param {unknown} name
+ */
+export function headerBase(name) {
+  return String(name ?? "")
+    .trim()
+    .replace(/\.\d+$/, "");
+}
+
+/**
+ * Sell-side accessorial description for SELL ACCESSORIALn.
+ * Old dumps: ACCESSORIALn | CARRIERn | SELL ACCESSORIALn
+ * New dumps: ACCESSORIALn | CARRIERn | OPERATING CARRIERn | SELL ACCESSORIALn
+ * Walks left from the sell column and matches ACCESSORIALn by name, stopping at
+ * the buy-side block so the earlier ACCESSORIALn is not used.
+ * @param {string[]} headers
+ * @param {number} sellIdx
+ * @param {number} n
+ * @returns {number} header index, or -1
+ */
+export function sellAccessorialDescIndex(headers, sellIdx, n) {
+  const want = `ACCESSORIAL${n}`.toUpperCase();
+  for (let i = sellIdx - 1; i >= 0; i--) {
+    const base = headerBase(headers[i]).replace(/\s+/g, "").toUpperCase();
+    if (base === want) return i;
+    if (/^BUYACCESSORIAL\d+$/.test(base) || /^SELLACCESSORIAL\d+$/.test(base)) return -1;
+  }
+  return -1;
+}

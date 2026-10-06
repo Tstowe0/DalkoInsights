@@ -12,7 +12,7 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
-      "DATs Weekly is now DATs Weekly Upload under Client Uploads, with the same cloud icon as Demo and Phinia.",
+      "File transfer lists each FTP service on its own. The health check logs in to that service instead of marking the whole rack healthy.",
       "Run and Save downloads the weekly DAT workbook. Run and Send hands that same file to the DATs FTP connection on the rack.",
       "With Send to DAT off, the rack keeps the file in client uploads/dat. With it on, the rack uploads the file.",
     ],

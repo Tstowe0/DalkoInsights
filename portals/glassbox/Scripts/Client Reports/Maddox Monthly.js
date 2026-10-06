@@ -2,7 +2,7 @@
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
-import { normKey } from "../_shared/report-helpers.js";
+import { normKey, sellAccessorialDescIndex } from "../_shared/report-helpers.js";
 
 export const meta = {
   id: "Maddox Monthly",
@@ -96,8 +96,9 @@ function sortKey(v) {
 }
 
 /**
- * Sell-side accessorial pairs: description is two columns left of SELL ACCESSORIALi.
- * Output names stay ACCESSORIALi / SELL ACCESSORIALi (not pandas .1 suffixes).
+ * Sell-side accessorial pairs. Description is the ACCESSORIALn column to the
+ * left of SELL ACCESSORIALn (two left on old dumps, three left once OPERATING
+ * CARRIER is inserted). Output names stay ACCESSORIALn / SELL ACCESSORIALn.
  * @param {string[]} headers
  * @returns {{ out: string, src: string }[]}
  */
@@ -108,9 +109,8 @@ function sellAccessorialMaps(headers) {
     const sellName = `SELL ACCESSORIAL${i}`;
     const sellIdx = headers.findIndex((h) => normKey(h) === normKey(sellName));
     if (sellIdx === -1) continue;
-    const accIdx = sellIdx - 2;
-    if (accIdx < 0) continue;
-    maps.push({ out: `ACCESSORIAL${i}`, src: headers[accIdx] });
+    const accIdx = sellAccessorialDescIndex(headers, sellIdx, i);
+    if (accIdx >= 0) maps.push({ out: `ACCESSORIAL${i}`, src: headers[accIdx] });
     maps.push({ out: sellName, src: headers[sellIdx] });
   }
   return maps;

@@ -207,6 +207,28 @@ function accessorialTypeAllowed(typeStr, allowed) {
 }
 
 /**
+ * Buy/sell amount sitting to the right of an ACCESSORIALn type column.
+ * Old dumps: ACCESSORIALn | CARRIERn | BUY/SELL ACCESSORIALn (offset 2).
+ * New dumps insert OPERATING CARRIER before the sell amount (offset 3).
+ * @param {unknown[]} headers
+ * @param {number} typeIdx
+ * @param {string} accNum
+ * @returns {{ idx: number, side: "buy" | "sell" } | null}
+ */
+function accessorialAmountAt(headers, typeIdx, accNum) {
+  for (const offset of [2, 3]) {
+    const amountColIdx = typeIdx + offset;
+    if (amountColIdx >= headers.length) continue;
+    const amountHeader = headers[amountColIdx];
+    if (!amountHeader) continue;
+    const amountUpper = String(amountHeader).trim().toUpperCase();
+    if (amountUpper.includes(`BUY ACCESSORIAL${accNum}`)) return { idx: amountColIdx, side: "buy" };
+    if (amountUpper.includes(`SELL ACCESSORIAL${accNum}`)) return { idx: amountColIdx, side: "sell" };
+  }
+  return null;
+}
+
+/**
  * Position-based accessorial analysis (matches Python accessorials tab).
  * @param {unknown[][]} rows
  * @param {unknown[]} headers
@@ -232,14 +254,11 @@ export function analyzeAccessorialsByPosition(rows, headers, maps, accessorialTy
     if (!match || headerUpper.includes("BUY") || headerUpper.includes("SELL")) return;
 
     const accNum = match[1];
-    const amountColIdx = colIdx + 2;
-    if (amountColIdx >= headers.length) return;
-    const amountHeader = headers[amountColIdx];
-    if (!amountHeader) return;
-    const amountUpper = String(amountHeader).trim().toUpperCase();
-    const isBuy = amountUpper.includes(`BUY ACCESSORIAL${accNum}`);
-    const isSell = amountUpper.includes(`SELL ACCESSORIAL${accNum}`);
-    if (!isBuy && !isSell) return;
+    const paired = accessorialAmountAt(headers, colIdx, accNum);
+    if (!paired) return;
+    const amountColIdx = paired.idx;
+    const isBuy = paired.side === "buy";
+    const isSell = paired.side === "sell";
 
     for (const row of rows) {
       const typeVal = row[colIdx];
