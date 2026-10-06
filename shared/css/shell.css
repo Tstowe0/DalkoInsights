@@ -1000,16 +1000,17 @@ body {
 .app-dialog-card {
   position: relative;
   z-index: 1;
-  width: min(26rem, 100%);
-  padding: 1.35rem 1.5rem 1.4rem;
-  border-radius: var(--radius, 14px);
+  width: min(25rem, 100%);
+  padding: 1.65rem 1.7rem 1.4rem;
+  border-radius: 20px;
   background: linear-gradient(165deg, #101a2e 0%, #0c1322 55%, #080e1a 100%);
   border: 1px solid var(--card-border-gold);
   box-shadow:
     0 0 0 1px rgba(217, 174, 66, 0.08),
-    0 24px 48px rgba(0, 0, 0, 0.55),
+    0 24px 56px rgba(0, 0, 0, 0.55),
     0 0 40px rgba(240, 193, 74, 0.08);
-  animation: dialog-in 0.22s var(--ease-smooth, ease) both;
+  text-align: center;
+  animation: dialog-in 0.18s var(--ease-smooth, ease) both;
 }
 
 @keyframes dialog-in {
@@ -1026,8 +1027,9 @@ body {
 .app-dialog-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.55rem;
-  margin-bottom: 0.9rem;
+  margin-bottom: 1rem;
 }
 
 .app-dialog-logo {
@@ -1048,37 +1050,76 @@ body {
 }
 
 .app-dialog-title {
-  margin: 0 0 0.45rem;
-  font-size: 1.05rem;
-  font-weight: 650;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
   color: var(--text);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .app-dialog-message {
-  margin: 0;
-  font-size: 0.9rem;
+  margin: 0.45rem 0 0;
+  font-size: 0.92rem;
   line-height: 1.5;
   color: var(--text-muted);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.app-dialog-mark {
+  display: none;
+  width: 3rem;
+  height: 3rem;
+  margin: 0.15rem auto 0.85rem;
+  border-radius: 999px;
+  place-items: center;
+}
+
+.app-dialog-mark svg {
+  display: none;
+}
+
+.app-dialog[data-tone="success"] .app-dialog-mark,
+.app-dialog[data-tone="danger"] .app-dialog-mark {
+  display: grid;
+}
+
+.app-dialog[data-tone="success"] .app-dialog-mark {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+}
+
+.app-dialog[data-tone="success"] .mark-ok,
+.app-dialog[data-tone="danger"] .mark-bad {
+  display: block;
+}
+
+.app-dialog[data-tone="danger"] .app-dialog-mark {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
 }
 
 .app-dialog-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.55rem;
   margin-top: 1.35rem;
 }
 
-.app-dialog[data-mode="alert"] .app-dialog-actions {
-  justify-content: center;
+.app-dialog-actions .btn {
+  min-width: 6.75rem;
+  padding: 0.58rem 1.15rem;
 }
 
-.app-dialog-actions .btn-ghost {
-  min-width: 5.5rem;
+.app-dialog[data-mode="alert"] .app-dialog-actions .btn-primary {
+  min-width: 9.5rem;
 }
 
+.app-dialog-actions .btn-ghost,
 .app-dialog-actions .btn-primary {
-  min-width: 6.5rem;
+  min-width: 6.75rem;
 }
 
 .app-dialog-actions .hidden {

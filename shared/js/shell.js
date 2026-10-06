@@ -1,4 +1,4 @@
-import { alertDialog } from "./dialog.js?v=20260915-brand";
+import { alertDialog } from "./dialog.js?v=20261006-dialog";
 import { openPortal, closePortal } from "./router.js?v=20260915-msauth";
 import { initTheme } from "./theme.js?v=20260925-ghostslow";
 import {
