@@ -1,3 +1,6 @@
+Version 8.1.4
+- Phinia Weekly: Earliest Requested Delivery Date still comes from the expected delivery columns. When those are blank, it uses Actual Delivery Date.
+
 Version 8.1.2
 - Added Back to hub under the sidebar username (same control as Insights).
 - Moved Console to the bottom of the right rail (calendar / to-do).

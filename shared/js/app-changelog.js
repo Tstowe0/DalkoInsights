@@ -12,6 +12,14 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Phinia Weekly fills Earliest Requested Delivery Date from the expected delivery columns. When those are blank, it uses Actual Delivery Date.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "TMS data dumps can now include OPERATING CARRIER in front of each sell charge. Old dumps and the new layout both still run.",
       "Phinia Weekly, Maddox Monthly, UTLXA Monthly, and Miraclon and Bruss Monthly read the accessorial description from the ACCESSORIALn column beside SELL ACCESSORIAL. The extra carrier column no longer shifts that description.",
       "Insights accessorials still pair each description with its buy or sell charge. Sell amounts are counted on the new dump instead of being skipped.",

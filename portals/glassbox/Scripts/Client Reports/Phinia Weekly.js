@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261001-stageall";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-board3";
 import { prevMondayFriday, fmtSlashMDY } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
@@ -46,6 +46,8 @@ function findExpectedDelivery(row, headers) {
       if (s) return s;
     }
   }
+  const actual = pickCol(row, ["ACTUAL DELIVERY DATE"]);
+  if (actual.key && pyStr(actual.value)) return pyStr(actual.value);
   return "";
 }
 
