@@ -3,7 +3,7 @@
  */
 
 import { openMailDraft } from "./mailto.js";
-import { mountAboutSlide } from "./about-slide.js?v=20261006-phinia";
+import { mountAboutSlide } from "./about-slide.js?v=20261020-ttx14";
 import { alertDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 
 /**
@@ -214,6 +214,156 @@ function stageMarkup(opts) {
 }
 
 /**
+ * @param {string} instructions
+ * @param {{ lead?: string, upload?: { title: string, text: string }, reports?: { title: string, text: string }, run?: { title: string, text: string }, email?: { title: string, text: string } }} [board]
+ */
+function deriveBoard(instructions, board = {}) {
+  const { description, steps } = parseStageGuide(instructions || "");
+  const emailStep = steps.find((step) => /email/i.test(step)) || "";
+  const workSteps = steps.filter((step) => step !== emailStep);
+  const blob = `${workSteps[0] || ""} ${description}`.toLowerCase();
+  const uploadTitle = /tracking/.test(blob)
+    ? "Upload Tracking Report"
+    : /dump/.test(blob)
+      ? "Upload TMS Data Dump"
+      : "Upload File";
+  return {
+    lead: board.lead || description,
+    upload: board.upload || {
+      title: uploadTitle,
+      text: "Select an Excel or CSV file.",
+    },
+    reports: board.reports || { title: "How to", text: "" },
+    notes: board.reports
+      ? []
+      : workSteps.filter((step) => !/upload the .+ and run|run the tool/i.test(step)),
+    run: board.run || {
+      title: "Run Report",
+      text: "Generate the report from the uploaded file.",
+    },
+    email: board.email || {
+      title: "Email",
+      text: emailStep || "After the report is generated, open an email draft and attach the file.",
+    },
+  };
+}
+
+/**
+ * Three-step report board: upload, options or notes, run, then email.
+ * @param {Parameters<typeof classicMarkup>[0] & { board?: { lead?: string, upload?: { title: string, text: string }, reports?: { title: string, text: string }, run?: { title: string, text: string }, email?: { title: string, text: string } }, hasExtra?: boolean, showEmail?: boolean }} opts
+ */
+function boardMarkup(opts) {
+  const {
+    title,
+    instructions = "",
+    skipped,
+    skipReason,
+    accept,
+    multiple,
+    runLabel = "Run Report",
+    sendLabel = "",
+    board,
+    hasExtra = false,
+    showEmail = true,
+    plainActions = false,
+  } = opts;
+  const derived = deriveBoard(instructions, board);
+  const lead = derived.lead;
+  const upload = derived.upload;
+  const reports = derived.reports;
+  const run = derived.run;
+  const email = derived.email;
+  const fileHint = "Drag & drop an Excel or CSV file here";
+  const notes = derived.notes
+    .map((note) => `<li>${escapeHtml(note)}</li>`)
+    .join("");
+
+  const body = skipped
+    ? `<div class="gb-skip-banner"><strong>Skipped for web</strong><p>${escapeHtml(skipReason)}</p></div>`
+    : `
+      <div class="gb-board-flow">
+        <article class="gb-board-card">
+          <span class="gb-board-num" aria-hidden="true">1</span>
+          <h3>${escapeHtml(reports.title)}</h3>
+          ${reports.text ? `<p>${escapeHtml(reports.text)}</p>` : ""}
+          ${hasExtra ? `<div class="gb-tool-extra" data-tool-extra></div>` : `<ul class="gb-board-notes">${notes}</ul>`}
+        </article>
+        <span class="gb-board-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <article class="gb-board-card">
+          <span class="gb-board-num" aria-hidden="true">2</span>
+          <h3>${escapeHtml(upload.title)}</h3>
+          <p>${escapeHtml(upload.text)}</p>
+          <div class="gb-board-drop" data-drop>
+            <svg class="gb-board-cloud" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 18h10a4 4 0 0 0 .4-8 6 6 0 0 0-11.5-1.6A3.5 3.5 0 0 0 7 18z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M12 16V11M9.6 13.2 12 10.8l2.4 2.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p data-file-label>${fileHint}</p>
+            <span class="gb-board-or">or</span>
+            <input type="file" hidden data-file-input accept="${escapeHtml(accept)}" ${multiple ? "multiple" : ""} />
+            <div class="gb-board-file-actions">
+              <button type="button" class="gb-board-browse" data-browse>Browse File</button>
+              <button type="button" class="gb-board-clear" data-clear>Clear</button>
+            </div>
+          </div>
+        </article>
+        <span class="gb-board-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <article class="gb-board-card">
+          <span class="gb-board-num" aria-hidden="true">3</span>
+          <h3>${escapeHtml(run.title)}</h3>
+          <p>${escapeHtml(run.text)}</p>
+          <div class="gb-board-run-wrap">
+            <button type="button" class="btn btn-primary gb-board-run" data-run disabled>
+              ${plainActions ? "" : `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.2 2.6v10.8L13.2 8 4.2 2.6z"/></svg>`}
+              <span data-run-label>${escapeHtml(runLabel)}</span>
+            </button>
+            ${sendLabel ? `<button type="button" class="btn ${plainActions ? "btn-primary gb-board-run" : "btn-secondary"} gb-board-send" data-send disabled>${escapeHtml(sendLabel)}</button>` : ""}
+            <p class="gb-board-status" data-tool-status hidden></p>
+          </div>
+        </article>
+      </div>
+      ${
+        showEmail
+          ? `<section class="gb-board-email" aria-label="Email">
+        <span class="gb-board-mail-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m4.5 7.5 7.5 5.5 7.5-5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        </span>
+        <div>
+          <h3>${escapeHtml(email.title)}</h3>
+          <p>${escapeHtml(email.text)}</p>
+        </div>
+        <span class="gb-email-slot" data-email-slot></span>
+      </section>`
+          : ""
+      }
+    `;
+
+  return `
+    <section class="gb-tool gb-tool--board${skipped ? " gb-tool-skipped" : ""}" data-tool="${escapeHtml(title)}">
+      <header class="gb-board-head">
+        <span class="gb-board-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M7 3.5h6.5L18 8V20a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 20V5A1.5 1.5 0 0 1 7 3.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M13.2 3.7V8H17.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M8.2 17v-2.4M11.1 17V12M14 17v-1.4M16.6 17v-3.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div class="gb-board-titles">
+          <h2 class="gb-tool-title">${escapeHtml(title)}</h2>
+          ${lead ? `<p>${escapeHtml(lead)}</p>` : ""}
+        </div>
+        <div data-about-slot></div>
+      </header>
+      ${body}
+    </section>
+  `;
+}
+
+/**
  * @typedef {object} FileToolOptions
  * @property {string} title
  * @property {string} [category]
@@ -230,8 +380,10 @@ function stageMarkup(opts) {
  * @property {(files: File[], ui: { setStatus: (t: string) => void, setBusy: (b: boolean) => void, extra: HTMLElement }) => Promise<void>} [onSend]
  * @property {(extra: HTMLElement) => void} [buildExtra]
  * @property {import("./mailto.js").MailDraft | import("./mailto.js").MailDraft[] | (() => import("./mailto.js").MailDraft | import("./mailto.js").MailDraft[])} [emailDraft]
- * @property {"classic" | "stage"} [layout]
+ * @property {"classic" | "stage" | "board"} [layout]
+ * @property {boolean} [plainActions]
  * @property {"cards" | "prose"} [stepStyle]
+ * @property {{ lead?: string, upload?: { title: string, text: string }, reports?: { title: string, text: string }, run?: { title: string, text: string }, email?: { title: string, text: string } }} [board]
  */
 
 /**
@@ -256,15 +408,33 @@ export function mountFileTool(parent, opts) {
     emailDraft,
     layout = "classic",
     stepStyle = "cards",
+    board,
+    plainActions = false,
   } = opts;
 
   /** @type {File[]} */
   let files = [];
 
   const markup =
-    layout === "stage"
-      ? stageMarkup({ title, category, instructions, skipped, skipReason, accept, multiple, sendLabel, runLabel, stepStyle })
-      : classicMarkup({ title, category, instructions, skipped, skipReason, accept, multiple, sendLabel, runLabel });
+    layout === "board"
+      ? boardMarkup({
+          title,
+          category,
+          instructions,
+          skipped,
+          skipReason,
+          accept,
+          multiple,
+          sendLabel,
+          runLabel: runLabel === "Run" ? "Run Report" : runLabel,
+          board,
+          hasExtra: Boolean(buildExtra),
+          showEmail: Boolean(emailDraft),
+          plainActions,
+        })
+      : layout === "stage"
+        ? stageMarkup({ title, category, instructions, skipped, skipReason, accept, multiple, sendLabel, runLabel, stepStyle })
+        : classicMarkup({ title, category, instructions, skipped, skipReason, accept, multiple, sendLabel, runLabel });
 
   parent.innerHTML = markup;
 
@@ -303,7 +473,12 @@ export function mountFileTool(parent, opts) {
     const blocked = busy || files.length === 0;
     if (runBtn) {
       runBtn.disabled = blocked;
-      runBtn.textContent = busy && activeAction === "run" ? (runLabel === "Run" ? "Running…" : "Saving…") : runLabel;
+      const busyRun = runLabel === "Run" || runLabel === "Run Report" ? "Running…" : "Saving…";
+      const idleRun = runLabel === "Run" && runBtn.querySelector("[data-run-label]") ? "Run Report" : runLabel;
+      const next = busy && activeAction === "run" ? busyRun : idleRun;
+      const face = runBtn.querySelector("[data-run-label]");
+      if (face) face.textContent = next;
+      else runBtn.textContent = next;
     }
     if (sendBtn) {
       sendBtn.disabled = blocked;
@@ -312,13 +487,17 @@ export function mountFileTool(parent, opts) {
   };
 
   const refreshLabel = () => {
-    if (!labelEl) return;
-    if (!files.length) labelEl.textContent = "No file selected";
-    else if (files.length === 1) labelEl.textContent = files[0].name;
-    else labelEl.textContent = `${files.length} files selected`;
+    const drop = parent.querySelector("[data-drop]");
+    if (labelEl) {
+      const emptyLabel = drop ? "Drag & drop an Excel or CSV file here" : "No file selected";
+      if (!files.length) labelEl.textContent = emptyLabel;
+      else if (files.length === 1) labelEl.textContent = files[0].name;
+      else labelEl.textContent = `${files.length} files selected`;
+    }
     if (runBtn) runBtn.disabled = files.length === 0;
     if (sendBtn) sendBtn.disabled = files.length === 0;
     parent.querySelector(".gb-stage-well")?.classList.toggle("is-ready", files.length > 0);
+    drop?.classList.toggle("is-ready", files.length > 0);
   };
 
   /**
@@ -350,7 +529,7 @@ export function mountFileTool(parent, opts) {
   if (!skipped) {
     const extraEl = /** @type {HTMLElement} */ (extra);
     const extraStep = /** @type {HTMLElement | null} */ (parent.querySelector("[data-extra-step]"));
-    if (buildExtra) {
+    if (buildExtra && extraEl) {
       buildExtra(extraEl);
       if (extraStep && extraEl.childNodes.length) extraStep.hidden = false;
     }
@@ -368,6 +547,31 @@ export function mountFileTool(parent, opts) {
       refreshLabel();
       if (files.length) log?.(`Selected: ${files.map((f) => f.name).join(", ")}`);
     });
+    const drop = parent.querySelector("[data-drop]");
+    if (drop && input) {
+      drop.addEventListener("click", (event) => {
+        if (event.target instanceof Element && event.target.closest("button, a, input")) return;
+        input.click();
+      });
+      drop.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        drop.classList.add("is-over");
+      });
+      drop.addEventListener("dragleave", (event) => {
+        if (event.relatedTarget instanceof Node && drop.contains(event.relatedTarget)) return;
+        drop.classList.remove("is-over");
+      });
+      drop.addEventListener("drop", (event) => {
+        event.preventDefault();
+        drop.classList.remove("is-over");
+        const picked = [...(event.dataTransfer?.files || [])];
+        if (!picked.length) return;
+        const dt = new DataTransfer();
+        for (const file of multiple ? picked : picked.slice(0, 1)) dt.items.add(file);
+        input.files = dt.files;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }
     runBtn?.addEventListener("click", () => void runAction("run"));
     sendBtn?.addEventListener("click", () => void runAction("send"));
 
@@ -407,7 +611,17 @@ function mountEmailButtons(slot, emailDraft, log) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "btn btn-secondary";
-    btn.textContent = draft.label || "Email";
+    const label =
+      slot.closest(".gb-board-email") && (!draft.label || draft.label === "Email")
+        ? "Open Email Draft"
+        : draft.label || "Email";
+    if (slot.closest(".gb-board-email")) {
+      btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m4.5 7.5 7.5 5.5 7.5-5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span></span>`;
+      const face = btn.querySelector("span");
+      if (face) face.textContent = label;
+    } else {
+      btn.textContent = label;
+    }
     btn.addEventListener("click", () => {
       const live = resolveList()[index] || resolveList()[0];
       if (!live) return;

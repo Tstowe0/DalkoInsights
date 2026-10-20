@@ -12,6 +12,14 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Client Reports: TTX Accessorial Report builds Jacksonville, Joliet, Mira Loma, N Augusta, All Locations Combined, Liftgate Loads, Accessorial Ratio, and a Data Tab from a TMS dump. The Data Tab includes each sell accessorial name and cost.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "Phinia Weekly fills Earliest Requested Delivery Date from the expected delivery columns. When those are blank, it uses Actual Delivery Date.",
     ],
   },

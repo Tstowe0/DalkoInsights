@@ -1,4 +1,4 @@
-/** @typedef {{ id: string, label: string, script: string, subtitle?: string, disabled?: boolean, skipped?: boolean, skipReason?: string }} GlassTool */
+/** @typedef {{ id: string, label: string, script: string, subtitle?: string, disabled?: boolean, skipped?: boolean, skipReason?: string, hideTile?: boolean }} GlassTool */
 /** @typedef {{ id: string, label: string, tools: GlassTool[] }} GlassSection */
 /** @typedef {{ id: string, label: string, tools: GlassTool[] }} ReportBand */
 
@@ -21,12 +21,14 @@ export const LOCKED_TOOLS = {
 
 /**
  * @param {string} scriptPath
+ * @param {{ hideTile?: boolean }} [opts]
  * @returns {GlassTool}
  */
-function makeTool(scriptPath) {
+function makeTool(scriptPath, opts = {}) {
   const label = scriptPath.split("/").pop()?.replace(/\.js$/i, "") ?? scriptPath;
   /** @type {GlassTool} */
   const tool = { id: label, label, script: scriptPath };
+  if (opts.hideTile) tool.hideTile = true;
   const skipReason = SKIPPED_TOOLS[label];
   if (skipReason) {
     tool.skipped = true;
@@ -131,6 +133,7 @@ export const CLIENT_REPORT_BANDS = [
       makeTool("Client Reports/UTLXA Monthly.js"),
       makeTool("Client Reports/Maddox Monthly.js"),
       makeTool("Client Reports/Miraclon and Bruss Monthly.js"),
+      makeTool("Client Reports/TTX Accessorial Report.js"),
       makeTool("Client Reports/Carrier On Time Merger.js"),
     ],
   },

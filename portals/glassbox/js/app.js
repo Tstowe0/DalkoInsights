@@ -1,4 +1,4 @@
-import { NAV_ITEMS, findTool } from "./catalog.js?v=20260923-fmcsa";
+import { NAV_ITEMS, findTool } from "./catalog.js?v=20261020-ttx";
 import { launchTool } from "./tool-loader.js?v=20260819-fxsweep";
 import { mountSidebarCalendar } from "./calendar.js?v=20260923-holiday";
 import { mountSidebarTodo } from "./todo.js?v=20260923-sweep";
@@ -9,7 +9,7 @@ import {
   renderClientReports,
   renderChangelog,
   renderThemes,
-} from "./views.js?v=20260923-ghost";
+} from "./views.js?v=20261020-ttx";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;

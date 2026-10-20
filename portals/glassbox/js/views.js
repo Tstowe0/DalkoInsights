@@ -1,4 +1,4 @@
-import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261020-nmfc";
+import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261020-ttx";
 import { menuIconUrl, tileIconUrl } from "./icons.js?v=20261020-nmfc";
 import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20260925-ghostslow";
 
@@ -176,6 +176,7 @@ function fillTileGrid(grid, tools, onTool) {
   if (!grid) return;
   grid.innerHTML = "";
   for (const tool of tools) {
+    if (tool.hideTile) continue;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = `gb-tile${tool.disabled ? " disabled" : ""}${tool.skipped ? " gb-tile-skipped" : ""}`;

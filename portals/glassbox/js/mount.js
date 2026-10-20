@@ -1,5 +1,5 @@
 import { loadPortalCss } from "../../../shared/js/router.js?v=20260820-fxpad";
-import { initGlassBox, destroyGlassBox } from "./app.js?v=20260923-ghost";
+import { initGlassBox, destroyGlassBox } from "./app.js?v=20261020-ttx";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;
@@ -60,7 +60,7 @@ const TEMPLATE = `
  * @param {{ onHome: () => void }} ctx
  */
 export async function mount(root, ctx) {
-  await loadPortalCss("portals/glassbox/css/portal.css?v=20261006-sendstatus");
+  await loadPortalCss("portals/glassbox/css/portal.css?v=20261020-filewrap");
   root.innerHTML = TEMPLATE;
   paintSidebarGreeting(root);
   initGlassBox({ onHome: ctx.onHome });

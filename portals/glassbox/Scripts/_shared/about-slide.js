@@ -3,7 +3,7 @@
  * Matches desktop hover-slide / click-to-open behavior.
  */
 
-import { getToolAbout } from "./tool-abouts.js?v=20261020-nmfc";
+import { getToolAbout } from "./tool-abouts.js?v=20261020-ttx14";
 
 /**
  * @param {string} value
