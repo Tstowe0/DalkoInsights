@@ -155,6 +155,10 @@ Workflow:
     about: "Consolidate matching shipment rows within a day window for cleaner dump outputs.",
     technical: "Overview:\n- Groups loads that share the selected Match On fields and fall within the selected day window.\n\nMatch On:\n- Only checked fields are used for grouping.\n- If ACTUAL SHIP DATE is checked, the day window is applied.\n- If ACTUAL SHIP DATE is not checked, the day window is ignored.\n\nDay Window:\n- 1 day: same-day only\n- 2 days: same day + next day\n- 3 days: same day + next 2 days\n- 4 days: same day + next 3 days\n- 5 days: same day + next 4 days\n\nHow days are calculated:\n- We sort by ACTUAL SHIP DATE and compare each load to the previous one in the same group.\n- Day difference = (current date - previous date) in whole days.\n- A load stays in the group when diff <= (day window - 1).\n\nOutput:\n- Consolidated export keeps all rows in each group (for review).\n- Batch Ready export collapses each group into a single batch record.",
   },
+  "NMFC Calculator": {
+    about: "Estimate shipment density and the standard density class. NMFC item and sub wait on ClassIT.",
+    technical: "Shell:\n- Dimensions are inches. Weight is total pounds. Handling units multiply the cube.\n- Cubic feet = length × width × height × units ÷ 1,728.\n- Density = total pounds ÷ cubic feet.\n- Density class uses the 13-step full density scale (50 through 400). It is an estimate, not an NMFC article assignment.\n- Commodity and item number are collected for a later ClassIT lookup. Sub is not assigned yet.",
+  },
   "Zip Calculator": {
     about: "Estimate mileage between postal codes (US/CA/MX) using cache, straight-line distance, and truck routing.",
     technical: "Matches desktop Glass Box Zip Calculator:\n- Cache key: sorted zip_country pairs (plus legacy zip_zip keys)\n- Straight-line: haversine (3958.8 mi earth radius)\n- Truck miles: from cache when present, otherwise OSRM driving route (Google Matrix is desktop-only)\n- Country override: Auto / US / CA / MX\n- New live lookups are saved to browser localStorage cache",

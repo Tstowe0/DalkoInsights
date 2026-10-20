@@ -82,6 +82,7 @@ export const SECTIONS = [
       makeTool("Data Tools/RLCA Matrix Parser.js"),
       makeTool("Data Tools/Shipment Consolidator.js"),
       makeTool("Data Tools/Zip Calculator.js"),
+      Object.assign(makeTool("Data Tools/NMFC Calculator.js"), { label: "NMFC Calculator (WIP)" }),
     ],
   },
   {

@@ -31,6 +31,8 @@ export function tileIconUrl(label) {
   const aliases = {
     "Carrier Search": "Carrier Performance.png",
     "Data Dump Merger": "Data Dump Breakdown.png",
+    "NMFC Calculator": "Zip Calculator.png",
+    "NMFC Calculator (WIP)": "Zip Calculator.png",
   };
   const file = aliases[label] ?? `${label}.png`;
   return iconUrl(`tileicons/${file}`);

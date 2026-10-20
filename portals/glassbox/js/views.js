@@ -1,5 +1,5 @@
-import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261005-datsname";
-import { menuIconUrl, tileIconUrl } from "./icons.js?v=20260923-fmcsa";
+import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261020-nmfc";
+import { menuIconUrl, tileIconUrl } from "./icons.js?v=20261020-nmfc";
 import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20260925-ghostslow";
 
 /**

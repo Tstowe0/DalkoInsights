@@ -19,9 +19,9 @@ import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
-import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261005-datsname";
+import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261020-nmfc";
 import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20260819-fxsweep";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261005-datsname";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261020-nmfc";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20260923-holiday";
 import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261005-datsname";
 import {
