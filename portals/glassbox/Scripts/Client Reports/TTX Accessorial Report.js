@@ -2,7 +2,7 @@ import { mountFileTool } from "../_shared/file-ui.js?v=20261020-ttx14";
 import { downloadWorkbook, ensureXlsx, readCellA1, readFileBuffer } from "../_shared/excel.js";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { prevMonthRange } from "../_shared/report-helpers.js";
-import { closeProgress, updateProgress } from "../../../../shared/js/dialog.js?v=20261007-progress";
+import { closeProgress, updateProgress } from "../../../../shared/js/dialog.js?v=20261020-ttx15";
 import { buildTtxWorkbook } from "./ttx-accessorial.js?v=20261020-ttx14";
 
 export const meta = {
