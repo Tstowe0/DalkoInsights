@@ -11,7 +11,7 @@ import {
   isAuthConfigured,
   signIn,
   signOut,
-} from "./auth.js?v=20260915-greet";
+} from "./auth.js?v=20261023-id";
 
 /**
  * Top-level Dalko shell: one landing card that swaps sign-in for portal tiles.

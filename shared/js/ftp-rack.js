@@ -1,8 +1,7 @@
-import { getAccessToken, getAccount } from "./auth.js?v=20261001-splash";
+import { getAccessToken, getAccount, getRackToken } from "./auth.js?v=20261023-id";
 
 /**
  * Bridge to the FTP rack on DELTA at https://delta.shipdalko.com.
- * The name resolves to the office network, so a computer off that network cannot reach it.
  */
 
 export const RACK_ORIGIN = "https://delta.shipdalko.com";
@@ -32,9 +31,9 @@ function rackToken() {
   if (!tokenFlight) {
     tokenFlight = (async () => {
       try {
-        let token = await getAccessToken({ interactive: false });
-        if (!token && getAccount()) token = await getAccessToken({ interactive: true });
-        cachedToken = token || "";
+        await getAccessToken({ interactive: false });
+        if (!getRackToken() && getAccount()) await getAccessToken({ interactive: true });
+        cachedToken = getRackToken();
         return cachedToken;
       } finally {
         tokenFlight = null;
@@ -60,8 +59,8 @@ async function withRackAuth(run, retried = false) {
   const res = await run(await rackAuthHeaders());
   if (res.status !== 401 || retried) return res;
   cachedToken = "";
-  const token = getAccount() ? await getAccessToken({ interactive: true }) : "";
-  cachedToken = token || "";
+  if (getAccount()) await getAccessToken({ interactive: true });
+  cachedToken = getRackToken();
   if (!cachedToken) return res;
   return withRackAuth(run, true);
 }

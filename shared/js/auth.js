@@ -15,6 +15,8 @@ const MSAL_SOURCES = [
 let pca = null;
 /** @type {import("@azure/msal-browser").AccountInfo | null} */
 let activeAccount = null;
+let savedId = "";
+let savedAccess = "";
 
 export function getRedirectUri() {
   const { origin, pathname } = window.location;
@@ -197,6 +199,17 @@ export function canRevealDatSecrets() {
   return name === "terrystowe" || name === "stoweterry" || local === "tstowe" || local === "terrystowe";
 }
 
+function remember(result) {
+  if (!result) return;
+  if (result.idToken) savedId = result.idToken;
+  if (result.accessToken) savedAccess = result.accessToken;
+}
+
+/** The rack can check the sign-in token. A Graph access token is for Microsoft, not the rack. */
+export function getRackToken() {
+  return savedId || savedAccess || "";
+}
+
 export async function getAccessToken(opts = {}) {
   if (!pca || !activeAccount) return null;
   const interactive = opts.interactive !== false;
@@ -204,11 +217,13 @@ export async function getAccessToken(opts = {}) {
   const request = { scopes, account: activeAccount };
   try {
     const silent = await pca.acquireTokenSilent(request);
+    remember(silent);
     return silent?.accessToken ?? null;
   } catch {
     if (!interactive) return null;
     try {
       const popup = await pca.acquireTokenPopup(request);
+      remember(popup);
       if (popup?.account) {
         pca.setActiveAccount(popup.account);
         activeAccount = popup.account;

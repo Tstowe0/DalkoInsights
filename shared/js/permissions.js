@@ -7,9 +7,9 @@
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CLIENT_REPORT_BANDS, SECTIONS } from "../../portals/glassbox/js/catalog.js?v=20261023-penn";
 import { AUTH_ALLOWED_DOMAIN } from "./auth-config.js?v=20260915-app3";
-import { getAccessToken, getAccount, getEmail } from "./auth.js?v=20261001-splash";
+import { getAccessToken, getAccount, getEmail, getRackToken } from "./auth.js?v=20261023-id";
 import { confirmDialog } from "./dialog.js?v=20261006-nobrand";
-import { RACK_ORIGIN } from "./ftp-rack.js?v=20261023-rack";
+import { RACK_ORIGIN } from "./ftp-rack.js?v=20261023-id";
 
 const STORAGE_KEY = "dalko.permissions.v1";
 const KNOWN_KEY = "dalko.permissions.known";
@@ -266,9 +266,9 @@ function localStoreIsCustom(store) {
 }
 
 async function rackToken() {
-  let token = await getAccessToken({ interactive: false });
-  if (!token && getAccount()) token = await getAccessToken({ interactive: true });
-  return token || "";
+  await getAccessToken({ interactive: false });
+  if (!getRackToken() && getAccount()) await getAccessToken({ interactive: true });
+  return getRackToken();
 }
 
 function rackLoadError(status, data) {

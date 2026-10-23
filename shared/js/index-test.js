@@ -37,9 +37,9 @@ import {
   isAuthConfigured,
   signInPopup,
   signOut,
-} from "./auth.js?v=20261001-splash";
+} from "./auth.js?v=20261023-id";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, rackAuthHeaders, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261023-rack";
+import { fetchRack, rackAuthHeaders, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261023-id";
 import {
   allowsMenu,
   allowsTool,
@@ -49,7 +49,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261023-rack";
+} from "./permissions.js?v=20261023-id";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
