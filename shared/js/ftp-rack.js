@@ -19,12 +19,51 @@ export function isLocalBuild() {
   );
 }
 
+let cachedToken = "";
+/** @type {Promise<string> | null} */
+let tokenFlight = null;
+
+/**
+ * One sign-in for every rack call. Parallel checks were each asking Microsoft
+ * at the same time, and the losers came back with no token.
+ */
+function rackToken() {
+  if (cachedToken) return Promise.resolve(cachedToken);
+  if (!tokenFlight) {
+    tokenFlight = (async () => {
+      try {
+        let token = await getAccessToken({ interactive: false });
+        if (!token && getAccount()) token = await getAccessToken({ interactive: true });
+        cachedToken = token || "";
+        return cachedToken;
+      } finally {
+        tokenFlight = null;
+      }
+    })();
+  }
+  return tokenFlight;
+}
+
 export async function rackAuthHeaders(extra = {}) {
-  const token = await getAccessToken({ interactive: false });
+  const token = await rackToken();
   if (!token) {
     throw new Error(getAccount() ? "Sign in again to use the rack." : "Sign in to use the rack.");
   }
   return { ...extra, Authorization: `Bearer ${token}` };
+}
+
+/**
+ * @param {(headers: Record<string, string>) => Promise<Response>} run
+ * @param {boolean} [retried]
+ */
+async function withRackAuth(run, retried = false) {
+  const res = await run(await rackAuthHeaders());
+  if (res.status !== 401 || retried) return res;
+  cachedToken = "";
+  const token = getAccount() ? await getAccessToken({ interactive: true }) : "";
+  cachedToken = token || "";
+  if (!cachedToken) return res;
+  return withRackAuth(run, true);
 }
 
 async function readBody(res) {
@@ -36,10 +75,12 @@ async function readBody(res) {
 }
 
 export async function fetchRack() {
-  const res = await fetch(`${RACK_ORIGIN}/api/rack`, {
-    cache: "no-store",
-    headers: await rackAuthHeaders(),
-  });
+  const res = await withRackAuth((headers) =>
+    fetch(`${RACK_ORIGIN}/api/rack`, {
+      cache: "no-store",
+      headers,
+    })
+  );
   if (res.status === 401 || res.status === 403) throw new Error("Sign in again to use the rack.");
   if (!res.ok) throw new Error(`The rack answered ${res.status}.`);
   return res.json();
@@ -52,11 +93,13 @@ export async function fetchRack() {
  * @returns {Promise<{ ok?: boolean, error?: string, detail?: string, message?: string }>}
  */
 export async function testRackConnection(connectionId) {
-  const res = await fetch(`${RACK_ORIGIN}/api/connections/${encodeURIComponent(connectionId)}/test`, {
-    method: "POST",
-    cache: "no-store",
-    headers: await rackAuthHeaders(),
-  });
+  const res = await withRackAuth((headers) =>
+    fetch(`${RACK_ORIGIN}/api/connections/${encodeURIComponent(connectionId)}/test`, {
+      method: "POST",
+      cache: "no-store",
+      headers,
+    })
+  );
   /** @type {{ ok?: boolean, error?: string, detail?: string, message?: string }} */
   let data = await readBody(res);
   if (!res.ok && data.ok == null && !data.error) {
@@ -87,11 +130,13 @@ export async function testRackConnection(connectionId) {
  * @returns {Promise<string>}
  */
 export async function sendToRack(connectionId, filename, body) {
-  const res = await fetch(`${RACK_ORIGIN}/api/connections/${encodeURIComponent(connectionId)}/send`, {
-    method: "POST",
-    headers: await rackAuthHeaders({ "X-Filename": filename }),
-    body,
-  });
+  const res = await withRackAuth((headers) =>
+    fetch(`${RACK_ORIGIN}/api/connections/${encodeURIComponent(connectionId)}/send`, {
+      method: "POST",
+      headers: { ...headers, "X-Filename": filename },
+      body,
+    })
+  );
   /** @type {{ error?: string }} */
   const data = await readBody(res);
   if (!res.ok) throw new Error(data.error || `The rack refused the file (${res.status}).`);

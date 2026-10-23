@@ -9,7 +9,7 @@ import { CLIENT_REPORT_BANDS, SECTIONS } from "../../portals/glassbox/js/catalog
 import { AUTH_ALLOWED_DOMAIN } from "./auth-config.js?v=20260915-app3";
 import { getAccessToken, getAccount, getEmail } from "./auth.js?v=20261001-splash";
 import { confirmDialog } from "./dialog.js?v=20261006-nobrand";
-import { RACK_ORIGIN } from "./ftp-rack.js?v=20261022-entra";
+import { RACK_ORIGIN } from "./ftp-rack.js?v=20261023-rack";
 
 const STORAGE_KEY = "dalko.permissions.v1";
 const KNOWN_KEY = "dalko.permissions.known";

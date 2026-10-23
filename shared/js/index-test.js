@@ -39,7 +39,7 @@ import {
   signOut,
 } from "./auth.js?v=20261001-splash";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, rackAuthHeaders, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261022-entra";
+import { fetchRack, rackAuthHeaders, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261023-rack";
 import {
   allowsMenu,
   allowsTool,
@@ -49,7 +49,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261023-penn";
+} from "./permissions.js?v=20261023-rack";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -1302,12 +1302,13 @@ async function probeFtpServices() {
     const rack = await fetchRack();
     ftpDown = false;
     ftpUnits = Array.isArray(rack.connections) ? rack.connections.filter(isFtpService) : [];
-  } catch {
+  } catch (err) {
     ftpUnits = [];
     ftpDown = true;
+    const detail = err instanceof Error && err.message ? err.message : rackUnreachable();
     INTEG_NAMES.ftp = "File transfer";
-    integLabs.ftp.html = labLine(rackUnreachable());
-    setIntegHealth("ftp", "failed", "Offline", rackUnreachable());
+    integLabs.ftp.html = labLine(detail);
+    setIntegHealth("ftp", "failed", "Offline", detail);
     refreshFtpSurface();
     return;
   }

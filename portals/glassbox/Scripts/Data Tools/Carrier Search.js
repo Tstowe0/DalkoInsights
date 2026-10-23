@@ -1,5 +1,5 @@
 import { mountAboutSlide } from "../_shared/about-slide.js";
-import { RACK_ORIGIN, rackAuthHeaders } from "../../../../shared/js/ftp-rack.js?v=20261022-entra";
+import { RACK_ORIGIN, rackAuthHeaders } from "../../../../shared/js/ftp-rack.js?v=20261023-rack";
 
 export const meta = {
   id: "Carrier Search",
