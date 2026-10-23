@@ -1,7 +1,7 @@
 /**
  * One change log and one version series for the merged dashboard.
  * Insights and Glass Box stay the source files; this module weaves them
- * and renumbers every release as 1.0.0, 1.1.0, 1.2.0, …
+ * and renumbers every release as 1.0, 1.1, 1.2, …
  */
 
 /** @typedef {{ product: string, productId: "shell" | "insights" | "tools", version: string, sourceVersion?: string, items: string[] }} LogRelease */
@@ -118,7 +118,7 @@ function tagged(product, productId, text) {
 }
 
 /**
- * Newest-first zip, then one 1.x.0 number from oldest → newest.
+ * Newest-first zip, then one 1.x number from oldest → newest.
  * @param {LogRelease[]} newestFirst
  * @returns {LogRelease[]}
  */
@@ -128,7 +128,7 @@ function assignSeries(newestFirst) {
     .map((block, index) => ({
       ...block,
       sourceVersion: block.version || undefined,
-      version: `1.${index}.0`,
+      version: `1.${index}`,
     }))
     .reverse();
 }

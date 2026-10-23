@@ -33,7 +33,7 @@ Workflow:
     emailDraft: () => {
       const today = fmtSlashMDY(new Date(), "-");
       return {
-        to: "Carlosbencomo@complete-pet.com;xiomaragonzalez@complete-pet.com;josmargaleano@complete-pet.com;anzulymarquez@complete-pet.com;NelsonLopez@complete-pet.com;doraliaacosta@complete-pet.com;salomongonzalez@complete-pet.com",
+        to: "Carlosbencomo@complete-pet.com;xiomaragonzalez@complete-pet.com;josmargaleano@complete-pet.com;anzulymarquez@complete-pet.com;NelsonLopez@complete-pet.com;doraliaacosta@complete-pet.com;salomongonzalez@complete-pet.com;haydeelizvazquez@complete-pet.com;edwinmolina@complete-pet.com",
         cc: "Raul.Pacheco@shipdalko.com;Joseph.Pacheco@shipdalko.com;Alexis.Johnson@shipdalko.com",
         subject: `Daily Shipment Report for ${today}`,
         body: "Attached is today's Daily Shipment Report.\n\nPlease let us know if you have any questions.",
