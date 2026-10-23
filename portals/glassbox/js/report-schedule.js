@@ -22,6 +22,7 @@ const FRI = 5;
  */
 export const SCHEDULED_REPORTS = [
   { id: "McConway Daily Tracking Report", label: "McConway Daily Tracking Report", schedule: "daily" },
+  { id: "Penn Machine Daily Tracking Report", label: "Penn Machine Daily Tracking Report", schedule: "daily" },
   { id: "Vet-Pet Daily Shipment Report", label: "Vet-Pet Daily Shipment Report", schedule: "daily" },
   { id: "Phinia Weekly", label: "Phinia Weekly", schedule: "weekday", weekday: MON },
   { id: "Quality Turbocharger Weekly", label: "Quality Turbocharger Weekly", schedule: "weekday", weekday: MON },
@@ -29,6 +30,7 @@ export const SCHEDULED_REPORTS = [
   { id: "Kansas Canadian Pacific Weekly", label: "Kansas Canadian Pacific Weekly", schedule: "weekday", weekday: FRI },
   { id: "FCA Active Shipments", label: "FCA Active Shipments", schedule: "weekday", weekday: FRI },
   { id: "UTLXA Monthly", label: "UTLXA Monthly", schedule: "monthDay", day: 1 },
+  { id: "Marmon Monthly", label: "Marmon Monthly", schedule: "monthDay", day: 1 },
   { id: "Maddox Monthly", label: "Maddox Monthly", schedule: "nthWeekday", nth: 2, weekday: TUE },
   { id: "Miraclon and Bruss Monthly", label: "Miraclon and Bruss Monthly", schedule: "monthDay", day: 15 },
   { id: "Carrier On Time Merger", label: "Carrier On Time Merger", schedule: "nthWeekday", nth: 2, weekday: WED },

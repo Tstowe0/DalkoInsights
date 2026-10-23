@@ -1,4 +1,4 @@
-import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261020-ttx";
+import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261023-penn";
 import { menuIconUrl, tileIconUrl } from "./icons.js?v=20261020-nmfc";
 import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20260925-ghostslow";
 

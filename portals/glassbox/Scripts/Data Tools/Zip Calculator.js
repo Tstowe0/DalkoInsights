@@ -215,6 +215,101 @@ function saveLocalCache(cache) {
   }
 }
 
+/** @type {Promise<Record<string, any>> | null} */
+let bundledCachePromise = null;
+
+function bundledCache() {
+  if (!bundledCachePromise) {
+    bundledCachePromise = (async () => {
+      try {
+        const res = await fetch(CACHE_URL);
+        if (!res.ok) return {};
+        const bundled = await res.json();
+        return bundled && typeof bundled === "object" ? bundled : {};
+      } catch {
+        return {};
+      }
+    })();
+  }
+  return bundledCachePromise;
+}
+
+/**
+ * Same lookup the Zip Calculator runs: cache, then geocode plus truck route.
+ * Truck miles are used when the route comes back. Otherwise straight-line miles.
+ * @param {string} zip1
+ * @param {string} zip2
+ * @param {string} [c1]
+ * @param {string} [c2]
+ * @returns {Promise<{ straight: number, truck: number | null, miles: number | null, origin: string, destination: string, source: string }>}
+ */
+export async function calculateZipPair(zip1, zip2, c1 = "auto", c2 = "auto") {
+  const z1 = String(zip1 ?? "").trim();
+  const z2 = String(zip2 ?? "").trim();
+  if (!z1 || !z2) throw new Error("Both postal codes are required.");
+  const cache = { ...(await bundledCache()), ...loadLocalCache() };
+  const hit = cacheLookup(z1, z2, c1, c2, cache);
+  if (hit) {
+    const distances = orientResult(hit.entry, z1, c1);
+    const straight = Number(distances.straight_distance);
+    const truck = distances.truck_distance == null ? null : Number(distances.truck_distance);
+    return {
+      straight,
+      truck,
+      miles: usableMiles(truck, straight),
+      origin: `${distances.city1 || ""}, ${distances.state1 || ""} (${distances.zip1})`,
+      destination: `${distances.city2 || ""}, ${distances.state2 || ""} (${distances.zip2})`,
+      source: "Cache",
+    };
+  }
+
+  const g1 = await geocode(z1, c1);
+  const g2 = await geocode(z2, c2);
+  const straight = haversineMiles(g1.lat, g1.lon, g2.lat, g2.lon);
+  let truck = null;
+  try {
+    truck = await truckMilesOsrm(g1.lat, g1.lon, g2.lat, g2.lon);
+  } catch {
+    truck = null;
+  }
+  const entry = {
+    zip1: g1.zip,
+    zip2: g2.zip,
+    country1: c1,
+    country2: c2,
+    straight_distance: straight,
+    truck_distance: truck,
+    city1: g1.city,
+    state1: g1.state,
+    city2: g2.city,
+    state2: g2.state,
+  };
+  const key = getZipKey(z1, z2, c1, c2);
+  const local = loadLocalCache();
+  local[key] = entry;
+  saveLocalCache(local);
+  return {
+    straight,
+    truck,
+    miles: usableMiles(truck, straight),
+    origin: `${g1.city}, ${g1.state} (${g1.zip})`,
+    destination: `${g2.city}, ${g2.state} (${g2.zip})`,
+    source: "Live lookup",
+  };
+}
+
+/**
+ * @param {number | null} truck
+ * @param {number} straight
+ */
+function usableMiles(truck, straight) {
+  if (truck != null && Number.isFinite(truck) && truck > 0) return Math.round(truck * 100) / 100;
+  if (Number.isFinite(straight) && straight > 0) return Math.round(straight * 100) / 100;
+  if (Number.isFinite(straight) && straight === 0) return 0;
+  if (truck === 0) return 0;
+  return null;
+}
+
 /**
  * @param {HTMLElement} parent
  * @param {{ onBack: () => void, log: (msg: string) => void }} ctx
@@ -404,62 +499,11 @@ export async function loadGui(parent, ctx) {
     ctx.log(`Starting distance lookup: ${z1} (${c1}) → ${z2} (${c2})`);
 
     try {
-      const hit = cacheLookup(z1, z2, c1, c2, cache);
-      if (hit) {
-        const distances = orientResult(hit.entry, z1, c1);
-        const straight = Number(distances.straight_distance);
-        const truck = distances.truck_distance == null ? null : Number(distances.truck_distance);
-        showHit({
-          straight,
-          truck,
-          origin: `${distances.city1 || ""}, ${distances.state1 || ""} (${distances.zip1})`,
-          destination: `${distances.city2 || ""}, ${distances.state2 || ""} (${distances.zip2})`,
-          source: "Cache",
-        });
-        ctx.log(
-          `Cache hit — straight ${straight.toFixed(2)} mi | truck ${truck == null ? "n/a" : truck.toFixed(2)} mi`
-        );
-        return;
-      }
-
-      const g1 = await geocode(z1, c1);
-      const g2 = await geocode(z2, c2);
-      const straight = haversineMiles(g1.lat, g1.lon, g2.lat, g2.lon);
-      let truck = null;
-      try {
-        truck = await truckMilesOsrm(g1.lat, g1.lon, g2.lat, g2.lon);
-      } catch {
-        truck = null;
-      }
-
-      const entry = {
-        zip1: g1.zip,
-        zip2: g2.zip,
-        country1: c1,
-        country2: c2,
-        straight_distance: straight,
-        truck_distance: truck,
-        city1: g1.city,
-        state1: g1.state,
-        city2: g2.city,
-        state2: g2.state,
-      };
-
-      const key = getZipKey(z1, z2, c1, c2);
-      cache[key] = entry;
-      const local = loadLocalCache();
-      local[key] = entry;
-      saveLocalCache(local);
-
-      showHit({
-        straight,
-        truck,
-        origin: `${g1.city}, ${g1.state} (${g1.zip})`,
-        destination: `${g2.city}, ${g2.state} (${g2.zip})`,
-        source: "Live lookup",
-      });
+      const hit = await calculateZipPair(z1, z2, c1, c2);
+      showHit(hit);
+      const truckText = hit.truck == null ? "n/a" : Number(hit.truck).toFixed(2);
       ctx.log(
-        `Live — straight ${straight.toFixed(2)} mi | truck ${truck == null ? "n/a" : truck.toFixed(2)} mi`
+        `${hit.source === "Cache" ? "Cache hit" : "Live"} — straight ${Number(hit.straight).toFixed(2)} mi | truck ${truckText} mi`
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

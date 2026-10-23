@@ -11,6 +11,7 @@ export const TOOL_SUBTITLES = {
   "Miraclon and Bruss Monthly": "15th of the Month",
   "Maddox Monthly": "2nd Tuesday of the Month",
   "UTLXA Monthly": "1st of the Month",
+  "Marmon Monthly": "1st of the Month",
   "Carrier On Time Merger": "2nd Wednesday of the Month",
 };
 
@@ -73,7 +74,7 @@ export const SECTIONS = [
     label: "Data Tools",
     tools: [
       makeTool("Data Tools/Batch Mapper.js"),
-      makeTool("Data Tools/Carrier Search.js"),
+      makeTool("Data Tools/Carrier Search.js", { hideTile: true }),
       makeTool("Data Tools/Carrier Performance.js"),
       makeTool("Data Tools/Currency Converter.js"),
       makeTool("Data Tools/Value Standardizer.js"),
@@ -107,6 +108,7 @@ export const CLIENT_REPORT_BANDS = [
     label: "Daily",
     tools: [
       makeTool("Client Reports/McConway Daily Tracking Report.js"),
+      makeTool("Client Reports/Penn Machine Daily Tracking Report.js"),
       makeTool("Client Reports/Vet-Pet Daily Shipment Report.js"),
     ],
   },
@@ -131,6 +133,7 @@ export const CLIENT_REPORT_BANDS = [
     label: "Monthly",
     tools: [
       makeTool("Client Reports/UTLXA Monthly.js"),
+      makeTool("Client Reports/Marmon Monthly.js"),
       makeTool("Client Reports/Maddox Monthly.js"),
       makeTool("Client Reports/Miraclon and Bruss Monthly.js"),
       makeTool("Client Reports/TTX Accessorial Report.js"),

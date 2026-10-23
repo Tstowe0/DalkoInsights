@@ -3,7 +3,7 @@
  * Click a day to preview reports due that date in the To Do list.
  */
 
-import { getDueDaySetForMonth, toDateKey } from "./report-schedule.js?v=20260804-calclick";
+import { getDueDaySetForMonth, toDateKey } from "./report-schedule.js?v=20261023-penn";
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTHS = [

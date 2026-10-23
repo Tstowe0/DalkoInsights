@@ -1,4 +1,4 @@
-﻿import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20260928-stage3f";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261006-board3";
 import { VETPET_EXCLUDE, MCCONWAY_KEEP } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
@@ -29,6 +29,7 @@ const EXTERNAL_TO = [
   "TERRENCE.MCMANUS@FERROWORKS.COM",
   "WILLIAM.FLEMMING@FERROWORKS.COM",
   "ALESSANDRA.APICELLA@FERROWORKS.COM",
+  "BRIAN.BROOK@FERROWORKS.COM",
   "CYNTHIA.KORBERT@FERROWORKS.COM",
   "DONNIE.HICKIE@FERROWORKS.COM",
   "JANET.KASTAN@FERROWORKS.COM",
@@ -50,7 +51,6 @@ export async function loadGui(parent, ctx) {
     highlight: false,
     filename: ({ today, fmtMDY }) => `Ferroworks Daily Shipment Report ${fmtMDY(today)}.xlsx`,
     sheetName: ({ today, fmtMDY }) => `Daily Shipments for ${fmtMDY(today)}`,
-    layout: "stage",
     emailDraft: () => {
       const today = fmtSlashMDY(new Date(), "/");
       const subject = `Ferroworks Daily Shipment Report ${today}`;

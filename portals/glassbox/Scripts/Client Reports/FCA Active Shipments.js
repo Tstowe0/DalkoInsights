@@ -1,4 +1,4 @@
-﻿import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261001-stageall";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261006-board3";
 import { FCA_EXCLUDE } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 

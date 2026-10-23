@@ -1,4 +1,4 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261006-phinia";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261015-phinia-btns";
 import {
   ensureXlsx,
   readFileBuffer,
@@ -6,7 +6,7 @@ import {
   downloadWorkbook,
   downloadBlob,
 } from "../_shared/excel.js";
-import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261002-ftpback";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261022-entra";
 import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 import {
   OUTPUT_COLUMNS,
@@ -37,8 +37,8 @@ Workflow:
    - Today: Uses the current date as the ship date
    - Next Business Day: Calculates the next business day, skipping weekends and select US federal holidays as listed below.
    - Custom Date: Pick any date using the calendar or type M/D/YYYY manually.
-3. Option A: Click 'Run & Save' to process the file and choose XLSX or CSV. Useful for looking at the data before uploading.
-4. Option B: Click 'Send to TMS' to process the file and automatically upload it to TMS via FTP.
+3. Option A: Click 'Run and Save Locally' to process the file and choose XLSX or CSV. Useful for looking at the data before uploading.
+4. Option B: Click 'Run and Send To TMS' to process the file and automatically upload it to TMS via FTP.
 5. The tool will transform all rows according to mapping rules and apply the selected ship date.
 6. All progress is reported in the launcher console.
 7. Once in TMS the loads will begin creation every 15 minutes. TMS checks at every quarter hour for a file drop.
@@ -58,8 +58,8 @@ Transform Phinia shipment data files into standardized output format for further
 Workflow:
 1. Select the Phinia input Excel file.
 2. Select a Ship Date option (required): Today, Next Business Day, or Custom Date (M/D/YYYY).
-3. Click 'Run & Save' to process the file and choose XLSX or CSV.
-Send to TMS is available on the office site. This public site cannot reach the FTP rack.`;
+3. Click 'Run and Save Locally' to process the file and choose XLSX or CSV.
+Run and Send To TMS is available on the office site. This public site cannot reach the FTP rack.`;
 
 /**
  * @param {HTMLElement} extra
@@ -225,8 +225,26 @@ export async function loadGui(parent, ctx) {
     onBack: ctx.onBack,
     log: ctx.log,
     accept: ".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel",
-    runLabel: "Run & Save",
-    sendLabel: officeSite ? "Send to TMS" : "",
+    layout: "board",
+    plainActions: true,
+    runLabel: "Run and Save Locally",
+    sendLabel: officeSite ? "Run and Send To TMS" : "",
+    board: {
+      reports: {
+        title: "Ship Date",
+        text: "Today, the next business day, or a custom date.",
+      },
+      upload: {
+        title: "Upload File",
+        text: "Select the Phinia input Excel file.",
+      },
+      run: {
+        title: "Run Report",
+        text: officeSite
+          ? "Run and Save Locally downloads the file. Run and Send To TMS uploads it."
+          : "Run and Save Locally downloads the file.",
+      },
+    },
     buildExtra: mountShipDate,
     async onRun(files, ui) {
       const ship = readShipDate(ui.extra);

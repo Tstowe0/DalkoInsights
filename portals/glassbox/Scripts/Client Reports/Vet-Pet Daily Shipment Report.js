@@ -1,4 +1,4 @@
-﻿import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261001-aboutswap";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261006-board3";
 import { VETPET_EXCLUDE } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
@@ -30,7 +30,6 @@ Workflow:
     highlight: true,
     filename: ({ today, fmtMDY }) => `Daily Shipments for ${fmtMDY(today)}.xlsx`,
     sheetName: ({ today, fmtMDY }) => `Daily Shipments for ${fmtMDY(today)}`,
-    layout: "stage",
     emailDraft: () => {
       const today = fmtSlashMDY(new Date(), "-");
       return {

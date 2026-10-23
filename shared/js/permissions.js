@@ -5,10 +5,11 @@
  */
 
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
-import { CLIENT_REPORT_BANDS, SECTIONS } from "../../portals/glassbox/js/catalog.js?v=20261020-ttx";
+import { CLIENT_REPORT_BANDS, SECTIONS } from "../../portals/glassbox/js/catalog.js?v=20261023-penn";
 import { AUTH_ALLOWED_DOMAIN } from "./auth-config.js?v=20260915-app3";
 import { getAccessToken, getAccount, getEmail } from "./auth.js?v=20261001-splash";
-import { RACK_ORIGIN } from "./ftp-rack.js?v=20261002-ftpback";
+import { confirmDialog } from "./dialog.js?v=20261006-nobrand";
+import { RACK_ORIGIN } from "./ftp-rack.js?v=20261022-entra";
 
 const STORAGE_KEY = "dalko.permissions.v1";
 const KNOWN_KEY = "dalko.permissions.known";
@@ -431,6 +432,31 @@ export function createGroup(name) {
   return group;
 }
 
+/** Names of people currently in this group. */
+function assignedToGroup(groupId) {
+  const names = new Map(listRoster().map((person) => [person.email, person.name]));
+  return loadPermissions()
+    .members.filter((member) => member.groupId === groupId)
+    .map((member) => {
+      const named = String(names.get(member.email) || "").trim();
+      if (named) return named;
+      const parts = nameFromEmail(member.email);
+      return [parts.first, parts.last].filter(Boolean).join(" ") || member.email;
+    })
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+}
+
+/**
+ * @param {string} groupName
+ * @param {string[]} people
+ */
+function deleteGroupWarning(groupName, people) {
+  const risk = `Delete ${groupName}? This group is removed. Everyone assigned to it moves to Everything no FTP and loses this group's access.`;
+  if (!people.length) return `${risk}\n\nNo one is assigned to this group.`;
+  const lines = people.map((name) => `• ${name}`).join("\n");
+  return `${risk}\n\nAssigned to this group:\n${lines}`;
+}
+
 /** @param {string} groupId */
 export function deleteGroup(groupId) {
   if (groupId === ADMIN_ID || groupId === STAFF_ID) return false;
@@ -836,6 +862,17 @@ function directoryButton() {
   return `<button type="button" data-perm-directory="refresh">Refresh</button>`;
 }
 
+function editorSurface() {
+  return document.querySelector(".perm-tile-editor, .perm-modal");
+}
+
+function editorScroller() {
+  const surface = editorSurface();
+  if (!(surface instanceof HTMLElement)) return null;
+  const scroller = surface.querySelector(".perm-tree-wrap, .perm-modal-card");
+  return scroller instanceof HTMLElement ? scroller : null;
+}
+
 /** @param {PermEditor | null | undefined} editor */
 function editorKey(editor) {
   if (!editor) return "";
@@ -845,11 +882,11 @@ function editorKey(editor) {
 /** Keep scroll and the search box across a redraw of the same screen. @param {PermFocus} [focus] */
 function rememberPermUi(focus) {
   const state = focusOf(focus);
-  const modal = document.querySelector(".perm-modal");
-  const card = document.querySelector(".perm-modal-card");
+  const surface = editorSurface();
+  const scroller = editorScroller();
   const key = editorKey(state.editor);
-  if (modal instanceof HTMLElement && card instanceof HTMLElement && key && modal.dataset.permEditor === key) {
-    modalScroll = card.scrollTop;
+  if (surface instanceof HTMLElement && scroller && key && surface.dataset.permEditor === key) {
+    modalScroll = scroller.scrollTop;
   }
   const groups = document.querySelector('[aria-label="Groups"] .perm-board-scroll');
   const people = document.querySelector(".perm-roster-scroll");
@@ -944,26 +981,29 @@ export function renderPermissionsPage(focus) {
         <p class="perm-hint" id="perm-remote-note"${remoteNote ? "" : " hidden"}>${esc(remoteNote)}</p>
       </header>
       <div class="perm-split">
-        <section class="perm-card" aria-label="Groups">
-          <div class="perm-board-head">
-            <div>
-              <h2>Groups</h2>
-              <p class="perm-hint">${esc(groupHint)}</p>
+        <section class="perm-card${state.editor?.kind === "group" ? " is-editing" : ""}" aria-label="Groups">
+          <div class="perm-card-rest"${state.editor?.kind === "group" ? " inert" : ""}>
+            <div class="perm-board-head">
+              <div>
+                <h2>Groups</h2>
+                <p class="perm-hint">${esc(groupHint)}</p>
+              </div>
+              <button type="button" class="perm-plus" data-perm-new aria-label="Add group" title="Add group">+</button>
             </div>
-            <button type="button" class="perm-plus" data-perm-new aria-label="Add group" title="Add group">+</button>
+            <div class="perm-add">
+              <input class="perm-find" type="search" data-perm-find-group placeholder="Find a group" value="${esc(groupsQuery)}" autocomplete="off" />
+            </div>
+            <div class="perm-board-scroll">
+              <table class="perm-table perm-board">
+                <thead><tr><th>Group</th><th>People</th><th></th></tr></thead>
+                <tbody>
+                  ${groupBody}
+                  <tr class="perm-empty-row" data-perm-none-groups hidden><td colspan="3">No groups match.</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="perm-add">
-            <input class="perm-find" type="search" data-perm-find-group placeholder="Find a group" value="${esc(groupsQuery)}" autocomplete="off" />
-          </div>
-          <div class="perm-board-scroll">
-            <table class="perm-table perm-board">
-              <thead><tr><th>Group</th><th>People</th><th></th></tr></thead>
-              <tbody>
-                ${groupBody}
-                <tr class="perm-empty-row" data-perm-none-groups hidden><td colspan="3">No groups match.</td></tr>
-              </tbody>
-            </table>
-          </div>
+          ${state.editor?.kind === "group" ? renderGroupPanel(store, state) : ""}
         </section>
         <section class="perm-card" aria-label="Users">
           <div class="perm-board-head">
@@ -987,7 +1027,42 @@ export function renderPermissionsPage(focus) {
           </div>
         </section>
       </div>
-      ${renderEditor(store, state, names)}
+      ${state.editor?.kind === "user" ? renderUserEditor(store, state, names) : ""}
+    </div>`;
+}
+
+/**
+ * @param {PermStore} store
+ * @param {PermFocus} state
+ */
+function renderGroupPanel(store, state) {
+  if (state.editor?.kind !== "group") return "";
+  const group = store.groups.find((item) => item.id === state.editor.id);
+  if (!group) return "";
+  const isAdmin = group.id === ADMIN_ID;
+  const isStaff = group.id === STAFF_ID;
+  const tree = permissionTree().map((node) => renderTreeNode(node)).join("");
+  const hint = isAdmin
+    ? "Admin can always open Permissions."
+    : isStaff
+      ? "Everyone starts here. FTP stays off unless you turn it on."
+      : "Check what this group can open.";
+  const deleteTitle = isAdmin
+    ? "Admin stays so Permissions can always be opened"
+    : isStaff
+      ? "This group stays. People start here."
+      : "Delete this group. Its people move to Everything no FTP.";
+  return `
+    <div class="perm-tile-editor" data-perm-editor="group:${esc(group.id)}" role="dialog" aria-modal="true" aria-label="${esc(group.name)}">
+      <div class="perm-editor-head">
+        <input class="perm-name" data-perm-name value="${esc(group.name)}" aria-label="Group name" maxlength="60" autocomplete="off" spellcheck="false" />
+        <button type="button" data-perm-close>Close</button>
+      </div>
+      <p class="perm-hint">${hint}</p>
+      <div class="perm-tree-wrap"><ul class="perm-tree">${tree}</ul></div>
+          <div class="perm-user-actions">
+        <button type="button" class="perm-delete" data-perm-delete="${esc(group.id)}" ${isAdmin || isStaff ? "disabled" : ""} title="${deleteTitle}">Delete group</button>
+      </div>
     </div>`;
 }
 
@@ -996,40 +1071,8 @@ export function renderPermissionsPage(focus) {
  * @param {PermFocus} state
  * @param {Map<string, string>} names
  */
-function renderEditor(store, state, names) {
-  if (!state.editor) return "";
-  if (state.editor.kind === "group") {
-    const group = store.groups.find((item) => item.id === state.editor.id);
-    if (!group) return "";
-    const isAdmin = group.id === ADMIN_ID;
-    const isStaff = group.id === STAFF_ID;
-    const tree = permissionTree().map((node) => renderTreeNode(node)).join("");
-    const hint = isAdmin
-      ? "Admin can always open Permissions."
-      : isStaff
-        ? "Everyone starts here. FTP stays off unless you turn it on."
-        : "Check what this group can open.";
-    const deleteTitle = isAdmin
-      ? "Admin stays so Permissions can always be opened"
-      : isStaff
-        ? "This group stays. People start here."
-        : "Delete this group. Its people move to Everything no FTP.";
-    return `
-      <div class="perm-modal" data-perm-editor="group:${esc(group.id)}" role="dialog" aria-modal="true" aria-label="${esc(group.name)}">
-        <div class="perm-modal-backdrop" data-perm-close></div>
-        <div class="perm-modal-card">
-          <div class="perm-editor-head">
-            <input class="perm-name" data-perm-name value="${esc(group.name)}" aria-label="Group name" maxlength="60" autocomplete="off" spellcheck="false" />
-            <button type="button" data-perm-close>Close</button>
-          </div>
-          <p class="perm-hint">${hint}</p>
-          <div class="perm-tree-wrap"><ul class="perm-tree">${tree}</ul></div>
-          <div class="perm-user-actions">
-            <button type="button" data-perm-delete="${esc(group.id)}" ${isAdmin || isStaff ? "disabled" : ""} title="${deleteTitle}">Delete group</button>
-          </div>
-        </div>
-      </div>`;
-  }
+function renderUserEditor(store, state, names) {
+  if (state.editor?.kind !== "user") return "";
   const email = state.editor.email;
   const personName = names.get(email) || "";
   const member = store.members.find((item) => item.email === email);
@@ -1120,7 +1163,7 @@ function syncGroupLabel(root, groupId, label, pickedGroupId) {
   const row = root.querySelector(`[data-perm-pick-group="${CSS.escape(groupId)}"]`);
   const cell = row?.querySelector("td");
   if (cell) cell.textContent = label;
-  const dialog = root.querySelector(".perm-modal");
+  const dialog = editorSurface();
   if (dialog instanceof HTMLElement) dialog.setAttribute("aria-label", label);
   if (pickedGroupId === groupId) {
     const hint = root.querySelector('[aria-label="Users"] .perm-hint');
@@ -1166,7 +1209,7 @@ export function bindPermissionsPage(root, opts) {
       (editor.kind === "group"
         ? editor.id === (focus.editor.kind === "group" ? focus.editor.id : "")
         : editor.email === (focus.editor.kind === "user" ? focus.editor.email : ""));
-    const card = root.querySelector(".perm-modal-card");
+    const card = editorScroller();
     if (same && card instanceof HTMLElement) modalScroll = card.scrollTop;
     else modalScroll = 0;
     if (!same) modalBoxKey = "";
@@ -1193,7 +1236,7 @@ export function bindPermissionsPage(root, opts) {
   if (scroller instanceof HTMLElement) scroller.scrollTop = peopleScroll;
   const groupScroller = root.querySelector('[aria-label="Groups"] .perm-board-scroll');
   if (groupScroller instanceof HTMLElement) groupScroller.scrollTop = groupsScroll;
-  const card = root.querySelector(".perm-modal-card");
+  const card = editorScroller();
   if (card instanceof HTMLElement) card.scrollTop = modalScroll;
   if (modalBoxKey) {
     const boxKey = modalBoxKey;
@@ -1233,7 +1276,8 @@ export function bindPermissionsPage(root, opts) {
   if (focus.editor) {
     permKeyHandler = (event) => {
       if (event.key !== "Escape") return;
-      if (!document.querySelector(".perm-modal")) return;
+      if (document.querySelector(".app-dialog:not(.hidden)")) return;
+      if (!editorSurface()) return;
       event.preventDefault();
       go({ editor: null });
     };
@@ -1311,8 +1355,17 @@ export function bindPermissionsPage(root, opts) {
   root.querySelector("[data-perm-delete]")?.addEventListener("click", () => {
     const btn = root.querySelector("[data-perm-delete]");
     if (!(btn instanceof HTMLButtonElement) || btn.disabled || !editing) return;
-    if (!deleteGroup(editing.id)) return;
-    go({ groupId: null, userEmail: null, pick: null, editor: null });
+    const groupId = editing.id;
+    const groupName = editing.name;
+    void confirmDialog(deleteGroupWarning(groupName, assignedToGroup(groupId)), {
+      title: "Delete group",
+      okLabel: "Delete group",
+      cancelLabel: "Cancel",
+      tone: "danger",
+    }).then((yes) => {
+      if (!yes || !deleteGroup(groupId)) return;
+      go({ groupId: null, userEmail: null, pick: null, editor: null });
+    });
   });
   root.querySelectorAll("[data-perm-box]").forEach((box) => {
     box.addEventListener("change", () => {

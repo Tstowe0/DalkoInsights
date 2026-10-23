@@ -2,7 +2,7 @@ import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-n
 import { workbookToObjects, workbookBlob } from "../_shared/excel.js?v=20261005-dats";
 import { rowsToSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
 import { pickVal, pickCol, fmtMDY } from "../_shared/report-helpers.js";
-import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261005-dats";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261022-entra";
 import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 
 export const meta = {
@@ -73,14 +73,14 @@ Builds the weekly DAT contribution file from a TMS Data Dump. Keeps truckload ro
 Workflow:
 1. Run a TMS Data Dump for all clients, TL only, covering the previous calendar week (Sun–Sat). Use Ship Date.
 2. Upload the dump.
-3. Run and Save downloads the contribution workbook.
-4. Run and Send hands that same file to the DATs FTP connection. If Send to DAT is off on the rack, the file is saved in client uploads\\dat.`,
+3. Run and Save Locally downloads the contribution workbook.
+4. Run and Send to DAT hands that same file to the DATs FTP connection. If Send to DAT is off on the rack, the file is saved in client uploads\\dat.`,
     sheetName: "Data",
-    runLabel: "Run and Save",
-    sendLabel: "Run and Send",
+    runLabel: "Run and Save Locally",
+    sendLabel: "Run and Send to DAT",
     confirmSend: () => confirmDialog(
       "Send this DAT file to the rack? It will be saved in client uploads\\dat.",
-      { title: "Send to DAT", okLabel: "Send", cancelLabel: "Cancel" }
+      { title: "Run and Send to DAT", okLabel: "Send", cancelLabel: "Cancel" }
     ),
     async buildWorkbook(buffer, bctx) {
       const { rows } = workbookToObjects(buffer, "DataDump");

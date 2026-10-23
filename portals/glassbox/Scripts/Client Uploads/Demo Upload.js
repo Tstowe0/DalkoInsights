@@ -1,6 +1,7 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20260930-demo";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261015-demoboard";
 import { downloadBlob, stampName } from "../_shared/excel.js";
-import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261002-ftpback";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261022-entra";
+import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 
 export const meta = {
   id: "Demo Upload",
@@ -30,33 +31,54 @@ export async function loadGui(parent, ctx) {
     title: meta.title,
     category: meta.category,
     instructions: officeSite
-      ? `Send a finished file to the Demo Customer FTP.
+      ? `Send a finished file to the Demo Customer FTP. The file is not remapped.
 
 Workflow:
 1. Choose the file to upload.
-2. Run saves a local Demo_ copy.
-3. Send to TMS hands that file to the FTP rack. The rack places it in /DALKO.`
-      : `Send a finished file to the Demo Customer FTP.
+2. Run and Save Locally downloads a local Demo_ copy.
+3. Run and Send To TMS hands that file to the FTP rack. The rack places it in /DALKO.`
+      : `Send a finished file to the Demo Customer FTP. The file is not remapped.
 
 Workflow:
 1. Choose the file to upload.
-2. Run saves a local Demo_ copy.
-Send to TMS is available on the office site. This public site cannot reach the FTP rack.`,
+2. Run and Save Locally downloads a local Demo_ copy.
+Run and Send To TMS is available on the office site. This public site cannot reach the FTP rack.`,
     onBack: ctx.onBack,
     log: ctx.log,
-    sendLabel: officeSite ? "Send to TMS" : "",
+    layout: "board",
+    runLabel: "Run and Save Locally",
+    sendLabel: officeSite ? "Run and Send To TMS" : "",
+    board: {
+      upload: {
+        title: "Upload File",
+        text: "Choose the file to upload.",
+      },
+      run: {
+        title: "Run Report",
+        text: officeSite
+          ? "Run and Save Locally downloads a Demo_ copy. Run and Send To TMS hands that file to the rack."
+          : "Run and Save Locally downloads a Demo_ copy.",
+      },
+    },
     async onRun(files, ui) {
       const outName = demoName(files[0]);
       downloadBlob(files[0], outName);
-      ui.setStatus("Complete");
-      ctx.log(`Saved ${outName}`);
+      ui.setStatus(`Saved ${outName}`);
     },
     async onSend(files, ui) {
+      const ok = await confirmDialog(
+        "Send this file to the rack? It will be placed in /DALKO.",
+        { title: "Run and Send To TMS", okLabel: "Send", cancelLabel: "Cancel" }
+      );
+      if (!ok) {
+        ui.setStatus("Send cancelled.");
+        return;
+      }
       const file = files[0];
       const outName = demoName(file);
+      ui.setStatus(`Sending ${outName}…`);
       const message = await sendToRack("demo", outName, file);
-      ui.setStatus("Sent");
-      ctx.log(`Sent ${outName} to the Demo Customer FTP. ${message}`);
+      ui.setStatus(message);
     },
   });
 }

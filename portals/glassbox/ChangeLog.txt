@@ -1,8 +1,17 @@
+Version 8.1.7
+- Client Reports: Added Penn Machine Daily Tracking Report. Same daily tracking layout as McConway, as its own report. Email Internal only, to Gerry.Marra@shipdalko.com and Shannon.Kizima@shipdalko.com.
+
+Version 8.1.6
+- McConway Daily Tracking Report: Added BRIAN.BROOK@FERROWORKS.COM to the Email External draft.
+
 Version 8.1.5
 - Client Reports: Added TTX Accessorial Report. Upload a TMS data dump to download Jacksonville, Joliet, Mira Loma, N Augusta, All Locations Combined, Liftgate Loads, Accessorial Ratio, and Data Tab. Accessorial Ratio compares shipment count with sell accessorial charge count. Liftgate Loads and Data Tab use the Marmon Ferroworks dump layout without Dat Freight and Dat Fuel, and add each sell accessorial name and cost.
 
 Version 8.1.4
 - Phinia Weekly: Earliest Requested Delivery Date still comes from the expected delivery columns. When those are blank, it uses Actual Delivery Date.
+
+Version 8.1.3
+- Client Reports: Added Marmon Monthly, due the 1st of the month. Upload a TMS data dump and run to download the Master Freight Analysis workbook. The dump is copied onto Full Data Dump. Include tabs offers Master, TL Only, and LTL Only copies of Carrier Market Index and Fuel Price Volatility. Those sheets keep the report layout.
 
 Version 8.1.2
 - Added Back to hub under the sidebar username (same control as Insights).

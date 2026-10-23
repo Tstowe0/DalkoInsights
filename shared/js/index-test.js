@@ -19,11 +19,11 @@ import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
-import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261020-ttx";
+import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-penn";
 import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20260819-fxsweep";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261020-ttx";
-import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261006-marmon";
-import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261006-marmon";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261023-penn";
+import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261023-penn";
+import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261023-penn";
 import {
   canRevealDatSecrets,
   getAccessToken,
@@ -39,7 +39,7 @@ import {
   signOut,
 } from "./auth.js?v=20261001-splash";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261006-queue";
+import { fetchRack, rackAuthHeaders, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261022-entra";
 import {
   allowsMenu,
   allowsTool,
@@ -49,7 +49,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261020-ttx";
+} from "./permissions.js?v=20261023-penn";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -339,7 +339,7 @@ function logArticlesHtml(releases) {
 async function loadGbChangelog() {
   if (gbChangelog) return gbChangelog;
   try {
-    const res = await fetch("portals/glassbox/ChangeLog.txt?v=20261020-ttx");
+    const res = await fetch("portals/glassbox/ChangeLog.txt?v=20261023-penn");
     gbChangelog = res.ok ? await res.text() : "Could not load ChangeLog.txt.";
   } catch {
     gbChangelog = "Could not load ChangeLog.txt.";
@@ -1245,7 +1245,10 @@ async function probeZip() {
 async function probeFmcsa() {
   setIntegHealth("fmcsa", "testing", "Checking");
   try {
-    const res = await fetch(`${DAT_PROXY}/api/fmcsa/test`);
+    const res = await fetch(`${DAT_PROXY}/api/fmcsa/test`, {
+      cache: "no-store",
+      headers: await rackAuthHeaders(),
+    });
     const data = await res.json();
     if (data.needKey || (!data.ok && /WEBKEY/i.test(String(data.error || "")))) {
       const detail = String(data.error || "The FMCSA web key is missing on the rack.");
@@ -1401,7 +1404,11 @@ async function testDatConnection() {
   setIntegHealth("dat", "testing", "Checking");
   paintDatSample();
   try {
-    const res = await fetch(`${DAT_PROXY}/api/dat/test`, { method: "POST" });
+    const res = await fetch(`${DAT_PROXY}/api/dat/test`, {
+      method: "POST",
+      cache: "no-store",
+      headers: await rackAuthHeaders(),
+    });
     const data = await res.json();
     if (!data.ok) {
       const detail =

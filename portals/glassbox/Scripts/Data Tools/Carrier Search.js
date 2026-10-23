@@ -1,5 +1,5 @@
 import { mountAboutSlide } from "../_shared/about-slide.js";
-import { RACK_ORIGIN } from "../../../../shared/js/ftp-rack.js?v=20261002-https";
+import { RACK_ORIGIN, rackAuthHeaders } from "../../../../shared/js/ftp-rack.js?v=20261022-entra";
 
 export const meta = {
   id: "Carrier Search",
@@ -178,7 +178,10 @@ export async function loadGui(parent, ctx) {
 
   async function ping() {
     try {
-      const res = await fetch(`${PROXY}/api/fmcsa/status`);
+      const res = await fetch(`${PROXY}/api/fmcsa/status`, {
+        cache: "no-store",
+        headers: await rackAuthHeaders(),
+      });
       const data = await res.json();
       if (data.hasKey) {
         setLive("ok", "Connected");
@@ -337,7 +340,10 @@ export async function loadGui(parent, ctx) {
   async function loadSnapshot(dot) {
     emptyDossier(`Loading USDOT ${dot}…`);
     try {
-      const res = await fetch(`${PROXY}/api/fmcsa/carrier?dot=${encodeURIComponent(dot)}`);
+      const res = await fetch(`${PROXY}/api/fmcsa/carrier?dot=${encodeURIComponent(dot)}`, {
+        cache: "no-store",
+        headers: await rackAuthHeaders(),
+      });
       const data = await res.json();
       if (!data.ok) {
         emptyDossier(data.error || "Could not load that carrier.");
@@ -379,7 +385,7 @@ export async function loadGui(parent, ctx) {
     emptyDossier("Pick a match to open the snapshot.");
     try {
       const url = `${PROXY}/api/fmcsa/search?q=${encodeURIComponent(query)}&mode=${encodeURIComponent(mode())}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store", headers: await rackAuthHeaders() });
       const data = await res.json();
       if (data.needKey) {
         setLive("setup", data.error);

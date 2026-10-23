@@ -1,3 +1,5 @@
+import { getAccessToken, getAccount } from "./auth.js?v=20261001-splash";
+
 /**
  * Bridge to the FTP rack on DELTA at https://delta.shipdalko.com.
  * The name resolves to the office network, so a computer off that network cannot reach it.
@@ -17,8 +19,28 @@ export function isLocalBuild() {
   );
 }
 
+export async function rackAuthHeaders(extra = {}) {
+  const token = await getAccessToken({ interactive: false });
+  if (!token) {
+    throw new Error(getAccount() ? "Sign in again to use the rack." : "Sign in to use the rack.");
+  }
+  return { ...extra, Authorization: `Bearer ${token}` };
+}
+
+async function readBody(res) {
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
 export async function fetchRack() {
-  const res = await fetch(`${RACK_ORIGIN}/api/rack`, { cache: "no-store" });
+  const res = await fetch(`${RACK_ORIGIN}/api/rack`, {
+    cache: "no-store",
+    headers: await rackAuthHeaders(),
+  });
+  if (res.status === 401 || res.status === 403) throw new Error("Sign in again to use the rack.");
   if (!res.ok) throw new Error(`The rack answered ${res.status}.`);
   return res.json();
 }
@@ -33,14 +55,10 @@ export async function testRackConnection(connectionId) {
   const res = await fetch(`${RACK_ORIGIN}/api/connections/${encodeURIComponent(connectionId)}/test`, {
     method: "POST",
     cache: "no-store",
+    headers: await rackAuthHeaders(),
   });
   /** @type {{ ok?: boolean, error?: string, detail?: string, message?: string }} */
-  let data = {};
-  try {
-    data = await res.json();
-  } catch {
-    data = {};
-  }
+  let data = await readBody(res);
   if (!res.ok && data.ok == null && !data.error) {
     throw new Error(`The rack answered ${res.status}.`);
   }
@@ -71,16 +89,11 @@ export async function testRackConnection(connectionId) {
 export async function sendToRack(connectionId, filename, body) {
   const res = await fetch(`${RACK_ORIGIN}/api/connections/${encodeURIComponent(connectionId)}/send`, {
     method: "POST",
-    headers: { "X-Filename": filename },
+    headers: await rackAuthHeaders({ "X-Filename": filename }),
     body,
   });
   /** @type {{ error?: string }} */
-  let data = {};
-  try {
-    data = await res.json();
-  } catch {
-    data = {};
-  }
+  const data = await readBody(res);
   if (!res.ok) throw new Error(data.error || `The rack refused the file (${res.status}).`);
   return waitForSend(connectionId, filename);
 }

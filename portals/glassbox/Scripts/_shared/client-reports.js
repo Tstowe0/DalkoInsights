@@ -24,7 +24,7 @@ import {
   VETPET_EXCLUDE,
   todayNy,
 } from "./tracking-layout.js";
-import { mountFileTool } from "./file-ui.js?v=20261006-nobrand";
+import { mountFileTool } from "./file-ui.js?v=20261023-penn";
 
 /**
  * Dump-style report with optional filters + Python-parity styling.
@@ -52,7 +52,7 @@ export function mountDumpFilterReport(parent, ctx, cfg) {
     styleOpts = null,
     emailDraft = null,
     requireClientNameA1 = true,
-    layout = "stage",
+    layout = "board",
     sendLabel = "",
     runLabel = "Run",
     onSend = null,
@@ -240,7 +240,7 @@ export function mountTrackingDailyReport(parent, ctx, cfg) {
     filename,
     sheetName,
     emailDraft = null,
-    layout = "stage",
+    layout = "board",
     stepStyle = "cards",
   } = cfg;
 
