@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { prevMondayFriday, fmtSlashMDY } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
@@ -160,8 +160,14 @@ Workflow:
 2. Use Ship Dates covering the beginning of the year through last Saturday. (This gives us a YTD and previous week tabs in one process.)
 3. Upload that report into the tool.
 4. The tool will generate the final output with Year to Date and Previous Week tabs.
-5. Use the Email button to prefill your email client with recipients and subject.
+5. Use Email External to prefill your email client with recipients and subject.
 6. All progress is reported in the launcher console.`,
+    howto: {
+      type: "Data Dump",
+      date: "Ship Date",
+      time: "Year start through last Saturday",
+      clients: "Phinia",
+    },
     sheetName: "Year to Date",
     async buildWorkbook(buffer) {
       const { rows, headers } = workbookToObjects(buffer);
@@ -208,6 +214,7 @@ Workflow:
       const { monday, friday } = prevMondayFriday();
       const dateRange = `${fmtSlashMDY(monday, "/")} - ${fmtSlashMDY(friday, "/")}`;
       return {
+        label: "Email External",
         to: "rgaribay@phinia.com;ebecerra@phinia.com;logistics.slp1@phinia.com",
         cc: "Jared.Grandy@shipdalko.com;Ramon.Villegas@shipdalko.com",
         subject: `Weekly Report for ${dateRange}`,

@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
@@ -35,7 +35,13 @@ and dynamic accessorial columns, renamed fields, and standardized styling.
 Workflow:
 1. Run a TMS Data Dump for client UTLXA-UNION TANK CAR for the previous month (Invoice Date). Run on the 1st of the month or near that.
 2. Upload the dump file and run the tool.
-3. Use the Email button to automatically populate your email client with recipient details. Attach the generated report before sending.`,
+3. Use Email External to automatically populate your email client with recipient details. Attach the generated report before sending.`,
+    howto: {
+      type: "Data Dump",
+      date: "Invoice Date",
+      time: "Previous Month",
+      clients: "UTLXA-UNION TANK CAR",
+    },
     // Python does not filter client/date in-tool — dump is assumed pre-scoped.
     dateMode: "none",
     sheetName: "Data",
@@ -87,6 +93,7 @@ Workflow:
     emailDraft: () => {
       const { monthName, monthYear } = prevMonthNameYear();
       return {
+        label: "Email External",
         to: "david.crane@utlx.com",
         subject: `UTLXA Monthly Report ${monthName} ${monthYear}`,
         body: `Attached is the UTLXA Report for the month of ${monthName} ${monthYear}.\n\nPlease let us know if you have any questions.`,

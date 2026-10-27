@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { prevMondayFriday, fmtDotMDY } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
@@ -90,8 +90,14 @@ Workflow:
 2. Use Ship Dates covering the previous Sunday-Saturday.
 3. Upload that report into the tool.
 4. The tool will generate the final output, apply styling, and save it.
-5. Use the Email button to automatically populate your email client with recipient details. Attach the generated report before sending.
+5. Use Email External to automatically populate your email client with recipient details. Attach the generated report before sending.
 6. All progress is reported in the launcher console.`,
+    howto: {
+      type: "Data Dump",
+      date: "Ship Date",
+      time: "Previous Sunday–Saturday",
+      clients: "Quality Turbocharger",
+    },
     async buildWorkbook(buffer) {
       const { rows, headers } = workbookToObjects(buffer);
 
@@ -127,6 +133,7 @@ Workflow:
       return { workbook: wb, name, rowCount: inbound.rows.length + outbound.rows.length };
     },
     emailDraft: {
+      label: "Email External",
       to: "ship@qualityturbo.com;Larry@qualityturbo.com",
       subject: "Quality Turbo Weekly Report",
       body: "Attached is your report for last week!\n\nPlease let us know if you have any questions.",

@@ -1,4 +1,4 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261026-runb";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261027-titlebar";
 import { readFileBuffer } from "../_shared/excel.js";
 import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 

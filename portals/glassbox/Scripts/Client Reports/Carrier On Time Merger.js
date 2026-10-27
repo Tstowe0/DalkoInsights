@@ -70,13 +70,6 @@ export async function loadGui(parent, ctx) {
   parent.innerHTML = `
     <section class="gb-tool gb-tool--board" data-tool="${meta.title}">
       <header class="gb-board-head">
-        <span class="gb-board-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M7 3.5h6.5L18 8V20a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 20V5A1.5 1.5 0 0 1 7 3.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M13.2 3.7V8H17.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M8.2 17v-2.4M11.1 17V12M14 17v-1.4M16.6 17v-3.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-          </svg>
-        </span>
         <div class="gb-board-titles">
           <h2 class="gb-tool-title">${meta.title}</h2>
           <p>Builds or updates On Time reports by merging carrier delay codes with a TMS Data Dump. Early shipments count as on time.</p>
@@ -85,18 +78,18 @@ export async function loadGui(parent, ctx) {
       </header>
       <div class="gb-board-flow">
         <article class="gb-board-card">
-          <span class="gb-board-num" aria-hidden="true">1</span>
-          <h3>How to</h3>
-          <ul class="gb-board-notes">
-            <li>New report: upload a TMS Data Dump for the previous month using Ship Date.</li>
-            <li>Update a report: upload an existing On Time file, then one carrier file.</li>
-            <li>Reasons merge in this order: existing report, dump, then the carrier file.</li>
-          </ul>
+          <h3><span class="gb-board-num">1)</span> How To Run</h3>
+          <dl class="gb-howto">
+            <div class="gb-howto-row"><dt>Report Type</dt><dd>Data Dump</dd></div>
+            <div class="gb-howto-row"><dt>Report Date</dt><dd>Ship Date</dd></div>
+            <div class="gb-howto-row"><dt>Time Frame</dt><dd>Previous Month</dd></div>
+            <div class="gb-howto-row"><dt>Clients</dt><dd>TTX</dd></div>
+          </dl>
+          <p class="gb-howto-note">To update a report, upload the existing On Time file and one carrier file. Reasons merge in this order: existing report, dump, then the carrier file.</p>
         </article>
         <span class="gb-board-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <article class="gb-board-card">
-          <span class="gb-board-num" aria-hidden="true">2</span>
-          <h3>Upload</h3>
+          <h3><span class="gb-board-num">2)</span> Upload</h3>
           <p>Base file is required. Carrier file is optional.</p>
           <p class="gb-board-file-name">Base file</p>
           <div class="gb-board-drop gb-board-drop--stack" data-base-well>
@@ -125,12 +118,10 @@ export async function loadGui(parent, ctx) {
         </article>
         <span class="gb-board-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <article class="gb-board-card">
-          <span class="gb-board-num" aria-hidden="true">3</span>
-          <h3>Run Report</h3>
+          <h3><span class="gb-board-num">3)</span> Run Report</h3>
           <p>Build or update the On Time workbook from the files above.</p>
           <div class="gb-board-run-wrap">
             <button type="button" class="btn btn-primary gb-board-run" data-run disabled>
-              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.2 2.6v10.8L13.2 8 4.2 2.6z"/></svg>
               <span data-run-label>Run Report</span>
             </button>
           </div>

@@ -1,4 +1,4 @@
-import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
 export const meta = {
@@ -31,6 +31,12 @@ export async function loadGui(parent, ctx) {
 1. Run a TMS Tracking Report.
 2. Use Today's date and go back 1 Month.
 3. Use the customers: Penn Machine.`,
+    howto: {
+      type: "Tracking Report",
+      date: "Exp Delivery Date",
+      time: "Today back 1 month",
+      clients: "Penn Machine",
+    },
     excludeStatuses: EXCLUDE,
     highlight: false,
     filename: ({ today, fmtMDY }) => `Penn Machine Daily Shipment Report ${fmtMDY(today)}.xlsx`,

@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { workbookToObjects, workbookBlob } from "../_shared/excel.js?v=20261005-dats";
 import { rowsToSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
 import { pickVal, pickCol, fmtMDY } from "../_shared/report-helpers.js";
@@ -75,6 +75,12 @@ Workflow:
 2. Upload the dump.
 3. Run and Save Locally downloads the contribution workbook.
 4. Run and Send to DAT hands that same file to the DATs FTP connection. If Send to DAT is off on the rack, the file is saved in client uploads\\dat.`,
+    howto: {
+      type: "Data Dump",
+      date: "Ship Date",
+      time: "Previous Sunday–Saturday",
+      clients: "All clients, TL only",
+    },
     sheetName: "Data",
     runLabel: "Run and Save Locally",
     sendLabel: "Run and Send to DAT",

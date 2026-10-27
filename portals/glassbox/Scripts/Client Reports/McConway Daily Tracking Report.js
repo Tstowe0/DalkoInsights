@@ -1,4 +1,4 @@
-import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { VETPET_EXCLUDE, MCCONWAY_KEEP } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
@@ -47,6 +47,12 @@ export async function loadGui(parent, ctx) {
 1. Run a TMS Tracking Report.
 2. Use Today's date and go back 1 Month.
 3. Use the customers: McConway and Torely Pittsburgh and Kutztown, Standard Forged Products.`,
+    howto: {
+      type: "Tracking Report",
+      date: "Exp Delivery Date",
+      time: "Today back 1 month",
+      clients: "McConway and Torely Pittsburgh and Kutztown, Standard Forged Products",
+    },
     excludeStatuses: EXCLUDE,
     highlight: false,
     filename: ({ today, fmtMDY }) => `Ferroworks Daily Shipment Report ${fmtMDY(today)}.xlsx`,

@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { cpkcFridayThursday, fmtDotMDY } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
@@ -38,7 +38,13 @@ Workflow:
 1. Run a Mini Data Dump for the previous Friday to this Thursday by Ship Date.
 2. Run for: Canadian Pacific Kansas City LTD, Kansas City Southern DE ME, and Kansas City Southern Railroad.
 3. Run the Mini Data Dump through the program.
-4. Use the Email button to automatically populate your email client with all recipients. Attach the generated report before sending.`,
+4. Use Email External to automatically populate your email client with all recipients. Attach the generated report before sending.`,
+    howto: {
+      type: "Mini Data Dump",
+      date: "Ship Date",
+      time: "Previous Friday–Thursday",
+      clients: "Canadian Pacific Kansas City LTD, Kansas City Southern DE ME, Kansas City Southern Railroad",
+    },
     sheetName: "CPKC Expedite",
     requireClientNameA1: false,
     async buildWorkbook(buffer) {
@@ -114,6 +120,7 @@ Workflow:
     emailDraft: () => {
       const { friday, thursday } = cpkcFridayThursday();
       return {
+        label: "Email External",
         to: "dlengyel@kcsouthern.com; dbird@kcsouthern.com; mjackson@kcsouthern.com; mmoya@kcsms.com.mx; barbara.mcclendon@cpkcr.com",
         subject: `CPKC Expedite Report ${fmtDotMDY(friday)} - ${fmtDotMDY(thursday)}`,
         body: "Attached is your CPKC Expedite Report.\n\nPlease let us know if you have any questions.",

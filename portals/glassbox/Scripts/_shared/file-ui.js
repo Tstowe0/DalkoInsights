@@ -217,6 +217,33 @@ function stageMarkup(opts) {
  * @param {string} instructions
  * @param {{ lead?: string, upload?: { title: string, text: string }, reports?: { title: string, text: string }, run?: { title: string, text: string }, email?: { title: string, text: string } }} [board]
  */
+/**
+ * @typedef {{ type?: string, date?: string, time?: string, clients?: string, note?: string }} HowTo
+ */
+
+/**
+ * Labeled TMS pull steps for the How To card.
+ * @param {HowTo | null | undefined} howto
+ */
+function howtoMarkup(howto) {
+  if (!howto) return "";
+  const rows = [
+    ["Report Type", howto.type],
+    ["Report Date", howto.date],
+    ["Time Frame", howto.time],
+    ["Clients", howto.clients],
+  ].filter(([, value]) => value);
+  if (!rows.length && !howto.note) return "";
+  const items = rows
+    .map(
+      ([label, value]) =>
+        `<div class="gb-howto-row"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`
+    )
+    .join("");
+  const note = howto.note ? `<p class="gb-howto-note">${escapeHtml(howto.note)}</p>` : "";
+  return `<dl class="gb-howto">${items}</dl>${note}`;
+}
+
 function deriveBoard(instructions, board = {}) {
   const { description, steps } = parseStageGuide(instructions || "");
   const emailStep = steps.find((step) => /email/i.test(step)) || "";
@@ -233,7 +260,7 @@ function deriveBoard(instructions, board = {}) {
       title: uploadTitle,
       text: "Select an Excel or CSV file.",
     },
-    reports: board.reports || { title: "How to", text: "" },
+    reports: board.reports || { title: "How To Run", text: "" },
     notes: board.reports
       ? []
       : workSteps.filter((step) => !/upload the .+ and run|run the tool/i.test(step)),
@@ -250,7 +277,7 @@ function deriveBoard(instructions, board = {}) {
 
 /**
  * Three-step report board: upload, options or notes, run, then email.
- * @param {Parameters<typeof classicMarkup>[0] & { board?: { lead?: string, upload?: { title: string, text: string }, reports?: { title: string, text: string }, run?: { title: string, text: string }, email?: { title: string, text: string } }, hasExtra?: boolean, showEmail?: boolean }} opts
+ * @param {Parameters<typeof classicMarkup>[0] & { board?: { lead?: string, upload?: { title: string, text: string }, reports?: { title: string, text: string }, run?: { title: string, text: string }, email?: { title: string, text: string } }, hasExtra?: boolean, showEmail?: boolean, howto?: HowTo | null }} opts
  */
 function boardMarkup(opts) {
   const {
@@ -266,6 +293,7 @@ function boardMarkup(opts) {
     hasExtra = false,
     showEmail = true,
     plainActions = false,
+    howto = null,
   } = opts;
   const derived = deriveBoard(instructions, board);
   const lead = derived.lead;
@@ -277,23 +305,23 @@ function boardMarkup(opts) {
   const notes = derived.notes
     .map((note) => `<li>${escapeHtml(note)}</li>`)
     .join("");
+  const pull = howtoMarkup(howto);
 
   const body = skipped
     ? `<div class="gb-skip-banner"><strong>Skipped for web</strong><p>${escapeHtml(skipReason)}</p></div>`
     : `
       <div class="gb-board-flow">
         <article class="gb-board-card">
-          <span class="gb-board-num" aria-hidden="true">1</span>
-          <h3>${escapeHtml(reports.title)}</h3>
+          <h3><span class="gb-board-num">1)</span> ${escapeHtml(reports.title)}</h3>
+          ${pull}
           ${reports.text ? `<p>${escapeHtml(reports.text)}</p>` : ""}
-          ${hasExtra ? `<div class="gb-tool-extra" data-tool-extra></div>` : `<ul class="gb-board-notes">${notes}</ul>`}
+          ${hasExtra ? `<div class="gb-tool-extra" data-tool-extra></div>` : pull ? "" : `<ul class="gb-board-notes">${notes}</ul>`}
         </article>
         <span class="gb-board-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         <article class="gb-board-card">
-          <span class="gb-board-num" aria-hidden="true">2</span>
-          <h3>${escapeHtml(upload.title)}</h3>
+          <h3><span class="gb-board-num">2)</span> ${escapeHtml(upload.title)}</h3>
           <p>${escapeHtml(upload.text)}</p>
           <div class="gb-board-drop" data-drop>
             <svg class="gb-board-cloud" viewBox="0 0 24 24" aria-hidden="true">
@@ -313,13 +341,11 @@ function boardMarkup(opts) {
           <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         <article class="gb-board-card">
-          <span class="gb-board-num" aria-hidden="true">3</span>
-          <h3>${escapeHtml(run.title)}</h3>
+          <h3><span class="gb-board-num">3)</span> ${escapeHtml(run.title)}</h3>
           <p>${escapeHtml(run.text)}</p>
-          <p class="gb-board-status" data-tool-status hidden></p>
           <div class="gb-board-run-wrap">
+            <p class="gb-board-status" data-tool-status hidden></p>
             <button type="button" class="btn btn-primary gb-board-run" data-run disabled>
-              ${plainActions ? "" : `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.2 2.6v10.8L13.2 8 4.2 2.6z"/></svg>`}
               <span data-run-label>${escapeHtml(runLabel)}</span>
             </button>
             ${sendLabel ? `<button type="button" class="btn ${plainActions ? "btn-primary gb-board-run" : "btn-secondary"} gb-board-send" data-send disabled>${escapeHtml(sendLabel)}</button>` : ""}
@@ -345,13 +371,6 @@ function boardMarkup(opts) {
   return `
     <section class="gb-tool gb-tool--board${skipped ? " gb-tool-skipped" : ""}" data-tool="${escapeHtml(title)}">
       <header class="gb-board-head">
-        <span class="gb-board-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M7 3.5h6.5L18 8V20a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 20V5A1.5 1.5 0 0 1 7 3.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M13.2 3.7V8H17.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M8.2 17v-2.4M11.1 17V12M14 17v-1.4M16.6 17v-3.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-          </svg>
-        </span>
         <div class="gb-board-titles">
           <h2 class="gb-tool-title">${escapeHtml(title)}</h2>
           ${lead ? `<p>${escapeHtml(lead)}</p>` : ""}
@@ -384,6 +403,7 @@ function boardMarkup(opts) {
  * @property {boolean} [plainActions]
  * @property {"cards" | "prose"} [stepStyle]
  * @property {{ lead?: string, upload?: { title: string, text: string }, reports?: { title: string, text: string }, run?: { title: string, text: string }, email?: { title: string, text: string } }} [board]
+ * @property {HowTo | null} [howto]
  */
 
 /**
@@ -410,6 +430,7 @@ export function mountFileTool(parent, opts) {
     stepStyle = "cards",
     board,
     plainActions = false,
+    howto = null,
   } = opts;
 
   /** @type {File[]} */
@@ -428,6 +449,7 @@ export function mountFileTool(parent, opts) {
           sendLabel,
           runLabel: runLabel === "Run" ? "Run Report" : runLabel,
           board,
+          howto,
           hasExtra: Boolean(buildExtra),
           showEmail: Boolean(emailDraft),
           plainActions,

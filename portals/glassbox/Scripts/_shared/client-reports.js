@@ -24,7 +24,7 @@ import {
   VETPET_EXCLUDE,
   todayNy,
 } from "./tracking-layout.js";
-import { mountFileTool } from "./file-ui.js?v=20261026-runb";
+import { mountFileTool } from "./file-ui.js?v=20261027-titlebar";
 
 /**
  * Dump-style report with optional filters + Python-parity styling.
@@ -57,6 +57,7 @@ export function mountDumpFilterReport(parent, ctx, cfg) {
     runLabel = "Run",
     onSend = null,
     confirmSend = null,
+    howto = null,
   } = cfg;
 
   /**
@@ -202,6 +203,7 @@ export function mountDumpFilterReport(parent, ctx, cfg) {
     layout,
     sendLabel,
     runLabel,
+    howto,
     async onRun(files, ui) {
       const built = await produce(files, ui);
       if (!built) return;
@@ -242,6 +244,7 @@ export function mountTrackingDailyReport(parent, ctx, cfg) {
     emailDraft = null,
     layout = "board",
     stepStyle = "cards",
+    howto = null,
   } = cfg;
 
   mountFileTool(parent, {
@@ -253,6 +256,7 @@ export function mountTrackingDailyReport(parent, ctx, cfg) {
     emailDraft,
     layout,
     stepStyle,
+    howto,
     async onRun(files, ui) {
       await ensureXlsx();
       const buffer = await readFileBuffer(files[0]);

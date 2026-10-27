@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
@@ -275,6 +275,12 @@ Workflow:
 1. Run a TMS Data Dump for client Maddox for the previous month (Invoice Date). Run on the 2nd Tuesday of the month.
 2. Upload the dump file and run the tool.
 3. Use the Email button to automatically populate your email client with recipient details. Attach the generated report before sending.`,
+    howto: {
+      type: "Data Dump",
+      date: "Invoice Date",
+      time: "Previous Month",
+      clients: "Maddox",
+    },
     dateMode: "none",
     sheetName: "DATA",
     filename: ({ monthLabel }) => `Maddox - ${monthLabel}.xlsx`,

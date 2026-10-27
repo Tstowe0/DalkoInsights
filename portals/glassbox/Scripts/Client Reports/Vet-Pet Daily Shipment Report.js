@@ -1,4 +1,4 @@
-import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { VETPET_EXCLUDE } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
@@ -23,16 +23,23 @@ Workflow:
 1. Download a daily Tracking Report for your client in TMS.
 2. Run by today's date for Exp Delivery Date in both from and to and download.
 3. Run for both Custom Vet and Complete Pet clients.
-4. Use the Email button to automatically populate your email client with all recipients.
+4. Use Email External to automatically populate your email client with all recipients.
    The report will be sent to the Complete Pet team and CC'd to the appropriate Dalko sales team.
 5. Attach the generated Excel report before sending.`,
+    howto: {
+      type: "Tracking Report",
+      date: "Exp Delivery Date",
+      time: "Same Day",
+      clients: "Custom Vet, Complete Pet",
+    },
     excludeStatuses: VETPET_EXCLUDE,
     highlight: true,
-    filename: ({ today, fmtMDY }) => `Daily Shipments for ${fmtMDY(today)}.xlsx`,
+    filename: ({ today, fmtMDY }) => `Vet-Pet Daily Shipments ${fmtMDY(today)}.xlsx`,
     sheetName: ({ today, fmtMDY }) => `Daily Shipments for ${fmtMDY(today)}`,
     emailDraft: () => {
       const today = fmtSlashMDY(new Date(), "-");
       return {
+        label: "Email External",
         to: "Carlosbencomo@complete-pet.com;xiomaragonzalez@complete-pet.com;josmargaleano@complete-pet.com;anzulymarquez@complete-pet.com;NelsonLopez@complete-pet.com;doraliaacosta@complete-pet.com;salomongonzalez@complete-pet.com;haydeelizvazquez@complete-pet.com;edwinmolina@complete-pet.com",
         cc: "Raul.Pacheco@shipdalko.com;Joseph.Pacheco@shipdalko.com",
         subject: `Daily Shipment Report for ${today}`,

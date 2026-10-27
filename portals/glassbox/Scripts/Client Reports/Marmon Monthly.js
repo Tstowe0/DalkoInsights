@@ -1,4 +1,4 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261026-runb";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261027-titlebar";
 import { ensureXlsx, readFileBuffer, readCellA1, downloadBlob } from "../_shared/excel.js";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { prevMonthRange } from "../_shared/report-helpers.js";
@@ -141,6 +141,12 @@ Workflow:
 1. Run a TMS Data Dump for Marmon for the previous month (Invoice Date). Run on the 1st of the month or near that.
 2. Check the tabs to include, upload the dump file, and run the tool.
 3. Use the Email button to open a draft for the previous month. Attach the generated report before sending.`,
+    howto: {
+      type: "Data Dump",
+      date: "Invoice Date",
+      time: "Previous Month",
+      clients: "Marmon",
+    },
     onBack: ctx.onBack,
     log: ctx.log,
     layout: "board",
@@ -152,7 +158,7 @@ Workflow:
         text: "Select the TMS data dump for the previous month (Invoice Date). Run on the 1st of the month or near that.",
       },
       reports: {
-        title: "Select Reports",
+        title: "How To Run",
         text: "Choose which tabs to include in the workbook.",
       },
       run: {

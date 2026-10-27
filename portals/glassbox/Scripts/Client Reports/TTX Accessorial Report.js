@@ -1,4 +1,4 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261026-runb";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261027-titlebar";
 import { downloadWorkbook, ensureXlsx, readCellA1, readFileBuffer } from "../_shared/excel.js";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { prevMonthRange } from "../_shared/report-helpers.js";
@@ -23,6 +23,12 @@ Workflow:
 1. Run a TMS Data Dump for TTX for the previous month.
 2. Upload the dump file and run the tool.
 3. Use the Email button to open a draft for the previous month. Attach the generated report before sending.`,
+    howto: {
+      type: "Data Dump",
+      date: "Ship Date",
+      time: "Previous Month",
+      clients: "TTX",
+    },
     onBack: ctx.onBack,
     log: ctx.log,
     layout: "board",
@@ -30,7 +36,7 @@ Workflow:
     board: {
       lead: "Builds an eight-tab TTX accessorial scorecard from a TMS data dump. Jacksonville, Joliet, Mira Loma, and N Augusta each split shipper and consignee. All Locations Combined rolls those cities together. Liftgate Loads lists every shipment with a liftgate accessorial. Accessorial Ratio compares shipment count with accessorial charge count. Data Tab matches the Marmon Ferroworks dump.",
       reports: {
-        title: "Eight Tabs",
+        title: "How To Run",
         text: "Jacksonville, Joliet, Mira Loma, N Augusta, All Locations Combined, Liftgate Loads, Accessorial Ratio, and Data Tab.",
       },
       upload: {

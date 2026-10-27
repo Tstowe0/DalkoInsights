@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261027-titlebar";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
@@ -180,7 +180,14 @@ Workflow:
 3. Miraclon: DO NOT include the "Cromer…" location.
 4. Bruss NA: Run client Bruss North America only.
 5. One file at a time — customer wants separate reports.
-6. Use the Email button to automatically populate your email client with recipient details. Attach the generated report before sending.`,
+6. Use Email External to automatically populate your email client with recipient details. Attach the generated report before sending.`,
+    howto: {
+      type: "Data Dump",
+      date: "Ship Date",
+      time: "Previous Month",
+      clients: "Miraclon, Bruss North America",
+      note: "Run one client at a time. Leave the Cromer location out of the Miraclon dump.",
+    },
     sheetName: "LTL",
     async buildWorkbook(buffer) {
       const { rows, headers } = workbookToObjects(buffer);
@@ -222,6 +229,7 @@ Workflow:
     emailDraft: () => {
       const { monthName, monthYear } = prevMonthNameYear();
       return {
+        label: "Email External",
         to: "tmalarkey@expensereduction.com",
         cc: "James.Kosior@shipdalko.com; Lee.Bowdish@shipdalko.com",
         subject: `Miraclon & Bruss NA ${monthName} ${monthYear}`,
