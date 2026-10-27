@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
@@ -289,7 +289,6 @@ Workflow:
     emailDraft: () => {
       const { monthName, monthYear } = prevMonthNameYear();
       return {
-        cc: "Alexis.Johnson@shipdalko.com",
         subject: `Maddox Monthly Report ${monthName} ${monthYear}`,
         body: `Attached is the Maddox Monthly Report for the month of ${monthName} ${monthYear}.\n\nPlease let us know if you have any questions.`,
       };

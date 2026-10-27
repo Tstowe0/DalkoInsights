@@ -1,4 +1,4 @@
-import { mountFileTool } from "../_shared/file-ui.js";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261026-runb";
 import {
   ensureXlsx,
   readFileBuffer,

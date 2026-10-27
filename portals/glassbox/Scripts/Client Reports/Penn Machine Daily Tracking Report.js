@@ -1,4 +1,4 @@
-import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261023-penn";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
 export const meta = {

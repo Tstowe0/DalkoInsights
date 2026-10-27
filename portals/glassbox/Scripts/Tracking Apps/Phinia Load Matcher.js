@@ -197,7 +197,7 @@ export async function loadGui(parent, ctx) {
   runBtn.addEventListener("click", async () => {
     if (!phiniaFile || !dumpFile) return;
     runBtn.disabled = true;
-    runBtn.textContent = "Running…";
+    runBtn.textContent = "Running";
     shell.setStatus("Running…");
     try {
       await ensureXlsx();

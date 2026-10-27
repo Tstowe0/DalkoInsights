@@ -1,6 +1,6 @@
-import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261023-penn";
-import { menuIconUrl, tileIconUrl } from "./icons.js?v=20261020-nmfc";
-import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20260925-ghostslow";
+import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261023-ttx";
+import { menuIconUrl, tileIconUrl } from "./icons.js?v=20261023-ttx";
+import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20261023-signal";
 
 /**
  * @param {HTMLElement} container

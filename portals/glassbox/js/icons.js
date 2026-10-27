@@ -33,6 +33,7 @@ export function tileIconUrl(label) {
     "Data Dump Merger": "Data Dump Breakdown.png",
     "NMFC Calculator": "Zip Calculator.png",
     "NMFC Calculator (WIP)": "Zip Calculator.png",
+    "TTX On Time": "Carrier On Time Merger.png",
   };
   const file = aliases[label] ?? `${label}.png`;
   return iconUrl(`tileicons/${file}`);

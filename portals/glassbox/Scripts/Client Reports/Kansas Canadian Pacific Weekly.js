@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { cpkcFridayThursday, fmtDotMDY } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
@@ -115,7 +115,6 @@ Workflow:
       const { friday, thursday } = cpkcFridayThursday();
       return {
         to: "dlengyel@kcsouthern.com; dbird@kcsouthern.com; mjackson@kcsouthern.com; mmoya@kcsms.com.mx; barbara.mcclendon@cpkcr.com",
-        cc: "Alexis.Johnson@shipdalko.com",
         subject: `CPKC Expedite Report ${fmtDotMDY(friday)} - ${fmtDotMDY(thursday)}`,
         body: "Attached is your CPKC Expedite Report.\n\nPlease let us know if you have any questions.",
       };

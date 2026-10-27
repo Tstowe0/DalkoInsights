@@ -12,6 +12,7 @@ export const TOOL_SUBTITLES = {
   "Maddox Monthly": "2nd Tuesday of the Month",
   "UTLXA Monthly": "1st of the Month",
   "Marmon Monthly": "1st of the Month",
+  "TTX Accessorial Report": "2nd Wednesday of the Month",
   "Carrier On Time Merger": "2nd Wednesday of the Month",
 };
 
@@ -137,7 +138,7 @@ export const CLIENT_REPORT_BANDS = [
       makeTool("Client Reports/Maddox Monthly.js"),
       makeTool("Client Reports/Miraclon and Bruss Monthly.js"),
       makeTool("Client Reports/TTX Accessorial Report.js"),
-      makeTool("Client Reports/Carrier On Time Merger.js"),
+      Object.assign(makeTool("Client Reports/Carrier On Time Merger.js"), { label: "TTX On Time" }),
     ],
   },
 ];

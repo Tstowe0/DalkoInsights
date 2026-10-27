@@ -6,7 +6,7 @@ import {
   getReportsDueToday,
   toDateKey,
   SCHEDULED_REPORTS,
-} from "./report-schedule.js?v=20261023-penn";
+} from "./report-schedule.js?v=20261023-ttx";
 
 const SCHEDULED_DONE_KEY = "glassbox.todo.scheduled.v1";
 const DAILY_DONE_KEY = "glassbox.todo.daily.v1";
@@ -116,7 +116,7 @@ export function mountSidebarTodo(host, opts = {}) {
   host.innerHTML = `
     <div class="gb-todo" aria-label="To do list">
       <header class="gb-todo-bar">
-        <h2 class="gb-todo-title" data-todo-title>Today's To Do</h2>
+        <h2 class="gb-todo-title" data-todo-title>Reports Due Today</h2>
       </header>
       <ul class="gb-todo-list" data-todo-list></ul>
       <p class="gb-todo-empty hidden" data-todo-empty>Nothing due</p>
@@ -167,7 +167,7 @@ export function mountSidebarTodo(host, opts = {}) {
   const paint = () => {
     const rows = buildRows();
     titleEl.textContent =
-      viewDay === realDay ? "Today's To Do" : `${formatDayLabel(viewDay)} To Do`;
+      viewDay === realDay ? "Reports Due Today" : `Reports Due ${formatDayLabel(viewDay)}`;
     emptyEl.textContent = viewDay === realDay ? "Nothing due today" : "Nothing due this day";
     emptyEl.classList.toggle("hidden", rows.length > 0);
     listEl.innerHTML = rows

@@ -1,4 +1,4 @@
-import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { VETPET_EXCLUDE, MCCONWAY_KEEP } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 

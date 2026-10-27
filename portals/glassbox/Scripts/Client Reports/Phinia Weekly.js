@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { prevMondayFriday, fmtSlashMDY } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
@@ -209,7 +209,7 @@ Workflow:
       const dateRange = `${fmtSlashMDY(monday, "/")} - ${fmtSlashMDY(friday, "/")}`;
       return {
         to: "rgaribay@phinia.com;ebecerra@phinia.com;logistics.slp1@phinia.com",
-        cc: "Alexis.Johnson@shipdalko.com;Jared.Grandy@shipdalko.com;Ramon.Villegas@shipdalko.com",
+        cc: "Jared.Grandy@shipdalko.com;Ramon.Villegas@shipdalko.com",
         subject: `Weekly Report for ${dateRange}`,
         body: "Attached is your weekly report for last week's loads.",
       };

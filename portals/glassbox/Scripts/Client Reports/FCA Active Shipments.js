@@ -1,4 +1,4 @@
-import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { FCA_EXCLUDE } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
@@ -33,7 +33,7 @@ Workflow:
       const today = fmtSlashMDY(new Date(), "-");
       return {
         to: "TKillinger@freightcar.net",
-        cc: "alexis.johnson@shipdalko.com;Mike.Nicula@shipdalko.com",
+        cc: "Mike.Nicula@shipdalko.com",
         subject: `FCA Active Shipments as of ${today}`,
         body: "Attached is the FCA Active Shipments Report.\n\nPlease let us know if you have any questions.",
       };

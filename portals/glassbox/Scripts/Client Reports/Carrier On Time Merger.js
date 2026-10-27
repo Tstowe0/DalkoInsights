@@ -22,7 +22,7 @@ import {
 
 export const meta = {
   id: "Carrier On Time Merger",
-  title: "Carrier On Time Merger",
+  title: "TTX On Time",
   category: "Client Reports",
   script: "Client Reports/Carrier On Time Merger.js",
 };
@@ -142,7 +142,7 @@ export async function loadGui(parent, ctx) {
   const aboutSlot = parent.querySelector("[data-about-slot]");
   if (aboutSlot instanceof HTMLElement) {
     try {
-      mountAboutSlide(aboutSlot, { title: meta.title });
+      mountAboutSlide(aboutSlot, { title: meta.title, toolId: meta.id });
     } catch (err) {
       ctx.log(`About control failed: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -289,8 +289,8 @@ export async function loadGui(parent, ctx) {
     }
 
     runBtn.disabled = true;
-    setRunText("Running…");
-    ctx.log("Carrier On Time Merger — Process Started");
+    setRunText("Running");
+    ctx.log("TTX On Time — Process Started");
     ctx.log("----------------------------------------------");
 
     try {

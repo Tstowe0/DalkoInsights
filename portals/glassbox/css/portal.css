@@ -733,45 +733,24 @@ button.gb-cal-day:hover:not(.is-empty) {
  * don't get tiny on ultrawide, and drops columns as the viewport narrows.
  */
 .gb-tile-grid {
-  --gb-tile-min: 10.5rem;
   --gb-tile-max-cols: 5;
-  --gb-tile-gap: 0.85rem;
+  --gb-tile-gap: 0.5rem;
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(
-      max(
-        var(--gb-tile-min),
-        calc(
-          (100% - (var(--gb-tile-max-cols) - 1) * var(--gb-tile-gap)) /
-            var(--gb-tile-max-cols)
-        )
-      ),
-      1fr
-    )
-  );
+  grid-template-columns: repeat(var(--gb-tile-max-cols), minmax(0, 1fr));
   gap: var(--gb-tile-gap);
   width: 100%;
   align-items: stretch;
 }
 
-@media (max-width: 1200px) {
-  .gb-tile-grid {
-    --gb-tile-max-cols: 4;
-  }
-}
-
 @media (max-width: 900px) {
   .gb-tile-grid {
     --gb-tile-max-cols: 3;
-    --gb-tile-min: 9.75rem;
   }
 }
 
 @media (max-width: 640px) {
   .gb-tile-grid {
     --gb-tile-max-cols: 2;
-    --gb-tile-min: 9rem;
   }
 }
 
@@ -899,6 +878,7 @@ button.gb-cal-day:hover:not(.is-empty) {
 .gb-report-band-label {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
   margin-bottom: 0.65rem;
   font-size: 0.72rem;
@@ -908,11 +888,12 @@ button.gb-cal-day:hover:not(.is-empty) {
   color: var(--accent);
 }
 
+.gb-report-band-label::before,
 .gb-report-band-label::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, rgba(217, 174, 66, 0.45), transparent 85%);
+  background: color-mix(in srgb, var(--text) 28%, transparent);
 }
 
 /* —— Changelog / themes / tool placeholder —— */
@@ -2569,6 +2550,7 @@ button.gb-cal-day:hover:not(.is-empty) {
 }
 
 .gb-stage-well {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -2616,6 +2598,14 @@ button.gb-cal-day:hover:not(.is-empty) {
   font-size: 0.92rem;
   line-height: 1.35;
   color: var(--text);
+}
+
+.gb-stage-well > .gb-stage-status {
+  position: absolute;
+  left: 1.35rem;
+  right: 1.35rem;
+  bottom: 0.7rem;
+  margin: 0;
 }
 
 .gb-stage-file-actions {
@@ -3149,7 +3139,7 @@ button.gb-cal-day:hover:not(.is-empty) {
 }
 
 .gb-board-status {
-  margin: 0.55rem 0 0;
+  margin: 0;
   color: var(--accent);
   font-size: 0.8rem;
   line-height: 1.35;

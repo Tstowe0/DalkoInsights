@@ -664,6 +664,148 @@
 }
 
 
+/* —— Signal Green: black field, white type, green signals, red cancel —— */
+[data-theme="signal-green"] {
+  --bg: #000000;
+  --bg-elevated: #0a0a0a;
+  --bg-main: #000000;
+  --card: #141414;
+  --card-elevated: #1c1c1c;
+  --card-hover: #242424;
+  --card-border: rgba(255, 255, 255, 0.14);
+  --card-border-gold: rgba(34, 197, 94, 0.45);
+  --card-border-strong: #3a3a3a;
+  --accent: #22c55e;
+  --accent-bright: #4ade80;
+  --accent-deep: #15803d;
+  --accent-orange: #22c55e;
+  --accent-dim: rgba(34, 197, 94, 0.16);
+  --accent-glow: rgba(74, 222, 128, 0.32);
+  --accent-hover: #4ade80;
+  --accent-muted: #16a34a;
+  --accent-red: #ef4444;
+  --accent-green: #22c55e;
+  --accent-yellow: #f59e0b;
+  --accent-blue: #22c55e;
+  --accent-purple: #4ade80;
+  --on-accent: #03140a;
+  --text: #ffffff;
+  --text-muted: #a3a3a3;
+  --text-soft: #e5e5e5;
+  --gold-trim: #000000;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #000000eb,
+    -1px 0 0 #000000eb,
+    0 1px 0 #000000eb,
+    0 -1px 0 #000000eb;
+  --gold-trim-shadow-soft:
+    0 0 1px #000000bf,
+    1px 0 0 #000000a6,
+    -1px 0 0 #000000a6,
+    0 1px 0 #000000a6,
+    0 -1px 0 #000000a6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(34, 197, 94, 0.22);
+  --type-gold: #ffffff;
+  --type-gold-strong: #ffffff;
+  --type-gold-nav: rgba(255, 255, 255, 0.88);
+  --type-gold-nav-dim: rgba(163, 163, 163, 0.95);
+  --type-gold-note: rgba(255, 255, 255, 0.92);
+  --type-gold-note-dim: rgba(163, 163, 163, 0.85);
+  --type-gold-soft: rgba(212, 212, 212, 0.92);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(34, 197, 94, 0.4);
+  --divider: rgba(255, 255, 255, 0.12);
+  --row-alt: #0a0a0ad9;
+  --overlay: #000000cc;
+  --sidebar-bg: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  --hairline: rgba(255, 255, 255, 0.1);
+
+  --panel-bg: #141414;
+  --panel-bg-quiet: #0a0a0a;
+  --panel-bg-focus: #1c1c1c;
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.08);
+  --panel-border-focus: rgba(34, 197, 94, 0.45);
+  --panel-rail: #22c55e;
+  --panel-rail-quiet: rgba(163, 163, 163, 0.45);
+  --panel-rail-focus: #4ade80;
+  --panel-title: #ffffff;
+  --panel-title-quiet: #d4d4d4;
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #1c1c1c;
+  --input-border: rgba(255, 255, 255, 0.16);
+  --input-fg: #ffffff;
+  --toolbar-bg: rgba(0, 0, 0, 0.35);
+  --drop-bg: rgba(34, 197, 94, 0.06);
+  --result-bg: rgba(34, 197, 94, 0.1);
+  --result-border: rgba(34, 197, 94, 0.4);
+
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-border: rgba(239, 68, 68, 0.5);
+  --danger-fg: #fecaca;
+  --success: var(--accent-green);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 55%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(34, 197, 94, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(74, 222, 128, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: #ffffff;
+  --btn-secondary-border: rgba(34, 197, 94, 0.55);
+  --btn-secondary-bg-hover: rgba(34, 197, 94, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(74, 222, 128, 0.16);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: #d4d4d4;
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f87171 0%, #ef4444 55%, #b91c1c 100%);
+  --btn-danger-fg: #ffffff;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 68, 68, 0.4);
+
+  --ink: #ffffff;
+  --nav-fg: var(--type-gold-nav);
+  --nav-fg-muted: var(--type-gold-nav-dim);
+  --nav-fg-strong: #ffffff;
+  --accent-text: #4ade80;
+  --nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --nav-active-bg: rgba(34, 197, 94, 0.16);
+  --nav-sub-fg: var(--type-gold-nav-dim);
+  --cal-bg: #1c1c1c;
+  --cal-fg: #ffffff;
+  --cal-muted: #a3a3a3;
+  --chart-style: classic;
+  --chart-tick: #a3a3a3;
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --chart-tooltip-bg: #141414;
+  --chart-tooltip-title: #ffffff;
+  --chart-tooltip-body: #e5e5e5;
+  --chart-tooltip-border: rgba(34, 197, 94, 0.4);
+  --chart-navy-deep: #a3a3a3;
+  --chart-label-stroke: #000000;
+  --chart-point-border: #141414;
+  --color-scheme: dark;
+
+  --theme-swatch-1: #000000;
+  --theme-swatch-2: #141414;
+  --theme-swatch-3: #22c55e;
+  --theme-swatch-4: #ffffff;
+}
+
+[data-theme="signal-green"] #app-dialog-cancel {
+  background: var(--btn-danger-bg);
+  color: var(--btn-danger-fg);
+  border-color: transparent;
+  box-shadow: var(--btn-danger-shadow);
+}
+
 /* —— Forest Pine —— */
 [data-theme="forest-pine"] {
   --bg: #041008;

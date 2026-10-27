@@ -46,6 +46,13 @@ export const THEMES = [
     swatches: ["#000000", "#121212", "#c8c8c8", "#f0f0f0"],
   },
   {
+    id: "signal-green",
+    name: "Signal Green",
+    group: "night",
+    description: "Black canvas and white type, with green signals. Cancel and no stay red.",
+    swatches: ["#000000", "#141414", "#22c55e", "#ffffff"],
+  },
+  {
     id: "forest-pine",
     name: "Forest Pine",
     group: "night",

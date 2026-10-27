@@ -33,7 +33,8 @@ export const SCHEDULED_REPORTS = [
   { id: "Marmon Monthly", label: "Marmon Monthly", schedule: "monthDay", day: 1 },
   { id: "Maddox Monthly", label: "Maddox Monthly", schedule: "nthWeekday", nth: 2, weekday: TUE },
   { id: "Miraclon and Bruss Monthly", label: "Miraclon and Bruss Monthly", schedule: "monthDay", day: 15 },
-  { id: "Carrier On Time Merger", label: "Carrier On Time Merger", schedule: "nthWeekday", nth: 2, weekday: WED },
+  { id: "TTX Accessorial Report", label: "TTX Accessorial Report", schedule: "nthWeekday", nth: 2, weekday: WED },
+  { id: "Carrier On Time Merger", label: "TTX On Time", schedule: "nthWeekday", nth: 2, weekday: WED },
 ];
 
 /** @param {Date} date */

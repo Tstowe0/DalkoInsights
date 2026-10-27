@@ -1,7 +1,7 @@
-import { NAV_ITEMS, findTool } from "./catalog.js?v=20261023-penn";
+import { NAV_ITEMS, findTool } from "./catalog.js?v=20261023-ttx";
 import { launchTool } from "./tool-loader.js?v=20260819-fxsweep";
 import { mountSidebarCalendar } from "./calendar.js?v=20261023-penn";
-import { mountSidebarTodo } from "./todo.js?v=20261023-penn";
+import { mountSidebarTodo } from "./todo.js?v=20261023-due";
 import {
   renderGlassNav,
   renderHome,

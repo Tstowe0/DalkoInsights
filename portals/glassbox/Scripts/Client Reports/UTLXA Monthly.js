@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
@@ -88,7 +88,6 @@ Workflow:
       const { monthName, monthYear } = prevMonthNameYear();
       return {
         to: "david.crane@utlx.com",
-        cc: "alexis.johnson@shipdalko.com",
         subject: `UTLXA Monthly Report ${monthName} ${monthYear}`,
         body: `Attached is the UTLXA Report for the month of ${monthName} ${monthYear}.\n\nPlease let us know if you have any questions.`,
       };

@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { prevMondayFriday, fmtDotMDY } from "../_shared/mailto.js";
 import { workbookToObjects } from "../_shared/excel.js";
 import { multiSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
@@ -128,7 +128,6 @@ Workflow:
     },
     emailDraft: {
       to: "ship@qualityturbo.com;Larry@qualityturbo.com",
-      cc: "alexis.johnson@shipdalko.com",
       subject: "Quality Turbo Weekly Report",
       body: "Attached is your report for last week!\n\nPlease let us know if you have any questions.",
     },

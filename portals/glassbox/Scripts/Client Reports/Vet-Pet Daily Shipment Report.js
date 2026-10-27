@@ -1,4 +1,4 @@
-import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountTrackingDailyReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { VETPET_EXCLUDE } from "../_shared/tracking-layout.js";
 import { fmtSlashMDY } from "../_shared/mailto.js";
 
@@ -34,7 +34,7 @@ Workflow:
       const today = fmtSlashMDY(new Date(), "-");
       return {
         to: "Carlosbencomo@complete-pet.com;xiomaragonzalez@complete-pet.com;josmargaleano@complete-pet.com;anzulymarquez@complete-pet.com;NelsonLopez@complete-pet.com;doraliaacosta@complete-pet.com;salomongonzalez@complete-pet.com;haydeelizvazquez@complete-pet.com;edwinmolina@complete-pet.com",
-        cc: "Raul.Pacheco@shipdalko.com;Joseph.Pacheco@shipdalko.com;Alexis.Johnson@shipdalko.com",
+        cc: "Raul.Pacheco@shipdalko.com;Joseph.Pacheco@shipdalko.com",
         subject: `Daily Shipment Report for ${today}`,
         body: "Attached is today's Daily Shipment Report.\n\nPlease let us know if you have any questions.",
       };

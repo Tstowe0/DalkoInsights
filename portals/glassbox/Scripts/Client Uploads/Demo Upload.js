@@ -1,4 +1,4 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261015-demoboard";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261026-runb";
 import { downloadBlob, stampName } from "../_shared/excel.js";
 import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261023-rack";
 import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";

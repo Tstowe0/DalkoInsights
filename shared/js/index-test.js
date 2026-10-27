@@ -13,17 +13,17 @@ import {
 } from "../../portals/dalko/js/app.js?v=20261001-loadsinside";
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20260918-home";
-import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261001-daybreak";
+import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261023-signal";
 import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261023-ver";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
-import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-penn";
+import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
 import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20260819-fxsweep";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261023-penn";
-import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261023-penn";
-import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261023-penn";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261023-ttx";
+import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261023-ttx";
+import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261023-ttx";
 import {
   canRevealDatSecrets,
   getAccessToken,
@@ -49,7 +49,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261023-id";
+} from "./permissions.js?v=20261023-ttx";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [

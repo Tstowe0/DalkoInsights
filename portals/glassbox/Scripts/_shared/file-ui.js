@@ -115,12 +115,12 @@ function classicMarkup(opts) {
                   </div>
                 </section>
 
-                <p class="gb-stage-status" data-tool-status hidden></p>
                 <footer class="gb-ws-actions">
                   <span class="gb-email-slot" data-email-slot></span>
                   ${sendLabel ? `<button type="button" class="btn btn-secondary" data-send disabled>${escapeHtml(sendLabel)}</button>` : ""}
                   <button type="button" class="btn btn-primary" data-run disabled>${escapeHtml(runLabel)}</button>
                 </footer>
+                <p class="gb-stage-status" data-tool-status hidden></p>
               </div>
             `
             }
@@ -174,7 +174,6 @@ function stageMarkup(opts) {
               <p class="gb-stage-kicker">Source file</p>
               <p class="gb-stage-file" data-file-label>No file selected</p>
               <p class="gb-stage-hint">${fileHint}</p>
-              <p class="gb-stage-status" data-tool-status hidden></p>
               <div class="gb-stage-file-actions">
                 <input type="file" hidden data-file-input accept="${escapeHtml(accept)}" ${multiple ? "multiple" : ""} />
                 <button type="button" class="btn btn-secondary" data-browse>Browse</button>
@@ -182,6 +181,7 @@ function stageMarkup(opts) {
                 ${sendLabel ? `<button type="button" class="btn btn-secondary" data-send disabled>${escapeHtml(sendLabel)}</button>` : ""}
                 <button type="button" class="btn btn-primary" data-run disabled>${escapeHtml(runLabel)}</button>
               </div>
+              <p class="gb-stage-status" data-tool-status hidden></p>
             </div>
             <div class="gb-stage-extra" data-extra-step hidden>
               <div class="gb-tool-extra" data-tool-extra></div>
@@ -316,13 +316,13 @@ function boardMarkup(opts) {
           <span class="gb-board-num" aria-hidden="true">3</span>
           <h3>${escapeHtml(run.title)}</h3>
           <p>${escapeHtml(run.text)}</p>
+          <p class="gb-board-status" data-tool-status hidden></p>
           <div class="gb-board-run-wrap">
             <button type="button" class="btn btn-primary gb-board-run" data-run disabled>
               ${plainActions ? "" : `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.2 2.6v10.8L13.2 8 4.2 2.6z"/></svg>`}
               <span data-run-label>${escapeHtml(runLabel)}</span>
             </button>
             ${sendLabel ? `<button type="button" class="btn ${plainActions ? "btn-primary gb-board-run" : "btn-secondary"} gb-board-send" data-send disabled>${escapeHtml(sendLabel)}</button>` : ""}
-            <p class="gb-board-status" data-tool-status hidden></p>
           </div>
         </article>
       </div>
@@ -459,13 +459,14 @@ export function mountFileTool(parent, opts) {
   /** @param {string} text */
   const statusEl = /** @type {HTMLElement | null} */ (parent.querySelector("[data-tool-status]"));
   const setStatus = (text) => {
-    const show = Boolean(text && text !== "Ready");
+    const progress = Boolean(text) && isProgress(text);
+    const show = Boolean(text && text !== "Ready" && !progress);
     if (statusEl) {
       statusEl.hidden = !show;
       statusEl.textContent = show ? text : "";
     }
-    if (show && !isProgress(text)) notice = text;
-    if (show) log?.(text);
+    if (show) notice = text;
+    if (text && text !== "Ready") log?.(text);
   };
 
   /** @param {boolean} busy */
@@ -473,7 +474,8 @@ export function mountFileTool(parent, opts) {
     const blocked = busy || files.length === 0;
     if (runBtn) {
       runBtn.disabled = blocked;
-      const busyRun = runLabel === "Run" || runLabel === "Run Report" ? "Running…" : "Saving…";
+      runBtn.setAttribute("aria-busy", busy && activeAction === "run" ? "true" : "false");
+      const busyRun = runLabel === "Run" || runLabel === "Run Report" ? "Running" : "Saving";
       const idleRun = runLabel === "Run" && runBtn.querySelector("[data-run-label]") ? "Run Report" : runLabel;
       const next = busy && activeAction === "run" ? busyRun : idleRun;
       const face = runBtn.querySelector("[data-run-label]");
@@ -482,7 +484,8 @@ export function mountFileTool(parent, opts) {
     }
     if (sendBtn) {
       sendBtn.disabled = blocked;
-      sendBtn.textContent = busy && activeAction === "send" ? "Sending…" : sendLabel;
+      sendBtn.setAttribute("aria-busy", busy && activeAction === "send" ? "true" : "false");
+      sendBtn.textContent = busy && activeAction === "send" ? "Sending" : sendLabel;
     }
   };
 
@@ -588,7 +591,7 @@ export function mountFileTool(parent, opts) {
 
 /** @param {string} text */
 function isProgress(text) {
-  return /^(Running…|Saving…|Sending…|Building the file…|Sending .+…)$/.test(text);
+  return /(?:\.{3}|…)\s*$/.test(String(text).trim());
 }
 
 /**

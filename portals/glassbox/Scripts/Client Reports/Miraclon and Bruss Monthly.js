@@ -1,4 +1,4 @@
-import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261006-board3";
+import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261026-runb";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { workbookToObjects, formatPyDateTime } from "../_shared/excel.js";
 import { rowsToSheetWorkbook, applyClientReportStyle, XL } from "../_shared/report-format.js";
@@ -223,7 +223,7 @@ Workflow:
       const { monthName, monthYear } = prevMonthNameYear();
       return {
         to: "tmalarkey@expensereduction.com",
-        cc: "James.Kosior@shipdalko.com; Lee.Bowdish@shipdalko.com; alexis.johnson@shipdalko.com",
+        cc: "James.Kosior@shipdalko.com; Lee.Bowdish@shipdalko.com",
         subject: `Miraclon & Bruss NA ${monthName} ${monthYear}`,
         body: "Attached are the Miraclon and Bruss reports for last month!\n\nPlease let us know if you have any questions.",
       };
