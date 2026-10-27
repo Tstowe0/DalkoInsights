@@ -3619,6 +3619,69 @@ button.gb-cal-day:hover:not(.is-empty) {
   color: var(--text-muted);
 }
 
+.gb-trim-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.gb-trim-bar input[type="text"],
+.gb-trim-bar input[type="search"],
+.gb-trim-bar select {
+  min-height: 2.15rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--input-border, rgba(255, 255, 255, 0.16));
+  border-radius: 8px;
+  background: var(--input-bg, rgba(0, 0, 0, 0.18));
+  color: var(--text);
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+.gb-trim-search {
+  flex: 1 1 12rem;
+  min-width: 11rem;
+}
+
+.gb-trim-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.gb-trim-count {
+  margin: 0.65rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.gb-trim-cols {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.1rem;
+  max-height: 24rem;
+  overflow: auto;
+  margin-top: 0.45rem;
+  text-align: left;
+}
+
+.gb-trim-cols label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.28rem 0.35rem;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.gb-trim-cols label[hidden] {
+  display: none;
+}
+
 /* —— Main footer console —— */
 .gb-console {
   flex-shrink: 0;

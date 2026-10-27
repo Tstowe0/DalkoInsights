@@ -12,6 +12,20 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Client reports share one How To and a tighter three-tile board. Excel Trimmer lists columns in sheet order and can search them.",
+      "How To is Report Type, Report Date, Time Frame, and Clients. The tiles read 1) How To Run, 2) Upload, and 3) Run Report. The title bar is a short row.",
+      "Run stays in place and reads Running. Customer drafts say Email External. DALKO-only drafts say Email Internal.",
+      "Report CC drafts leave out Alexis Johnson. The Vet-Pet file is named Vet-Pet Daily Shipments with the report date.",
+      "McConway Email External leaves out William Flemming and Janet Kastan.",
+      "Excel Trimmer starts with nothing checked, filters with search and Show Checked Only, and loads the Glass Box presets. Total Receivable Amount can be renamed to FREIGHT SPEND.",
+      "Signal Green is a theme. Client report tiles sit five across. TTX On Time is due the 2nd Wednesday.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "Client Reports: TTX Accessorial Report builds Jacksonville, Joliet, Mira Loma, N Augusta, All Locations Combined, Liftgate Loads, Accessorial Ratio, and a Data Tab from a TMS dump. The Data Tab includes each sell accessorial name and cost.",
     ],
   },
