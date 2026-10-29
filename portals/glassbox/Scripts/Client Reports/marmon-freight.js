@@ -561,7 +561,9 @@ export function datMoney(item) {
  * @param {Error} err
  */
 function datFatal(err) {
-  return /token|unavailable|failed to fetch|network|required key|timed out/i.test(err.message || "");
+  return /token|unavailable|failed to fetch|network|required key|timed out|sign in|delta rack/i.test(
+    err.message || ""
+  );
 }
 
 /**
@@ -570,13 +572,17 @@ function datFatal(err) {
 async function postDatLookup(requests) {
   let res;
   try {
-    res = await fetch("/api/dat/test", {
+    const { RACK_ORIGIN, rackAuthHeaders } = await import("../../../../shared/js/ftp-rack.js?v=20261023-rack");
+    res = await fetch(`${RACK_ORIGIN}/api/dat/test`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      headers: await rackAuthHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(requests),
     });
-  } catch {
-    throw new Error("DAT rate lookup is unavailable. The local server needs to be running.");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (/sign in/i.test(message)) throw err instanceof Error ? err : new Error(message);
+    throw new Error("DAT rate lookup is unavailable. The Delta rack could not be reached.");
   }
   /** @type {{ ok?: boolean, error?: string, result?: { rateResponses?: object[], errors?: { message?: string }[] } }} */
   let data = {};
