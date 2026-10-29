@@ -419,13 +419,23 @@ function cellXml(ref, value, style) {
 }
 
 /**
- * DAT linehaul equipment. A name containing van is VAN. A name containing
- * flatbed is FLATBED. Reefer stays REEFER. Anything else is not sent.
+ * LTL equipment stays on the LTL tabs and is not sent to DAT.
+ * @param {unknown} raw
+ */
+function isLtlEquipment(raw) {
+  const text = String(raw ?? "").toUpperCase();
+  return /\bLTL\b/.test(text) || text.includes("LESS THAN TRUCKLOAD") || text.includes("LESS-THAN-TRUCKLOAD");
+}
+
+/**
+ * DAT linehaul equipment. LTL is not sent. A name containing van is VAN.
+ * A name containing flatbed is FLATBED. Reefer stays REEFER. Anything else is not sent.
  * @param {unknown} raw
  * @returns {"VAN" | "FLATBED" | "REEFER" | ""}
  */
 export function datEquipment(raw) {
   const text = String(raw ?? "").toUpperCase();
+  if (isLtlEquipment(text)) return "";
   if (text.includes("VAN")) return "VAN";
   if (text.includes("FLATBED")) return "FLATBED";
   if (/REEFER|REFRIG/.test(text)) return "REEFER";
@@ -1120,8 +1130,7 @@ function filterWorkbookXml(xml, included) {
     const name = tag.match(/\bname="([^"]+)"/)?.[1] ?? "";
     return keep.has(name) ? tag : "";
   });
-  const active = Math.max(0, included.indexOf("Full Data Dump"));
-  return sheets.replace(/activeTab="\d+"/, `activeTab="${active}"`);
+  return sheets.replace(/activeTab="\d+"/, `activeTab="0"`);
 }
 
 /**
@@ -1328,7 +1337,7 @@ function cityKey(city) {
  * @param {"all" | "tl" | "ltl"} mode
  */
 function keepEquipment(equipment, mode) {
-  const ltl = /\bLTL\b/i.test(equipment);
+  const ltl = isLtlEquipment(equipment);
   if (mode === "ltl") return ltl;
   if (mode === "tl") return !ltl;
   return true;
@@ -1883,6 +1892,22 @@ function writeAggregatedFuel(xml, strings, grand, styles) {
 }
 
 /**
+ * Excel opens on the first remaining sheet. Full Data Dump stays later in the book.
+ * @param {ZipEntry[]} entries
+ * @param {string} firstPart
+ */
+async function selectOpeningSheet(entries, firstPart) {
+  const names = entries.map((entry) => entry.name);
+  for (const name of names) {
+    if (!/^xl\/worksheets\/sheet\d+\.xml$/.test(name)) continue;
+    const text = await readEntryText(entries, name);
+    const cleared = text.replace(/\s*tabSelected="1"/g, "");
+    const next = name === firstPart ? cleared.replace(/<sheetView\b/, '<sheetView tabSelected="1"') : cleared;
+    if (next !== text) await putZipText(entries, name, new TextEncoder().encode(next));
+  }
+}
+
+/**
  * @param {Uint8Array} templateBytes
  * @param {{ sheetXml?: string, include: string[], utlxLoads?: UtlxLoad[] }} opts
  * @returns {Promise<Uint8Array>}
@@ -1959,6 +1984,7 @@ export async function buildMarmonPackage(templateBytes, opts) {
   const types = await readEntryText(kept, "[Content_Types].xml");
   const app = await readEntryText(kept, "docProps/app.xml");
   await putZipText(kept, "xl/workbook.xml", new TextEncoder().encode(filterWorkbookXml(workbook, included)));
+  await selectOpeningSheet(kept, TAB_PARTS[included[0]].part);
   await putZipText(kept, "xl/_rels/workbook.xml.rels", new TextEncoder().encode(filterRelsXml(rels, included)));
   await putZipText(kept, "[Content_Types].xml", new TextEncoder().encode(filterContentTypes(types, included)));
   await putZipText(kept, "docProps/app.xml", new TextEncoder().encode(filterAppXml(app, included)));

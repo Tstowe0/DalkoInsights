@@ -1710,7 +1710,6 @@ function paintSettings() {
     const unit = ftpUnitFromView(shellView);
     if (unit) paintIntegLab(ftpStatusId(unit));
   }
-  if (String(shellView).startsWith("integrations")) void probeAllIntegrations();
   if (shellView === "integrations-dat") {
     paintDatSecretsGate();
     paintDatSample();
