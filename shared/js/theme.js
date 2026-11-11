@@ -25,6 +25,13 @@ export const THEMES = [
     swatches: ["#ffe7c2", "#fff8ee", "#c2410c", "#f5b942"],
   },
   {
+    id: "sandy-shore",
+    name: "Sandy Shore",
+    group: "day",
+    description: "Sand canvas, lagoon sidebar, and coral-and-seafoam signals — a bright beach day.",
+    swatches: ["#08343a", "#fff4e6", "#0c6b70", "#e07a4c"],
+  },
+  {
     id: "midnight-gold",
     name: "Midnight Gold",
     group: "night",

@@ -1,6 +1,6 @@
 import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261023-ttx";
 import { menuIconUrl, tileIconUrl } from "./icons.js?v=20261023-ttx";
-import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20261023-signal";
+import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20261111-shore";
 
 /**
  * @param {HTMLElement} container

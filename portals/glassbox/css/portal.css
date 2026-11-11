@@ -2065,60 +2065,60 @@ button.gb-cal-day:hover:not(.is-empty) {
 }
 
 /* Harbor: same three columns, quieter color so the numbers are easy to read. */
-[data-theme="harbor"] .gb-tool[data-tool="Currency Converter"] .gb-tool-instructions {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-tool[data-tool="Currency Converter"] .gb-tool-instructions {
   max-height: 9.25rem;
   color: var(--text);
 }
 
-[data-theme="harbor"] .gb-fx-col {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-col {
   border-color: var(--divider);
   background: var(--card);
 }
 
-[data-theme="harbor"] .gb-fx-col--mid {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-col--mid {
   border-color: var(--divider);
   box-shadow: none;
   background: color-mix(in srgb, var(--accent) 5%, var(--card));
 }
 
-[data-theme="harbor"] .gb-zip-field select,
-[data-theme="harbor"] .gb-zip-field select option {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-zip-field select,
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-zip-field select option {
   color-scheme: light;
   background-color: var(--input-bg-solid);
   color: var(--input-fg);
 }
 
-[data-theme="harbor"] .gb-fx-line input:not(.gb-fx-name):focus,
-[data-theme="harbor"] .gb-fx-settings-body .gb-zip-field input:focus,
-[data-theme="harbor"] .gb-fx-settings-body .gb-zip-field select:focus,
-[data-theme="harbor"] .gb-fx-name:focus {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-line input:not(.gb-fx-name):focus,
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-settings-body .gb-zip-field input:focus,
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-settings-body .gb-zip-field select:focus,
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-name:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
   border-color: var(--accent);
   box-shadow: none;
 }
 
-[data-theme="harbor"] .gb-fx-label,
-[data-theme="harbor"] .gb-fx-rate-meta,
-[data-theme="harbor"] .gb-zip-field {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-label,
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-rate-meta,
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-zip-field {
   color: var(--text-muted);
 }
 
-[data-theme="harbor"] .gb-fx-rate-meta {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-rate-meta {
   font-size: 0.8rem;
   line-height: 1.45;
 }
 
-[data-theme="harbor"] .gb-fx-out-value {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-out-value {
   font-size: 1.05rem;
   font-weight: 650;
 }
 
-[data-theme="harbor"] .gb-fx-line--total {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-line--total {
   border-top-color: var(--divider);
 }
 
-[data-theme="harbor"] .gb-fx-line--total .gb-fx-out-value {
+:is([data-theme="harbor"], [data-theme="sandy-shore"]) .gb-fx-line--total .gb-fx-out-value {
   color: var(--accent-deep);
   font-size: 1.15rem;
 }
