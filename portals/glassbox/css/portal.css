@@ -4797,3 +4797,158 @@ button.gb-cal-day:hover:not(.is-empty) {
     grid-column: 1 / -1;
   }
 }
+
+.marmon-markup-row {
+  cursor: default;
+}
+
+.marmon-markup-look {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--input-bg);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.marmon-markup-look svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.marmon-markup-look:hover {
+  border-color: var(--accent);
+  background: var(--card);
+}
+
+.marmon-markup-look:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.marmon-markups {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.marmon-markups.hidden {
+  display: none;
+}
+
+.marmon-markups-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 5, 8, 0.72);
+  backdrop-filter: blur(5px);
+}
+
+.marmon-markups-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(36rem, 100%);
+  max-height: min(40rem, calc(100vh - 2.5rem));
+  padding: 1.2rem 1.25rem 1.1rem;
+  border-radius: 20px;
+  background: linear-gradient(165deg, #101a2e 0%, #0c1322 55%, #080e1a 100%);
+  border: 1px solid var(--card-border-gold);
+  box-shadow:
+    0 0 0 1px rgba(217, 174, 66, 0.08),
+    0 24px 56px rgba(0, 0, 0, 0.55);
+  color: #f4f7fb;
+}
+
+.marmon-markups-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.marmon-markups-head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.marmon-markups-close {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: #f4f7fb;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+
+.marmon-markups-close:hover,
+.marmon-markups-close:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.marmon-markups-note {
+  margin: 0.7rem 0 0.85rem;
+  color: #c5d0e0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.marmon-markups-scroll {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.marmon-markups-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.marmon-markups-table th,
+.marmon-markups-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.marmon-markups-table th {
+  position: sticky;
+  top: 0;
+  background: #162033;
+  color: #c5d0e0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.marmon-markups-table th:last-child,
+.marmon-markups-table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.marmon-markups-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.marmon-markups-table tr.is-general td {
+  font-weight: 700;
+  color: #f4f7fb;
+  background: rgba(217, 174, 66, 0.16);
+}

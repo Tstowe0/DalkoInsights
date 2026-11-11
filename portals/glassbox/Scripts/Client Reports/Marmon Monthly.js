@@ -1,9 +1,10 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261027-titlebar";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261105-tabs";
 import { ensureXlsx, readFileBuffer, readCellA1, downloadBlob } from "../_shared/excel.js";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { prevMonthRange } from "../_shared/report-helpers.js";
 import { closeProgress, updateProgress } from "../../../../shared/js/dialog.js?v=20261007-progress";
-import { MARMON_TABS, applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261029-ltlnodat";
+import { applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261105-lookup";
+import { ltlMarkupCatalog, markupLabel } from "./marmon-ltl-markups.js?v=20261105-lookup";
 
 export const meta = {
   id: "Marmon Monthly",
@@ -30,15 +31,14 @@ function loadTemplate() {
   return templatePromise;
 }
 
-/**
- * @param {HTMLElement} extra
- * @returns {string[]}
- */
-export function selectedMarmonTabs(extra) {
-  return [...extra.querySelectorAll("[data-marmon-tab]:checked")].map((input) =>
-    /** @type {HTMLInputElement} */ (input).value
-  );
-}
+/** The report always writes these five sheets, in workbook order. Master sheets stay out. */
+const OUTPUT_TABS = [
+  "TL Only Carrier Market Index",
+  "TL Only Fuel Price Volatility",
+  "LTL Only Carrier Market Index",
+  "LTL Only Fuel Price Volatility",
+  "Full Data Dump",
+];
 
 /**
  * @param {HTMLElement} extra
@@ -96,7 +96,7 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
     await onProgress?.({
       step: "rates",
       title: "Building Marmon report",
-      detail: "Include DAT Rates is off. Dat Freight, Dat Fuel, and market columns stay blank.",
+      detail: "Include DAT Rates is off. Dat Freight and Dat Fuel stay blank. LTL market linehaul still uses each carrier's markup.",
       done: 1,
       total: 1,
     });
@@ -112,8 +112,8 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
     title: "Building Marmon report",
     detail: !needsDump
       ? includeDat && needsUtlx
-        ? "Writing the selected tabs. Market Linehaul Spend uses the DAT freight for each UTLX shipment."
-        : "Writing the selected tabs. Market Linehaul Spend stays blank."
+        ? "Writing the selected tabs. Truckload market linehaul uses DAT. LTL market linehaul uses the carrier markup."
+        : "Writing the selected tabs. Truckload market linehaul stays blank. LTL market linehaul uses the carrier markup."
       : includeDat
         ? "Writing the selected tabs into the workbook, including Dat Freight and Dat Fuel."
         : "Writing the selected tabs. Dat Freight and Dat Fuel stay blank.",
@@ -130,16 +130,100 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
   };
 }
 
+/**
+ * @param {unknown} value
+ */
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** @type {HTMLElement | null} */
+let markupPopup = null;
+/** @type {HTMLElement | null} */
+let markupReturnFocus = null;
+
+function ensureMarkupPopup() {
+  if (markupPopup) return markupPopup;
+  markupPopup = document.createElement("div");
+  markupPopup.className = "marmon-markups hidden";
+  markupPopup.setAttribute("role", "dialog");
+  markupPopup.setAttribute("aria-modal", "true");
+  markupPopup.setAttribute("aria-labelledby", "marmon-markups-title");
+  markupPopup.innerHTML = `
+    <div class="marmon-markups-backdrop" data-markup-close></div>
+    <div class="marmon-markups-card">
+      <header class="marmon-markups-head">
+        <h2 id="marmon-markups-title">LTL carrier markups</h2>
+        <button type="button" class="marmon-markups-close" data-markup-close aria-label="Close">Close</button>
+      </header>
+      <p class="marmon-markups-note">Market linehaul is that shipment's linehaul plus the percent below. A carrier that is not listed uses the general markup. Truckload still uses DAT.</p>
+      <div class="marmon-markups-scroll">
+        <table class="marmon-markups-table">
+          <thead>
+            <tr><th>Carrier</th><th>Markup</th></tr>
+          </thead>
+          <tbody data-markup-rows></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  markupPopup.addEventListener("click", (event) => {
+    const target = /** @type {HTMLElement} */ (event.target);
+    if (target.closest("[data-markup-close]")) closeMarkupPopup();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (!markupPopup || markupPopup.classList.contains("hidden")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeMarkupPopup();
+    }
+  });
+  document.body.appendChild(markupPopup);
+  return markupPopup;
+}
+
+function closeMarkupPopup() {
+  markupPopup?.classList.add("hidden");
+  markupReturnFocus?.focus();
+  markupReturnFocus = null;
+}
+
+/**
+ * @param {HTMLElement | null} opener
+ */
+function openMarkupPopup(opener) {
+  const popup = ensureMarkupPopup();
+  const body = popup.querySelector("[data-markup-rows]");
+  if (body) {
+    body.innerHTML = ltlMarkupCatalog()
+      .map(
+        (row) => `
+          <tr${row.general ? ' class="is-general"' : ""}>
+            <td>${escapeHtml(row.name)}</td>
+            <td>${escapeHtml(markupLabel(row.percent))}</td>
+          </tr>`
+      )
+      .join("");
+  }
+  markupReturnFocus = opener;
+  popup.classList.remove("hidden");
+  popup.querySelector(".marmon-markups-close")?.focus();
+}
+
 export async function loadGui(parent, ctx) {
   mountFileTool(parent, {
     title: meta.title,
     category: meta.category,
     instructions: `Concept:
-Builds the Marmon Master Freight Analysis workbook from a TMS data dump. Master, TL Only, and LTL Only each keep a Carrier Market Index sheet and a Fuel Price Volatility sheet. Full Data Dump uses the Ferroworks columns, teal header, and alternating white and grey rows. Dat Freight and Dat Fuel are filled from the DAT rate lookup.
+Builds the Marmon Master Freight Analysis workbook from a TMS data dump. The workbook includes both TL sheets, both LTL sheets, and Full Data Dump. Full Data Dump uses the Ferroworks columns, teal header, and alternating white and grey rows. Dat Freight and Dat Fuel are filled from the DAT rate lookup.
 
 Workflow:
 1. Run a TMS Data Dump for Marmon for the previous month (Invoice Date). Run on the 1st of the month or near that.
-2. Check the tabs to include, upload the dump file, and run the tool.
+2. Upload the dump file and run the tool.
 3. Use the Email button to open a draft for the previous month. Attach the generated report before sending.`,
     howto: {
       type: "Data Dump",
@@ -152,14 +236,14 @@ Workflow:
     layout: "board",
     runLabel: "Run Report",
     board: {
-      lead: "Builds the Marmon Master Freight Analysis workbook from a TMS data dump. Includes Carrier Market Index and Fuel Price Volatility. Full Data Dump adds Dat Freight and Dat Fuel from the DAT rate lookup.",
+      lead: "Builds the Marmon Master Freight Analysis workbook from a TMS data dump. The workbook includes both TL sheets, both LTL sheets, and Full Data Dump.",
       upload: {
         title: "Upload TMS Data Dump",
         text: "Select the TMS data dump for the previous month (Invoice Date). Run on the 1st of the month or near that.",
       },
       reports: {
         title: "How To Run",
-        text: "Choose which tabs to include in the workbook.",
+        text: "The workbook includes both TL sheets, both LTL sheets, and the Full Data Dump.",
       },
       run: {
         title: "Run & Email",
@@ -175,17 +259,26 @@ Workflow:
         <label class="gb-board-switch">
           <span>
             <strong>Include DAT Rates</strong>
-            <small>Off keeps Dat Freight and Dat Fuel, and leaves them blank.</small>
+            <small>Off keeps Dat Freight and Dat Fuel, and leaves them blank. LTL market linehaul still uses the carrier markup.</small>
           </span>
           <input type="checkbox" data-marmon-dat checked />
         </label>
-        <div class="gb-board-checks">
-          ${MARMON_TABS.map((name) => {
-            const on = name.startsWith("Master ") || name === "Full Data Dump";
-            return `<label class="gb-board-check"><input type="checkbox" data-marmon-tab value="${name}"${on ? " checked" : ""} /><span>${name}</span></label>`;
-          }).join("")}
+        <div class="gb-board-switch marmon-markup-row">
+          <span>
+            <strong>LTL carrier markups</strong>
+            <small>Market linehaul for an LTL shipment is its linehaul plus that carrier's percent.</small>
+          </span>
+          <button type="button" class="marmon-markup-look" data-marmon-markups aria-label="View LTL carrier markups">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="6.25" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <path d="m15.2 15.2 4.3 4.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </button>
         </div>
       `;
+      extra.querySelector("[data-marmon-markups]")?.addEventListener("click", () => {
+        openMarkupPopup(/** @type {HTMLButtonElement} */ (extra.querySelector("[data-marmon-markups]")));
+      });
     },
     emailDraft: () => {
       const { monthName, monthYear } = prevMonthNameYear();
@@ -212,7 +305,7 @@ Workflow:
       try {
         const built = await buildMarmonWorkbook(
           buffer,
-          selectedMarmonTabs(ui.extra),
+          OUTPUT_TABS,
           async (update) => {
             updateProgress(update);
             await new Promise((resolve) => requestAnimationFrame(() => resolve()));
@@ -226,7 +319,7 @@ Workflow:
           built.name
         );
         ui.setStatus(`Saved ${built.name}`);
-        ctx.log(`${meta.title}: ${built.rowCount.toLocaleString()} rows → ${built.name}`);
+        ctx.log(`${meta.title}: ${built.rowCount.toLocaleString()} rows -> ${built.name}`);
       } finally {
         closeProgress();
       }

@@ -3,6 +3,8 @@
  * without rewriting the styled sheets.
  */
 
+import { ltlMarketLinehaul } from "./marmon-ltl-markups.js?v=20261105-lookup";
+
 const SIG_LOC = 0x04034b50;
 const SIG_CD = 0x02014b50;
 const SIG_EOCD = 0x06054b50;
@@ -428,6 +430,17 @@ function isLtlEquipment(raw) {
 }
 
 /**
+ * Market linehaul for one shipment. TL uses the DAT rate. LTL uses the carrier markup
+ * on its own linehaul and is not sent to DAT.
+ * @param {UtlxLoad} load
+ * @returns {number | null}
+ */
+function marketLinehaul(load) {
+  if (!isLtlEquipment(load.equipment)) return load.datFreight;
+  return ltlMarketLinehaul(load.freight, load.carrier);
+}
+
+/**
  * DAT linehaul equipment. LTL is not sent. A name containing van is VAN.
  * A name containing flatbed is FLATBED. Reefer stays REEFER. Anything else is not sent.
  * @param {unknown} raw
@@ -809,6 +822,7 @@ export function readUtlxLoads(sheet, XLSX) {
   const destPostalCol = find("DESTINATION POSTAL");
   const freightCols = ["SELL FREIGHT1", "SELL FREIGHT2"].map(find);
   const fuelCols = ["SELL FUEL1", "SELL FUEL2"].map(find);
+  const carrierCol = find("CARRIER NAME1");
   if (clientCol < 0 || originCol < 0 || destCol < 0 || milesCol < 0) {
     throw new Error("The data dump is missing client, city, or Total Miles columns.");
   }
@@ -833,6 +847,7 @@ export function readUtlxLoads(sheet, XLSX) {
       destPostal: textAt(r, destPostalCol),
       miles: spendNumber(sheet[XLSX.utils.encode_cell({ r, c: milesCol })]?.v),
       equipment: textAt(r, equipCol),
+      carrier: textAt(r, carrierCol),
       shipDate: formatDumpValue(shipCol < 0 ? "" : sheet[XLSX.utils.encode_cell({ r, c: shipCol })]?.v),
       freight: freight === "" ? null : freight,
       fuel: fuel === "" ? null : fuel,
@@ -913,6 +928,7 @@ export async function fillMissingMiles(loads, onProgress) {
  *   destPostal: string,
  *   miles: number | null,
  *   equipment: string,
+ *   carrier: string,
  *   shipDate: string,
  *   freight: number | null,
  *   fuel: number | null,
@@ -1363,8 +1379,9 @@ function siteBucket(loads, label) {
       linehaul += load.freight;
       linehaulAny = true;
     }
-    if (load.datFreight != null) {
-      market += load.datFreight;
+    const priced = marketLinehaul(load);
+    if (priced != null) {
+      market += priced;
       marketAny = true;
     }
   }
@@ -1399,8 +1416,9 @@ function vendorBucket(loads, sites) {
       linehaul += load.freight;
       linehaulAny = true;
     }
-    if (load.datFreight != null) {
-      market += load.datFreight;
+    const priced = marketLinehaul(load);
+    if (priced != null) {
+      market += priced;
       marketAny = true;
     }
   }
