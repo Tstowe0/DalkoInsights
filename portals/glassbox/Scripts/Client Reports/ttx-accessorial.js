@@ -407,7 +407,13 @@ function buildDataSheet(rows, dumpSheet, XLSX) {
   const headers = ferroHeaders();
   const keep = headers
     .map((name, index) => ({ name, index }))
-    .filter((column) => column.name !== "Dat Freight" && column.name !== "Dat Fuel");
+    .filter(
+      (column) =>
+        column.name !== "Dat Freight" &&
+        column.name !== "Dat Fuel" &&
+        column.name !== "LTL Market Freight" &&
+        column.name !== "LTL Market Fuel"
+    );
   const pairs = sellAccessorialPairs(dumpHeaders(dumpSheet, XLSX));
   const extraHeaders = pairs.flatMap((pair) => [`Accessorial ${pair.n}`, `Accessorial ${pair.n} Cost`]);
   const aoa = [

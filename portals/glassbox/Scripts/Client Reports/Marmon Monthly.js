@@ -1,10 +1,10 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261105-tabs";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261112-dynabout";
 import { ensureXlsx, readFileBuffer, readCellA1, downloadBlob } from "../_shared/excel.js";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { prevMonthRange } from "../_shared/report-helpers.js";
 import { closeProgress, updateProgress } from "../../../../shared/js/dialog.js?v=20261007-progress";
-import { applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261105-lookup";
-import { ltlMarkupCatalog, markupLabel } from "./marmon-ltl-markups.js?v=20261105-lookup";
+import { MARMON_TABS, applyLtlDumpFreight, applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261112-dynpass";
+import { ltlMarkupCatalog, markupLabel } from "./marmon-ltl-markups.js?v=20261112-dynpass";
 
 export const meta = {
   id: "Marmon Monthly",
@@ -91,7 +91,6 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
   else if ((needsUtlx || needsFuel) && includeDat && utlxLoads) rows = utlxRateRows(utlxLoads);
   if (rows && includeDat) {
     await fillDatRates(rows, onProgress);
-    if (utlxLoads) applyUtlxDatFreight(utlxLoads, rows);
   } else if ((needsDump || needsUtlx || needsFuel) && !includeDat) {
     await onProgress?.({
       step: "rates",
@@ -101,6 +100,8 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
       total: 1,
     });
   }
+  if (needsDump && rows) applyLtlDumpFreight(rows);
+  if (rows && includeDat && utlxLoads) applyUtlxDatFreight(utlxLoads, rows);
   if (needsDump && rows) {
     const dump = ferroRowsToXml(rows);
     sheetXml = dump.xml;
@@ -115,8 +116,8 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
         ? "Writing the selected tabs. Truckload market linehaul uses DAT. LTL market linehaul uses the carrier markup."
         : "Writing the selected tabs. Truckload market linehaul stays blank. LTL market linehaul uses the carrier markup."
       : includeDat
-        ? "Writing the selected tabs into the workbook, including Dat Freight and Dat Fuel."
-        : "Writing the selected tabs. Dat Freight and Dat Fuel stay blank.",
+        ? "Writing the selected tabs. Truckload is priced in Dat Freight and Dat Fuel. LTL is priced in LTL Market Freight and LTL Market Fuel."
+        : "Writing the selected tabs. Truckload Dat Freight stays blank. LTL is priced in LTL Market Freight and LTL Market Fuel.",
     done: 1,
     total: 1,
   });
@@ -160,11 +161,11 @@ function ensureMarkupPopup() {
         <h2 id="marmon-markups-title">LTL carrier markups</h2>
         <button type="button" class="marmon-markups-close" data-markup-close aria-label="Close">Close</button>
       </header>
-      <p class="marmon-markups-note">Market linehaul is that shipment's linehaul plus the percent below. A carrier that is not listed uses the general markup. Truckload still uses DAT.</p>
+      <p class="marmon-markups-note">Freight and fuel each pass our amount through and add that carrier's percent. The fuel match is the carrier plus LTL equipment. Truckload still uses DAT.</p>
       <div class="marmon-markups-scroll">
         <table class="marmon-markups-table">
           <thead>
-            <tr><th>Carrier</th><th>Markup</th></tr>
+            <tr><th>Carrier</th><th>Equipment</th><th>Freight</th><th>Fuel</th></tr>
           </thead>
           <tbody data-markup-rows></tbody>
         </table>
@@ -202,9 +203,11 @@ function openMarkupPopup(opener) {
     body.innerHTML = ltlMarkupCatalog()
       .map(
         (row) => `
-          <tr${row.general ? ' class="is-general"' : ""}>
+          <tr class="${row.general ? "is-general" : ""}">
             <td>${escapeHtml(row.name)}</td>
-            <td>${escapeHtml(markupLabel(row.percent))}</td>
+            <td>${escapeHtml(row.equipment || "")}</td>
+            <td>${escapeHtml(markupLabel(row.percent, row.dynamic))}</td>
+            <td>${escapeHtml(markupLabel(row.fuelPercent, row.dynamic))}</td>
           </tr>`
       )
       .join("");
@@ -219,7 +222,7 @@ export async function loadGui(parent, ctx) {
     title: meta.title,
     category: meta.category,
     instructions: `Concept:
-Builds the Marmon Master Freight Analysis workbook from a TMS data dump. The workbook includes both TL sheets, both LTL sheets, and Full Data Dump. Full Data Dump uses the Ferroworks columns, teal header, and alternating white and grey rows. Dat Freight and Dat Fuel are filled from the DAT rate lookup.
+Builds the Marmon Master Freight Analysis workbook from a TMS data dump. The workbook includes both TL sheets, both LTL sheets, and Full Data Dump. Full Data Dump uses the Ferroworks columns, teal header, and alternating white and grey rows. A truckload line is priced in Dat Freight and Dat Fuel. An LTL line is priced in LTL Market Freight and LTL Market Fuel, columns BV and BW.
 
 Workflow:
 1. Run a TMS Data Dump for Marmon for the previous month (Invoice Date). Run on the 1st of the month or near that.

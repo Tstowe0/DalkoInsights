@@ -12,6 +12,32 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Marmon Monthly prices LTL freight and fuel from each carrier's percent. Dynamic carriers (XPO, ABF, Averitt, and SAIA) pass our charge through, so those dollars are in our cost and in the market and their exposure is 0. Truckload still uses DAT.",
+      "Each Full Data Dump line is priced in one place. Truckload uses Dat Freight and Dat Fuel. LTL uses LTL Market Freight and LTL Market Fuel.",
+      "The About popup lists every freight and fuel percent and explains the comparison. A blank fuel percent stays blank.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
+      "Marmon Monthly writes both TL sheets, both LTL sheets, and Full Data Dump. LTL shipments stay off DAT. The markup list shows each carrier's freight and fuel percent.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
+      "Sandy Shore is a dashboard theme with a sand and lagoon palette.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "Client reports share one How To and a tighter three-tile board. Excel Trimmer lists columns in sheet order and can search them.",
       "How To is Report Type, Report Date, Time Frame, and Clients. The tiles read 1) How To Run, 2) Upload, and 3) Run Report. The title bar is a short row.",
       "Run stays in place and reads Running. Customer drafts say Email External. DALKO-only drafts say Email Internal.",

@@ -1645,6 +1645,40 @@ button.gb-cal-day:hover:not(.is-empty) {
   pointer-events: none;
 }
 
+.phinia-carrier {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.phinia-carrier-label {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.phinia-carrier select {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 16rem;
+  min-height: 2.15rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg-solid, #1f2937);
+  color: var(--input-fg, var(--text));
+  font: inherit;
+  color-scheme: var(--color-scheme, dark);
+}
+
+.phinia-carrier select option {
+  background-color: var(--input-bg-solid, #ffffff);
+  color: var(--input-fg, var(--text));
+  color-scheme: var(--color-scheme, dark);
+}
+
 .gb-tool--board .phinia-ship-label {
   display: none;
 }
@@ -1742,8 +1776,9 @@ button.gb-cal-day:hover:not(.is-empty) {
   font: inherit;
 }
 
-.gb-zip-field select {
-  color-scheme: dark;
+.gb-zip-field select,
+.gb-zip-field select option {
+  color-scheme: var(--color-scheme, dark);
 }
 
 .gb-zip-field select option {
@@ -3506,7 +3541,7 @@ button.gb-cal-day:hover:not(.is-empty) {
   color: var(--type-gold, var(--accent-bright));
   font: inherit;
   font-size: 0.88rem;
-  color-scheme: dark;
+  color-scheme: var(--color-scheme, dark);
 }
 
 .gb-batch-profile-select:focus {
@@ -3517,7 +3552,8 @@ button.gb-cal-day:hover:not(.is-empty) {
 
 .gb-batch-profile-select option {
   background-color: var(--card);
-  color: var(--type-gold, var(--accent-bright));
+  color: var(--text);
+  color-scheme: var(--color-scheme, dark);
 }
 
 .gb-batch-profile-desc {
@@ -3575,12 +3611,13 @@ button.gb-cal-day:hover:not(.is-empty) {
   color: var(--type-gold, var(--accent-bright));
   font: inherit;
   font-size: 0.8rem;
-  color-scheme: dark;
+  color-scheme: var(--color-scheme, dark);
 }
 
 .gb-batch-select option {
   background-color: var(--card);
-  color: var(--type-gold, var(--accent-bright));
+  color: var(--text);
+  color-scheme: var(--color-scheme, dark);
 }
 
 .gb-batch-scac {
@@ -4856,7 +4893,7 @@ button.gb-cal-day:hover:not(.is-empty) {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  width: min(36rem, 100%);
+  width: min(44rem, 100%);
   max-height: min(40rem, calc(100vh - 2.5rem));
   padding: 1.2rem 1.25rem 1.1rem;
   border-radius: 20px;
@@ -4937,8 +4974,8 @@ button.gb-cal-day:hover:not(.is-empty) {
   text-transform: uppercase;
 }
 
-.marmon-markups-table th:last-child,
-.marmon-markups-table td:last-child {
+.marmon-markups-table th:nth-child(n + 3),
+.marmon-markups-table td:nth-child(n + 3) {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -4951,4 +4988,8 @@ button.gb-cal-day:hover:not(.is-empty) {
   font-weight: 700;
   color: #f4f7fb;
   background: rgba(217, 174, 66, 0.16);
+}
+
+.marmon-markups-table tr.is-dynamic td {
+  color: #9aa6b8;
 }

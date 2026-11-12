@@ -3,7 +3,7 @@
  */
 
 import { openMailDraft } from "./mailto.js";
-import { mountAboutSlide } from "./about-slide.js?v=20261105-tabs";
+import { mountAboutSlide } from "./about-slide.js?v=20261112-dynabout";
 import { alertDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 
 /**

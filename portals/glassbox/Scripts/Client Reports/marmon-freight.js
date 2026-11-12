@@ -3,7 +3,7 @@
  * without rewriting the styled sheets.
  */
 
-import { ltlMarketLinehaul } from "./marmon-ltl-markups.js?v=20261105-lookup";
+import { ltlMarketFuel, ltlMarketLinehaul } from "./marmon-ltl-markups.js?v=20261112-dynpass";
 
 const SIG_LOC = 0x04034b50;
 const SIG_CD = 0x02014b50;
@@ -299,6 +299,8 @@ const FERRO_COLUMNS = [
   ["Total Fuel", []],
   ["Dat Freight", []],
   ["Dat Fuel", []],
+  ["LTL Market Freight", []],
+  ["LTL Market Fuel", []],
 ];
 
 const FERRO_COL = Object.fromEntries(FERRO_COLUMNS.map(([name], index) => [name, index]));
@@ -438,6 +440,17 @@ function isLtlEquipment(raw) {
 function marketLinehaul(load) {
   if (!isLtlEquipment(load.equipment)) return load.datFreight;
   return ltlMarketLinehaul(load.freight, load.carrier);
+}
+
+/**
+ * Market fuel for one shipment. TL uses the DAT fuel. LTL passes our fuel through
+ * and adds the carrier's fuel percent for that equipment type.
+ * @param {UtlxLoad} load
+ * @returns {number | null}
+ */
+function marketFuel(load) {
+  if (!isLtlEquipment(load.equipment)) return load.datFuel;
+  return ltlMarketFuel(load.fuel, load.carrier, load.equipment);
 }
 
 /**
@@ -698,6 +711,44 @@ export async function fillDatRates(rows, onProgress) {
         rows[rowIndex][fuelCol] = priced.fuel;
       }
     });
+  }
+}
+
+/**
+ * Linehaul amount already summed onto a Full Data Dump row.
+ * @param {unknown} value
+ * @returns {number | null}
+ */
+function dumpFreightNumber(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (value == null || value === "") return null;
+  const number = Number(String(value).replace(/[$,]/g, ""));
+  return Number.isFinite(number) ? number : null;
+}
+
+/**
+ * Write each LTL line's market freight and fuel onto the Full Data Dump.
+ * A line is priced in one place. LTL uses LTL Market Freight (BV) and LTL Market Fuel (BW)
+ * and leaves Dat Freight and Dat Fuel blank. Truckload keeps DAT in those columns and leaves BV and BW blank.
+ * A $100 R&L line becomes $109.80. A Dynamic carrier passes our charge through.
+ * @param {unknown[][]} rows
+ */
+export function applyLtlDumpFreight(rows) {
+  const linehaulCol = FERRO_COL["Total Freight"];
+  const carrierCol = FERRO_COL.Carrier;
+  const equipCol = FERRO_COL.Eqpt;
+  const datFreightCol = FERRO_COL["Dat Freight"];
+  const datFuelCol = FERRO_COL["Dat Fuel"];
+  const marketFreightCol = FERRO_COL["LTL Market Freight"];
+  const marketFuelCol = FERRO_COL["LTL Market Fuel"];
+  for (const row of rows) {
+    if (!isLtlEquipment(row[equipCol])) continue;
+    row[datFreightCol] = "";
+    row[datFuelCol] = "";
+    const market = ltlMarketLinehaul(dumpFreightNumber(row[linehaulCol]), row[carrierCol]);
+    if (market != null) row[marketFreightCol] = market;
+    const fuelMarket = ltlMarketFuel(dumpFreightNumber(row[FERRO_COL["Total Fuel"]]), row[carrierCol], row[equipCol]);
+    if (fuelMarket != null) row[marketFuelCol] = fuelMarket;
   }
 }
 
@@ -1680,8 +1731,9 @@ function fuelBucket(loads, pred) {
     count += 1;
     if (load.miles != null) miles += load.miles;
     if (load.fuel != null) fuel += load.fuel;
-    if (load.datFuel != null) {
-      dat += load.datFuel;
+    const priced = marketFuel(load);
+    if (priced != null) {
+      dat += priced;
       datAny = true;
     }
   }
