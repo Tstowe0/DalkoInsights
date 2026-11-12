@@ -301,6 +301,7 @@ const FERRO_COLUMNS = [
   ["Dat Fuel", []],
   ["LTL Market Freight", []],
   ["LTL Market Fuel", []],
+  ["Total Miles", ["TOTAL MILES", "Total Miles"]],
 ];
 
 const FERRO_COL = Object.fromEntries(FERRO_COLUMNS.map(([name], index) => [name, index]));
@@ -805,6 +806,8 @@ export function readFerroRows(sheet, XLSX) {
     });
     row[totalFreight] = sumSpend(sheet, XLSX, r, freightCols);
     row[totalFuel] = sumSpend(sheet, XLSX, r, fuelCols);
+    const miles = spendNumber(row[FERRO_COL["Total Miles"]]);
+    row[FERRO_COL["Total Miles"]] = miles == null ? "" : miles;
     if (row.some((value) => value !== "" && value != null)) {
       row.sheetRow = r;
       data.push(row);
@@ -1006,6 +1009,28 @@ export function utlxRateRows(loads) {
     row.sheetRow = load.sheetRow;
     return row;
   });
+}
+
+/**
+ * Write each line's mileage onto Full Data Dump. A Zip Calculator replacement
+ * already stored on the shipment replaces a 0 or negative dump value.
+ * @param {unknown[][]} rows
+ * @param {UtlxLoad[]} loads
+ */
+export function applyDumpMiles(rows, loads) {
+  /** @type {Map<number, number>} */
+  const byRow = new Map();
+  for (const load of loads) {
+    if (load.miles == null || !Number.isFinite(load.miles)) continue;
+    byRow.set(load.sheetRow, load.miles);
+  }
+  const col = FERRO_COL["Total Miles"];
+  for (const row of rows) {
+    if (row.sheetRow == null) continue;
+    const miles = byRow.get(row.sheetRow);
+    if (miles == null) continue;
+    row[col] = miles;
+  }
 }
 
 /**

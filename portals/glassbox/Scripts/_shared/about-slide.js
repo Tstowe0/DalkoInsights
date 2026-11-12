@@ -3,7 +3,7 @@
  * Matches desktop hover-slide / click-to-open behavior.
  */
 
-import { getToolAbout } from "./tool-abouts.js?v=20261112-dynabout";
+import { getToolAbout } from "./tool-abouts.js?v=20261112-miles";
 
 /**
  * @param {string} value

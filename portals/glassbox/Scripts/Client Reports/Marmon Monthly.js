@@ -1,9 +1,9 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261112-dynabout";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261112-miles";
 import { ensureXlsx, readFileBuffer, readCellA1, downloadBlob } from "../_shared/excel.js";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { prevMonthRange } from "../_shared/report-helpers.js";
 import { closeProgress, updateProgress } from "../../../../shared/js/dialog.js?v=20261007-progress";
-import { MARMON_TABS, applyLtlDumpFreight, applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261112-dynpass";
+import { MARMON_TABS, applyDumpMiles, applyLtlDumpFreight, applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261112-miles";
 import { ltlMarkupCatalog, markupLabel } from "./marmon-ltl-markups.js?v=20261112-dynpass";
 
 export const meta = {
@@ -82,7 +82,7 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
     const dumpWb = XLSX.read(buffer, { type: "array", cellDates: true });
     dumpSheet = dumpWb.Sheets[dumpWb.SheetNames[0]];
     if (!dumpSheet) throw new Error("The data dump has no worksheet.");
-    if (needsUtlx || needsFuel) utlxLoads = readUtlxLoads(dumpSheet, XLSX);
+    if (needsUtlx || needsFuel || needsDump) utlxLoads = readUtlxLoads(dumpSheet, XLSX);
     if (utlxLoads) await fillMissingMiles(utlxLoads, onProgress);
   }
   /** @type {unknown[][] | undefined} */
@@ -100,6 +100,7 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
       total: 1,
     });
   }
+  if (needsDump && rows && utlxLoads) applyDumpMiles(rows, utlxLoads);
   if (needsDump && rows) applyLtlDumpFreight(rows);
   if (rows && includeDat && utlxLoads) applyUtlxDatFreight(utlxLoads, rows);
   if (needsDump && rows) {
