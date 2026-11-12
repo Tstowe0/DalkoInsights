@@ -1,4 +1,4 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261027-titlebar";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261111-carrier";
 import {
   ensureXlsx,
   readFileBuffer,
@@ -17,7 +17,8 @@ import {
   getNextBusinessDay,
   phiniaStamp,
   destinationNotesRowHeight,
-} from "./phinia-shipment-logic.js?v=20261006-phinia";
+  DEFAULT_CARRIER_CHOICES,
+} from "./phinia-shipment-logic.js?v=20261111-carrier";
 
 export const meta = {
   id: "Phinia Shipment Upload",
@@ -37,6 +38,7 @@ Workflow:
    - Today: Uses the current date as the ship date
    - Next Business Day: Calculates the next business day, skipping weekends and select US federal holidays as listed below.
    - Custom Date: Pick any date using the calendar or type M/D/YYYY manually.
+   Default Carrier starts blank, which leaves the output Carrier column blank. Choose R&L CARRIERS to fill every row.
 3. Option A: Click 'Run and Save Locally' to process the file and choose XLSX or CSV. Useful for looking at the data before uploading.
 4. Option B: Click 'Run and Send To TMS' to process the file and automatically upload it to TMS via FTP.
 5. The tool will transform all rows according to mapping rules and apply the selected ship date.
@@ -58,6 +60,7 @@ Transform Phinia shipment data files into standardized output format for further
 Workflow:
 1. Select the Phinia input Excel file.
 2. Select a Ship Date option (required): Today, Next Business Day, or Custom Date (M/D/YYYY).
+   Default Carrier starts blank, which leaves the output Carrier column blank. Choose R&L CARRIERS to fill every row.
 3. Click 'Run and Save Locally' to process the file and choose XLSX or CSV.
 Run and Send To TMS is available on the office site. This public site cannot reach the FTP rack.`;
 
@@ -76,6 +79,15 @@ function readShipDate(extra) {
   const parsed = parseShipDate(raw);
   if (!parsed) return { error: "Enter a valid custom ship date (M/D/YYYY)" };
   return { date: formatShipDate(parsed) };
+}
+
+/**
+ * @param {HTMLElement} extra
+ */
+function readDefaultCarrier(extra) {
+  const select = /** @type {HTMLSelectElement | null} */ (extra.querySelector("[data-default-carrier]"));
+  const value = select ? select.value : "";
+  return DEFAULT_CARRIER_CHOICES.includes(value) ? value : "";
 }
 
 /** @returns {Promise<"xlsx" | "csv" | null>} */
@@ -138,6 +150,13 @@ function mountShipDate(extra) {
         <button type="button" class="btn btn-secondary" data-cal>Calendar</button>
       </div>
       <input type="date" class="phinia-ship-picker" data-cal-input tabindex="-1" aria-hidden="true" />
+      <label class="phinia-carrier">
+        <span class="phinia-carrier-label">Default Carrier</span>
+        <select data-default-carrier aria-label="Default Carrier">
+          <option value="" selected></option>
+          <option value="R&amp;L CARRIERS">R&amp;L CARRIERS</option>
+        </select>
+      </label>
     </div>
   `;
 
@@ -206,11 +225,12 @@ function rowsToPhiniaWorkbook(rows) {
 /**
  * @param {File} file
  * @param {string} shipDate
+ * @param {string} carrierName
  */
-async function mapFile(file, shipDate) {
+async function mapFile(file, shipDate, carrierName) {
   await ensureXlsx();
   const { headers, rows } = workbookToObjects(await readFileBuffer(file));
-  return buildPhiniaRows(rows, headers, shipDate);
+  return buildPhiniaRows(rows, headers, shipDate, carrierName);
 }
 
 /**
@@ -232,7 +252,7 @@ export async function loadGui(parent, ctx) {
     board: {
       reports: {
         title: "Ship Date",
-        text: "Today, the next business day, or a custom date.",
+        text: "Today, the next business day, or a custom date. Default Carrier stays blank unless R&L CARRIERS is selected.",
       },
       upload: {
         title: "Upload File",
@@ -255,7 +275,7 @@ export async function loadGui(parent, ctx) {
         ctx.log("File format selection cancelled.");
         return;
       }
-      const mapped = await mapFile(files[0], ship.date);
+      const mapped = await mapFile(files[0], ship.date, readDefaultCarrier(ui.extra));
       const outName = `Phinia_${phiniaStamp()}.${format}`;
       if (format === "csv") {
         downloadBlob(new Blob([toPandasCsv(mapped)], { type: "text/csv;charset=utf-8" }), outName);
@@ -277,7 +297,7 @@ export async function loadGui(parent, ctx) {
         ctx.log("Upload cancelled by user.");
         return;
       }
-      const mapped = await mapFile(files[0], ship.date);
+      const mapped = await mapFile(files[0], ship.date, readDefaultCarrier(ui.extra));
       const outName = `Phinia_${phiniaStamp()}.csv`;
       const message = await sendToRack("phinia", outName, toPandasCsv(mapped));
       ui.setStatus("File processed and uploaded successfully");

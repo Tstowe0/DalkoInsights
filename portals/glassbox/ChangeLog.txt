@@ -1,3 +1,9 @@
+Version 8.1.9
+- Phinia Shipment Upload: Added a Default Carrier dropdown. It starts blank, and a blank choice leaves the output Carrier column blank. Choosing R&L CARRIERS fills every row for Run and Save Locally and Run and Send To TMS.
+
+Version 8.1.8
+- Phinia Shipment Upload: Default output Carrier to R&L CARRIERS for Run and Save Locally (XLSX and CSV) and Run and Send To TMS.
+
 Version 8.1.7
 - Client Reports: Added Penn Machine Daily Tracking Report. Same daily tracking layout as McConway, as its own report. Email Internal only, to Gerry.Marra@shipdalko.com and Shannon.Kizima@shipdalko.com.
 

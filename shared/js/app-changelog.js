@@ -12,6 +12,14 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Phinia Shipment Upload has a Default Carrier dropdown. It starts blank, which leaves the output Carrier column blank. Choosing R&L CARRIERS fills every row for Run and Save Locally and Run and Send To TMS.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "Marmon Monthly prices LTL freight and fuel from each carrier's percent. Dynamic carriers (XPO, ABF, Averitt, and SAIA) pass our charge through, so those dollars are in our cost and in the market and their exposure is 0. Truckload still uses DAT.",
       "Each Full Data Dump line is priced in one place. Truckload uses Dat Freight and Dat Fuel. LTL uses LTL Market Freight and LTL Market Fuel.",
       "The About popup lists every freight and fuel percent and explains the comparison. A blank fuel percent stays blank.",

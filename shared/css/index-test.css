@@ -3853,6 +3853,22 @@ html[data-theme="yule-night"] .yule-scene {
   color: var(--text);
   border: 1px solid var(--input-border);
   border-radius: 10px;
+  color-scheme: var(--color-scheme, dark);
+}
+
+.insights-host select option,
+.tools-host select option {
+  background-color: var(--card);
+  color: var(--text);
+  color-scheme: var(--color-scheme, dark);
+}
+
+/* Light menus paint a white hover row. Keep the label in theme text so it does not turn white. */
+:is([data-theme="harbor"], [data-theme="daybreak"], [data-theme="sandy-shore"]) select option:hover,
+:is([data-theme="harbor"], [data-theme="daybreak"], [data-theme="sandy-shore"]) select option:focus,
+:is([data-theme="harbor"], [data-theme="daybreak"], [data-theme="sandy-shore"]) select option:checked {
+  background-color: color-mix(in srgb, var(--accent) 16%, #ffffff);
+  color: var(--text);
 }
 
 .insights-host .check-dd-btn,

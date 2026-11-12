@@ -89,6 +89,9 @@ const DEFAULTS = {
   Carrier: "",
 };
 
+/** Blank leaves the output Carrier column empty. The named choice fills every row. */
+export const DEFAULT_CARRIER_CHOICES = ["", "R&L CARRIERS"];
+
 const CAPS_COLUMNS = [
   "Origin Location",
   "Origin Address",
@@ -366,8 +369,9 @@ export function destinationNotesRowHeight(content) {
  * @param {Record<string, unknown>[]} inputRows
  * @param {string[]} headers
  * @param {string} shipDate
+ * @param {string} [carrierName]
  */
-export function buildPhiniaRows(inputRows, headers, shipDate) {
+export function buildPhiniaRows(inputRows, headers, shipDate, carrierName = "") {
   const missing = REQUIRED_COLUMNS.filter((col) => !headers.includes(col));
   if (missing.length) {
     throw new Error(`Missing required columns: ${missing.join(", ")}`);
@@ -391,6 +395,7 @@ export function buildPhiniaRows(inputRows, headers, shipDate) {
     /** @type {Record<string, unknown>} */
     const output = { ...DEFAULTS };
     output["Ship Date"] = shipDate;
+    output.Carrier = DEFAULT_CARRIER_CHOICES.includes(carrierName) ? carrierName : "";
     output["Hdlg Unit Type"] = String(output["Hdlg Unit Type"]).toUpperCase();
     for (const col of CAPS_COLUMNS) output[col] = String(output[col]).toUpperCase();
 
