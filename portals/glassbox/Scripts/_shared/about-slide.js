@@ -3,7 +3,7 @@
  * Matches desktop hover-slide / click-to-open behavior.
  */
 
-import { getToolAbout } from "./tool-abouts.js?v=20261113-record";
+import { getToolAbout } from "./tool-abouts.js?v=20261113-split";
 
 /**
  * @param {string} value

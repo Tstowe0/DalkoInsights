@@ -1,9 +1,9 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261113-record";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261113-split";
 import { ensureXlsx, readFileBuffer, readCellA1, downloadBlob } from "../_shared/excel.js";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { prevMonthRange } from "../_shared/report-helpers.js";
 import { closeProgress, updateProgress } from "../../../../shared/js/dialog.js?v=20261007-progress";
-import { MARMON_TABS, applyDumpMiles, applyLtlDumpFreight, applyMissingFuelShare, applyMissingLoadFuel, applyOtherEquipmentLoads, applyOtherEquipmentRates, applyTranscoEdmontonLoads, applyTranscoEdmontonRates, applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261113-record";
+import { MARMON_TABS, applyDumpMiles, applyLtlDumpFreight, applyMissingFuelShare, applyMissingLoadFuel, applyOtherEquipmentLoads, applyOtherEquipmentRates, applyTranscoEdmontonLoads, applyTranscoEdmontonRates, applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261113-split";
 import { ltlMarkupCatalog, markupLabel } from "./marmon-ltl-markups.js?v=20261113-datfallback";
 
 export const meta = {
@@ -89,6 +89,8 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
   let rows;
   if (needsDump && dumpSheet) rows = readFerroRows(dumpSheet, globalThis.XLSX);
   else if ((needsUtlx || needsFuel) && includeDat && utlxLoads) rows = utlxRateRows(utlxLoads);
+  if (rows) applyMissingFuelShare(rows);
+  if (utlxLoads) applyMissingLoadFuel(utlxLoads);
   if (rows && includeDat) {
     await fillDatRates(rows, onProgress);
   } else if ((needsDump || needsUtlx || needsFuel) && !includeDat) {
@@ -104,8 +106,6 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
   if (utlxLoads) applyOtherEquipmentLoads(utlxLoads);
   if (rows) applyTranscoEdmontonRates(rows);
   if (utlxLoads) applyTranscoEdmontonLoads(utlxLoads);
-  if (rows) applyMissingFuelShare(rows);
-  if (utlxLoads) applyMissingLoadFuel(utlxLoads);
   if (needsDump && rows && utlxLoads) applyDumpMiles(rows, utlxLoads);
   if (needsDump && rows) applyLtlDumpFreight(rows);
   if (rows && includeDat && utlxLoads) applyUtlxDatFreight(utlxLoads, rows);

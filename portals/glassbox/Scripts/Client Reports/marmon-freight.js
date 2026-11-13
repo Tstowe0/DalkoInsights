@@ -894,8 +894,9 @@ export function applyDatChargeFallback(rows) {
 }
 
 /**
- * A line with freight and no fuel gets fuel equal to 41.5% of that freight.
- * A fuel charge of 0 stays 0. Freight is unchanged.
+ * A line with freight and no fuel is an all-in rate.
+ * Fuel becomes 41.5% of that freight, and freight is reduced by the same amount.
+ * A fuel charge of 0 stays 0.
  * @param {unknown[][]} rows
  */
 export function applyMissingFuelShare(rows) {
@@ -903,20 +904,25 @@ export function applyMissingFuelShare(rows) {
   const fuelCol = FERRO_COL["Total Fuel"];
   for (const row of rows) {
     if (dumpFreightNumber(row[fuelCol]) != null) continue;
-    const share = fuelShareOfFreight(dumpFreightNumber(row[freightCol]));
-    if (share !== "") row[fuelCol] = share;
+    const freight = dumpFreightNumber(row[freightCol]);
+    const share = fuelShareOfFreight(freight);
+    if (share === "" || freight == null) continue;
+    row[fuelCol] = share;
+    row[freightCol] = Math.round((freight - share) * 100) / 100;
   }
 }
 
 /**
- * Same fuel share for the site rows used by the index sheets.
+ * Same all-in split for the site rows used by the index sheets.
  * @param {UtlxLoad[]} loads
  */
 export function applyMissingLoadFuel(loads) {
   for (const load of loads) {
     if (load.fuel != null && Number.isFinite(load.fuel)) continue;
     const share = fuelShareOfFreight(load.freight);
-    if (share !== "") load.fuel = share;
+    if (share === "" || load.freight == null) continue;
+    load.fuel = share;
+    load.freight = Math.round((load.freight - share) * 100) / 100;
   }
 }
 
