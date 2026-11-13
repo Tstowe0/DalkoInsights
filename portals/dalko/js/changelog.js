@@ -1,4 +1,8 @@
-export const CHANGELOG_TEXT = `Version 1.1.4 (Web)
+export const CHANGELOG_TEXT = `Version 1.1.5 (Web)
+- Export Report prints a PDF of the current upload: monthly chart, equipment mix, and top and bottom 5 for lanes, customers, carriers, and the other ranked views.
+- Export Report tables are compact cards. Top and bottom share one short table, with tighter money figures so each section fits the page.
+
+Version 1.1.4 (Web)
 - Moved Back to hub under the sidebar username.
 - Carriers right rail: plain-language Z-score explanation.
 - Hub settings (gear next to account): API Integrations.

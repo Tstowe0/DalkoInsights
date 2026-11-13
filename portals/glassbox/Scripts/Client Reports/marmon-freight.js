@@ -3,7 +3,7 @@
  * without rewriting the styled sheets.
  */
 
-import { ltlMarketFuel, ltlMarketLinehaul } from "./marmon-ltl-markups.js?v=20261112-dynpass";
+import { isLtlMarketEquipment, ltlMarketFuel, ltlMarketLinehaul } from "./marmon-ltl-markups.js?v=20261113-fuelgeneral";
 
 const SIG_LOC = 0x04034b50;
 const SIG_CD = 0x02014b50;
@@ -312,6 +312,130 @@ export function ferroHeaders() {
 }
 const DAT_BATCH = 50;
 const DAT_RATE_TYPE = "SHIPPER_TO_BROKER_SPOT";
+/** Added to DAT freight after the lookup. The request itself stays FLATBED. */
+const FLATBED_TARP_FREIGHT = 250;
+/** Percent increase applied to the DAT freight for an over-dimensional flatbed. */
+const FLATBED_OVERSIZE_PERCENT = 40;
+/** Hotshot at this weight or more is priced as a flatbed. Under it, the load is LTL. */
+const HOTSHOT_FLATBED_POUNDS = 15000;
+/** Percent increase applied to the DAT freight for a step deck. The request itself stays FLATBED. */
+const STEP_DECK_PERCENT = 10;
+/** Used when a DAT-qualifying lane comes back without a freight amount. Applied to our linehaul. */
+const DAT_FALLBACK_FREIGHT_PERCENT = 10;
+/** Used when a DAT-qualifying lane comes back without a fuel amount and we have a fuel charge. Applied to our fuel. */
+const DAT_FALLBACK_FUEL_PERCENT = 41.5;
+/** Fuel filled from freight when a fuel charge is missing. 41.5 on 100 freight is 41.50. */
+const FUEL_SHARE_OF_FREIGHT_PERCENT = 41.5;
+/** Equipment that is not LTL and is not sent to DAT. Market freight is our linehaul plus this percent. */
+const OTHER_FREIGHT_PERCENT = 20;
+/** Equipment that is not LTL and is not sent to DAT. Market fuel is our fuel plus this percent. */
+const OTHER_FUEL_PERCENT = 41.5;
+/** Transco Edmonton to Edmonton loads stored as -1 miles use this truck mileage instead. */
+const TRANSCO_EDMONTON_MILES = 790;
+/** Those loads are not sent to DAT. Dat Freight is our linehaul plus this percent. */
+const TRANSCO_EDMONTON_FREIGHT_PERCENT = 20;
+/** Those loads are not sent to DAT. Dat Fuel is our fuel plus this percent. */
+const TRANSCO_EDMONTON_FUEL_PERCENT = 41.5;
+
+/**
+ * @param {unknown} raw
+ */
+function equipmentText(raw) {
+  return String(raw ?? "").trim().toUpperCase().replace(/\s+/g, " ");
+}
+
+/**
+ * HOTSHOT and DEDICATED - HOTSHOT. A dedicated load that is not a hotshot stays out.
+ * @param {unknown} raw
+ */
+export function isHotshotEquipment(raw) {
+  return /\bHOT[\s-]?SHOT\b/.test(equipmentText(raw));
+}
+
+/**
+ * Total weight in pounds. Blank stays blank.
+ * @param {unknown} weight
+ * @returns {number | null}
+ */
+function hotshotPounds(weight) {
+  if (typeof weight === "number" && Number.isFinite(weight)) return weight;
+  return spendNumber(weight);
+}
+
+/**
+ * @param {unknown} equipment
+ * @param {unknown} weight
+ */
+function isHotshotLtl(equipment, weight) {
+  if (!isHotshotEquipment(equipment)) return false;
+  const pounds = hotshotPounds(weight);
+  return pounds != null && pounds < HOTSHOT_FLATBED_POUNDS;
+}
+
+/**
+ * @param {unknown} equipment
+ * @param {unknown} weight
+ */
+function isHotshotFlatbed(equipment, weight) {
+  if (!isHotshotEquipment(equipment)) return false;
+  const pounds = hotshotPounds(weight);
+  return pounds != null && pounds >= HOTSHOT_FLATBED_POUNDS;
+}
+
+/**
+ * Flatbed with tarps is priced as a flatbed, then this amount is added to the DAT freight.
+ * @param {unknown} raw
+ */
+export function isFlatbedWithTarps(raw) {
+  const text = equipmentText(raw);
+  return /FLATBED W\s*\/\s*TARPS/.test(text) || text.includes("FLATBED WITH TARPS");
+}
+
+/**
+ * Over-dimensional flatbed is priced as a flatbed, then the DAT freight is increased by FLATBED_OVERSIZE_PERCENT.
+ * @param {unknown} raw
+ */
+export function isFlatbedOverDimensional(raw) {
+  const text = equipmentText(raw);
+  return text.includes("FLATBED") && /OVER[ -]?DIMENSIONAL/.test(text);
+}
+
+/**
+ * Step deck is priced as a flatbed, then the DAT freight is increased by STEP_DECK_PERCENT.
+ * @param {unknown} raw
+ */
+export function isStepDeck(raw) {
+  return /STEP[\s-]?DECK/.test(equipmentText(raw));
+}
+
+/**
+ * @param {unknown} equipment
+ * @param {number | ""} freight
+ * @returns {number | ""}
+ */
+function pricedDatFreight(equipment, freight) {
+  if (typeof freight !== "number" || !Number.isFinite(freight)) return freight;
+  let amount = freight;
+  if (isFlatbedOverDimensional(equipment)) {
+    amount = Math.round(amount * (1 + FLATBED_OVERSIZE_PERCENT / 100) * 100) / 100;
+  }
+  if (isFlatbedWithTarps(equipment)) {
+    amount = Math.round((amount + FLATBED_TARP_FREIGHT) * 100) / 100;
+  }
+  if (isStepDeck(equipment)) {
+    amount = Math.round(amount * (1 + STEP_DECK_PERCENT / 100) * 100) / 100;
+  }
+  return amount;
+}
+
+/**
+ * @param {unknown} equipment
+ * @param {number | ""} freight
+ * @returns {number | ""}
+ */
+export function tarpDatFreight(equipment, freight) {
+  return pricedDatFreight(equipment, freight);
+}
 
 const FERRO_HEADER = "__FERRO_H__";
 const FERRO_WHITE = "__FERRO_W__";
@@ -424,12 +548,22 @@ function cellXml(ref, value, style) {
 }
 
 /**
- * LTL equipment stays on the LTL tabs and is not sent to DAT.
+ * LTL, ground expedite, cargo van, and a hotshot under 15,000 lb stay on the LTL tabs
+ * and are not sent to DAT. A hotshot at 15,000 lb or more is a flatbed.
  * @param {unknown} raw
+ * @param {unknown} [weight] Total Wt. for a hotshot
  */
-function isLtlEquipment(raw) {
-  const text = String(raw ?? "").toUpperCase();
-  return /\bLTL\b/.test(text) || text.includes("LESS THAN TRUCKLOAD") || text.includes("LESS-THAN-TRUCKLOAD");
+function isLtlEquipment(raw, weight) {
+  if (isHotshotEquipment(raw)) return isHotshotLtl(raw, weight);
+  return isLtlMarketEquipment(raw);
+}
+
+/**
+ * Light hotshots use the LTL fuel percents. The equipment name on the line stays as written.
+ * @param {unknown} equipment
+ */
+function fuelLookupEquipment(equipment) {
+  return isHotshotEquipment(equipment) ? "LTL" : equipment;
 }
 
 /**
@@ -439,7 +573,7 @@ function isLtlEquipment(raw) {
  * @returns {number | null}
  */
 function marketLinehaul(load) {
-  if (!isLtlEquipment(load.equipment)) return load.datFreight;
+  if (!isLtlEquipment(load.equipment, load.weight)) return load.datFreight;
   return ltlMarketLinehaul(load.freight, load.carrier);
 }
 
@@ -450,21 +584,25 @@ function marketLinehaul(load) {
  * @returns {number | null}
  */
 function marketFuel(load) {
-  if (!isLtlEquipment(load.equipment)) return load.datFuel;
-  return ltlMarketFuel(load.fuel, load.carrier, load.equipment);
+  if (!isLtlEquipment(load.equipment, load.weight)) return load.datFuel;
+  return ltlMarketFuel(load.fuel, load.carrier, fuelLookupEquipment(load.equipment));
 }
 
 /**
- * DAT linehaul equipment. LTL is not sent. A name containing van is VAN.
- * A name containing flatbed is FLATBED. Reefer stays REEFER. Anything else is not sent.
+ * DAT linehaul equipment. LTL, ground expedite, and cargo van are not sent.
+ * HOTSHOT and DEDICATED - HOTSHOT at 15,000 lb or more are FLATBED. Under that they are LTL and are not sent.
+ * A name containing van is VAN. A name containing flatbed is FLATBED, including FLATBED W/ TARPS.
+ * Step deck is FLATBED. Reefer stays REEFER. Anything else is not sent.
  * @param {unknown} raw
+ * @param {unknown} [weight] Total Wt. for a hotshot
  * @returns {"VAN" | "FLATBED" | "REEFER" | ""}
  */
-export function datEquipment(raw) {
+export function datEquipment(raw, weight) {
   const text = String(raw ?? "").toUpperCase();
+  if (isHotshotEquipment(text)) return isHotshotFlatbed(text, weight) ? "FLATBED" : "";
   if (isLtlEquipment(text)) return "";
   if (text.includes("VAN")) return "VAN";
-  if (text.includes("FLATBED")) return "FLATBED";
+  if (text.includes("FLATBED") || isStepDeck(text)) return "FLATBED";
   if (/REEFER|REFRIG/.test(text)) return "REEFER";
   return "";
 }
@@ -557,7 +695,10 @@ function historicRatePeriod(value, now = new Date()) {
  * @returns {{ key: string, request: object } | null}
  */
 export function datLane(row) {
-  const equipment = datEquipment(row[FERRO_COL.Eqpt]);
+  if (isTranscoEdmontonLoop(row[FERRO_COL.Client], row[FERRO_COL["Origin City"]], row[FERRO_COL["Destination City"]], row[FERRO_COL["Total Miles"]])) {
+    return null;
+  }
+  const equipment = datEquipment(row[FERRO_COL.Eqpt], row[FERRO_COL["Total Wt."]]);
   if (!equipment) return null;
   const origin = ratePlace(row, "Origin City", "Origin State", "Origin Postal");
   const destination = ratePlace(row, "Destination City", "Destination State", "Destination Postal");
@@ -674,10 +815,11 @@ export async function fillDatRates(rows, onProgress) {
   });
   const unique = [...groups.values()];
   if (!unique.length) {
+    applyDatChargeFallback(rows);
     await onProgress?.({
       step: "rates",
       title: "Building Marmon report",
-      detail: "None of the shipments have both an origin and a destination, so DAT rates were skipped.",
+      detail: "None of the shipments have both an origin and a destination, so DAT rates were skipped. Those lanes use our freight plus 10% and our fuel plus 41.5%.",
       done: 1,
       total: 1,
     });
@@ -708,10 +850,184 @@ export async function fillDatRates(rows, onProgress) {
     batch.forEach((group, index) => {
       const priced = datMoney(items[index] || undefined);
       for (const rowIndex of group.indexes) {
-        rows[rowIndex][freightCol] = priced.freight;
+        rows[rowIndex][freightCol] = tarpDatFreight(rows[rowIndex][FERRO_COL.Eqpt], priced.freight);
         rows[rowIndex][fuelCol] = priced.fuel;
       }
     });
+  }
+  applyDatChargeFallback(rows);
+}
+
+/**
+ * A DAT-qualifying line with no DAT freight uses our linehaul plus 10%.
+ * When DAT returns freight and no fuel, Dat Fuel is 41.5% of that Dat Freight.
+ * When DAT returns neither and we have a fuel charge, Dat Fuel is our fuel plus 41.5%.
+ * When we have no fuel charge, Dat Fuel is 41.5% of the Dat Freight filled from our linehaul.
+ * The tarp, over-dimensional, and step deck adjustments stay on a returned DAT freight only.
+ * @param {unknown[][]} rows
+ */
+export function applyDatChargeFallback(rows) {
+  const freightCol = FERRO_COL["Dat Freight"];
+  const fuelCol = FERRO_COL["Dat Fuel"];
+  for (const row of rows) {
+    if (!datEquipment(row[FERRO_COL.Eqpt], row[FERRO_COL["Total Wt."]])) continue;
+    const apiFreight = typeof row[freightCol] === "number" && Number.isFinite(row[freightCol]);
+    const apiFuel = typeof row[fuelCol] === "number" && Number.isFinite(row[fuelCol]);
+    if (!apiFreight) {
+      const marked = markedUpCharge(dumpFreightNumber(row[FERRO_COL["Total Freight"]]), DAT_FALLBACK_FREIGHT_PERCENT);
+      if (marked !== "") row[freightCol] = marked;
+    }
+    if (!apiFuel) {
+      if (apiFreight) {
+        const share = fuelShareOfFreight(row[freightCol]);
+        if (share !== "") row[fuelCol] = share;
+      } else {
+        const marked = markedUpCharge(dumpFreightNumber(row[FERRO_COL["Total Fuel"]]), DAT_FALLBACK_FUEL_PERCENT);
+        if (marked !== "") row[fuelCol] = marked;
+        else {
+          const share = fuelShareOfFreight(row[freightCol]);
+          if (share !== "") row[fuelCol] = share;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * A line with freight and no fuel gets fuel equal to 41.5% of that freight.
+ * A fuel charge of 0 stays 0. Freight is unchanged.
+ * @param {unknown[][]} rows
+ */
+export function applyMissingFuelShare(rows) {
+  const freightCol = FERRO_COL["Total Freight"];
+  const fuelCol = FERRO_COL["Total Fuel"];
+  for (const row of rows) {
+    if (dumpFreightNumber(row[fuelCol]) != null) continue;
+    const share = fuelShareOfFreight(dumpFreightNumber(row[freightCol]));
+    if (share !== "") row[fuelCol] = share;
+  }
+}
+
+/**
+ * Same fuel share for the site rows used by the index sheets.
+ * @param {UtlxLoad[]} loads
+ */
+export function applyMissingLoadFuel(loads) {
+  for (const load of loads) {
+    if (load.fuel != null && Number.isFinite(load.fuel)) continue;
+    const share = fuelShareOfFreight(load.freight);
+    if (share !== "") load.fuel = share;
+  }
+}
+
+/**
+ * @param {unknown} freight
+ * @returns {number | ""}
+ */
+function fuelShareOfFreight(freight) {
+  if (typeof freight !== "number" || !Number.isFinite(freight)) return "";
+  return Math.round(freight * (FUEL_SHARE_OF_FREIGHT_PERCENT / 100) * 100) / 100;
+}
+
+/**
+ * @param {number | null} amount
+ * @param {number} percent
+ * @returns {number | ""}
+ */
+function markedUpCharge(amount, percent) {
+  if (amount == null || !Number.isFinite(amount)) return "";
+  return Math.round(amount * (1 + percent / 100) * 100) / 100;
+}
+
+/**
+ * Transco Rail Services US & Canada, Edmonton to Edmonton, stored as -1 miles.
+ * @param {unknown} client
+ * @param {unknown} origin
+ * @param {unknown} dest
+ * @param {unknown} miles
+ */
+function isTranscoEdmontonLoop(client, origin, dest, miles) {
+  if (String(client ?? "").trim().toUpperCase() !== "TRANSCO RAIL SERVICES US & CANADA") return false;
+  if (cityKey(origin) !== "EDMONTON" || cityKey(dest) !== "EDMONTON") return false;
+  const value = typeof miles === "number" && Number.isFinite(miles) ? miles : spendNumber(miles);
+  return value === -1;
+}
+
+/**
+ * Write our marked-up charges into the DAT columns and clear any API rate.
+ * @param {unknown[][]} rows
+ */
+export function applyTranscoEdmontonRates(rows) {
+  const freightCol = FERRO_COL["Dat Freight"];
+  const fuelCol = FERRO_COL["Dat Fuel"];
+  for (const row of rows) {
+    if (!isTranscoEdmontonLoop(row[FERRO_COL.Client], row[FERRO_COL["Origin City"]], row[FERRO_COL["Destination City"]], row[FERRO_COL["Total Miles"]])) {
+      continue;
+    }
+    row[freightCol] = "";
+    row[fuelCol] = "";
+    const freight = markedUpCharge(dumpFreightNumber(row[FERRO_COL["Total Freight"]]), TRANSCO_EDMONTON_FREIGHT_PERCENT);
+    const fuel = markedUpCharge(dumpFreightNumber(row[FERRO_COL["Total Fuel"]]), TRANSCO_EDMONTON_FUEL_PERCENT);
+    if (freight !== "") row[freightCol] = freight;
+    if (fuel !== "") row[fuelCol] = fuel;
+  }
+}
+
+/**
+ * Set those loads to 790 miles and the same DAT-column markup.
+ * Call this after the DAT lookup, while the stored miles are still -1.
+ * @param {UtlxLoad[]} loads
+ */
+export function applyTranscoEdmontonLoads(loads) {
+  for (const load of loads) {
+    if (!isTranscoEdmontonLoop(load.section, load.origin, load.dest, load.miles)) continue;
+    load.miles = TRANSCO_EDMONTON_MILES;
+    const freight = markedUpCharge(load.freight, TRANSCO_EDMONTON_FREIGHT_PERCENT);
+    const fuel = markedUpCharge(load.fuel, TRANSCO_EDMONTON_FUEL_PERCENT);
+    load.datFreight = freight === "" ? null : freight;
+    load.datFuel = fuel === "" ? null : fuel;
+  }
+}
+
+/**
+ * Equipment with a name that is not LTL and is not sent to DAT.
+ * @param {unknown} equipment
+ * @param {unknown} [weight]
+ */
+function isOtherEquipment(equipment, weight) {
+  if (!equipmentText(equipment)) return false;
+  if (isLtlEquipment(equipment, weight)) return false;
+  return !datEquipment(equipment, weight);
+}
+
+/**
+ * Price equipment that is not LTL and is not sent to DAT from our charges.
+ * Dat Freight is our linehaul plus 20%. Dat Fuel is our fuel plus 41.5%.
+ * @param {unknown[][]} rows
+ */
+export function applyOtherEquipmentRates(rows) {
+  const freightCol = FERRO_COL["Dat Freight"];
+  const fuelCol = FERRO_COL["Dat Fuel"];
+  for (const row of rows) {
+    if (!isOtherEquipment(row[FERRO_COL.Eqpt], row[FERRO_COL["Total Wt."]])) continue;
+    const freight = markedUpCharge(dumpFreightNumber(row[FERRO_COL["Total Freight"]]), OTHER_FREIGHT_PERCENT);
+    const fuel = markedUpCharge(dumpFreightNumber(row[FERRO_COL["Total Fuel"]]), OTHER_FUEL_PERCENT);
+    if (freight !== "") row[freightCol] = freight;
+    if (fuel !== "") row[fuelCol] = fuel;
+  }
+}
+
+/**
+ * Same markup for the site rows used by the truckload sheets.
+ * @param {UtlxLoad[]} loads
+ */
+export function applyOtherEquipmentLoads(loads) {
+  for (const load of loads) {
+    if (!isOtherEquipment(load.equipment, load.weight)) continue;
+    const freight = markedUpCharge(load.freight, OTHER_FREIGHT_PERCENT);
+    const fuel = markedUpCharge(load.fuel, OTHER_FUEL_PERCENT);
+    if (freight !== "") load.datFreight = freight;
+    if (fuel !== "") load.datFuel = fuel;
   }
 }
 
@@ -729,8 +1045,8 @@ function dumpFreightNumber(value) {
 
 /**
  * Write each LTL line's market freight and fuel onto the Full Data Dump.
- * A line is priced in one place. LTL uses LTL Market Freight (BV) and LTL Market Fuel (BW)
- * and leaves Dat Freight and Dat Fuel blank. Truckload keeps DAT in those columns and leaves BV and BW blank.
+ * A line is priced in one place. LTL uses LTL Market Freight (BW) and LTL Market Fuel (BX)
+ * and leaves Dat Freight and Dat Fuel blank. Truckload keeps DAT in those columns and leaves BW and BX blank.
  * A $100 R&L line becomes $109.80. A Dynamic carrier passes our charge through.
  * @param {unknown[][]} rows
  */
@@ -743,12 +1059,16 @@ export function applyLtlDumpFreight(rows) {
   const marketFreightCol = FERRO_COL["LTL Market Freight"];
   const marketFuelCol = FERRO_COL["LTL Market Fuel"];
   for (const row of rows) {
-    if (!isLtlEquipment(row[equipCol])) continue;
+    if (!isLtlEquipment(row[equipCol], row[FERRO_COL["Total Wt."]])) continue;
     row[datFreightCol] = "";
     row[datFuelCol] = "";
     const market = ltlMarketLinehaul(dumpFreightNumber(row[linehaulCol]), row[carrierCol]);
     if (market != null) row[marketFreightCol] = market;
-    const fuelMarket = ltlMarketFuel(dumpFreightNumber(row[FERRO_COL["Total Fuel"]]), row[carrierCol], row[equipCol]);
+    const fuelMarket = ltlMarketFuel(
+      dumpFreightNumber(row[FERRO_COL["Total Fuel"]]),
+      row[carrierCol],
+      fuelLookupEquipment(row[equipCol])
+    );
     if (fuelMarket != null) row[marketFuelCol] = fuelMarket;
   }
 }
@@ -877,6 +1197,7 @@ export function readUtlxLoads(sheet, XLSX) {
   const freightCols = ["SELL FREIGHT1", "SELL FREIGHT2"].map(find);
   const fuelCols = ["SELL FUEL1", "SELL FUEL2"].map(find);
   const carrierCol = find("CARRIER NAME1");
+  const weightCol = ["TOTAL WT.", "TOTAL WEIGHT", "TOTAL WT"].map(find).find((col) => col >= 0) ?? -1;
   if (clientCol < 0 || originCol < 0 || destCol < 0 || milesCol < 0) {
     throw new Error("The data dump is missing client, city, or Total Miles columns.");
   }
@@ -901,6 +1222,7 @@ export function readUtlxLoads(sheet, XLSX) {
       destPostal: textAt(r, destPostalCol),
       miles: spendNumber(sheet[XLSX.utils.encode_cell({ r, c: milesCol })]?.v),
       equipment: textAt(r, equipCol),
+      weight: weightCol < 0 ? null : spendNumber(sheet[XLSX.utils.encode_cell({ r, c: weightCol })]?.v),
       carrier: textAt(r, carrierCol),
       shipDate: formatDumpValue(shipCol < 0 ? "" : sheet[XLSX.utils.encode_cell({ r, c: shipCol })]?.v),
       freight: freight === "" ? null : freight,
@@ -922,6 +1244,7 @@ export async function fillMissingMiles(loads, onProgress) {
   /** @type {Map<string, { z1: string, z2: string, loads: UtlxLoad[] }>} */
   const groups = new Map();
   for (const load of loads) {
+    if (isTranscoEdmontonLoop(load.section, load.origin, load.dest, load.miles)) continue;
     if (load.miles == null || load.miles > 0) continue;
     const z1 = String(load.originPostal || "").trim();
     const z2 = String(load.destPostal || "").trim();
@@ -982,6 +1305,7 @@ export async function fillMissingMiles(loads, onProgress) {
  *   destPostal: string,
  *   miles: number | null,
  *   equipment: string,
+ *   weight: number | null,
  *   carrier: string,
  *   shipDate: string,
  *   freight: number | null,
@@ -1004,7 +1328,12 @@ export function utlxRateRows(loads) {
     row[FERRO_COL["Destination City"]] = load.dest;
     row[FERRO_COL["Destination State"]] = load.destState;
     row[FERRO_COL["Destination Postal"]] = load.destPostal;
+    row[FERRO_COL.Client] = load.section;
+    row[FERRO_COL["Total Miles"]] = load.miles ?? "";
     row[FERRO_COL.Eqpt] = load.equipment;
+    row[FERRO_COL["Total Wt."]] = load.weight ?? "";
+    row[FERRO_COL["Total Freight"]] = load.freight ?? "";
+    row[FERRO_COL["Total Fuel"]] = load.fuel ?? "";
     row[FERRO_COL["Ship Date"]] = load.shipDate;
     row.sheetRow = load.sheetRow;
     return row;
@@ -1065,22 +1394,27 @@ export function applyUtlxDatFreight(loads, rows) {
  * @returns {{ xml: string, rowCount: number }}
  */
 export function ferroRowsToXml(data) {
-  const lastCol = columnName(FERRO_COLUMNS.length - 1);
+  const width = FERRO_COLUMNS.length + 1;
+  const lastCol = columnName(width - 1);
   const lastRow = data.length + 1;
   const rows = [];
-  const headerCells = FERRO_COLUMNS.map(([name], index) =>
-    cellXml(`${columnName(index)}1`, name, FERRO_HEADER)
-  );
+  const headerCells = [
+    cellXml("A1", "Record #", FERRO_HEADER),
+    ...FERRO_COLUMNS.map(([name], index) => cellXml(`${columnName(index + 1)}1`, name, FERRO_HEADER)),
+  ];
   rows.push(`<row r="1">${headerCells.join("")}</row>`);
   data.forEach((row, index) => {
     const excelRow = index + 2;
     const style = excelRow % 2 === 0 ? FERRO_WHITE : FERRO_GREY;
-    const cells = row.map((value, col) => cellXml(`${columnName(col)}${excelRow}`, value, style));
+    const cells = [
+      cellXml(`A${excelRow}`, excelRow, style),
+      ...row.map((value, col) => cellXml(`${columnName(col + 1)}${excelRow}`, value, style)),
+    ];
     rows.push(`<row r="${excelRow}">${cells.join("")}</row>`);
   });
 
   const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><tabColor theme="1"/></sheetPr><dimension ref="A1:${lastCol}${lastRow}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><cols><col min="1" max="${FERRO_COLUMNS.length}" width="${FERRO_COL_WIDTH}" customWidth="1"/></cols><sheetData>${rows.join("")}</sheetData></worksheet>`;
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><tabColor theme="1"/></sheetPr><dimension ref="A1:${lastCol}${lastRow}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><cols><col min="1" max="${width}" width="${FERRO_COL_WIDTH}" customWidth="1"/></cols><sheetData>${rows.join("")}</sheetData></worksheet>`;
   return { xml, rowCount: data.length };
 }
 
@@ -1425,11 +1759,11 @@ function cityKey(city) {
 }
 
 /**
- * @param {string} equipment
+ * @param {UtlxLoad} load
  * @param {"all" | "tl" | "ltl"} mode
  */
-function keepEquipment(equipment, mode) {
-  const ltl = isLtlEquipment(equipment);
+function keepEquipment(load, mode) {
+  const ltl = isLtlEquipment(load.equipment, load.weight);
   if (mode === "ltl") return ltl;
   if (mode === "tl") return !ltl;
   return true;
@@ -2041,7 +2375,7 @@ export async function buildMarmonPackage(templateBytes, opts) {
     for (const name of PRINTER_TABS) {
       if (!included.includes(name)) continue;
       const mode = name.startsWith("LTL Only") ? "ltl" : name.startsWith("TL Only") ? "tl" : "all";
-      const loads = opts.utlxLoads.filter((load) => keepEquipment(load.equipment, mode));
+      const loads = opts.utlxLoads.filter((load) => keepEquipment(load, mode));
       const part = TAB_PARTS[name].part;
       const xml = await readEntryText(entries, part);
       await putZipText(entries, part, new TextEncoder().encode(fillUtlxBlock(xml, strings, loads, numberStyles)));
@@ -2049,7 +2383,7 @@ export async function buildMarmonPackage(templateBytes, opts) {
     for (const name of FUEL_TABS) {
       if (!included.includes(name)) continue;
       const mode = name.startsWith("LTL Only") ? "ltl" : name.startsWith("TL Only") ? "tl" : "all";
-      const loads = opts.utlxLoads.filter((load) => keepEquipment(load.equipment, mode));
+      const loads = opts.utlxLoads.filter((load) => keepEquipment(load, mode));
       const part = TAB_PARTS[name].part;
       const xml = await readEntryText(entries, part);
       await putZipText(entries, part, new TextEncoder().encode(fillFuelBlock(xml, strings, loads, numberStyles)));

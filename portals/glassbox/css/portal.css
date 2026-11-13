@@ -3303,6 +3303,82 @@ button.gb-cal-day:hover:not(.is-empty) {
   background: var(--btn-secondary-bg-hover);
 }
 
+.marmon-gri {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.marmon-gri-scroll {
+  overflow: auto;
+}
+
+.marmon-gri table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+
+.marmon-gri th,
+.marmon-gri td {
+  padding: 0.38rem 0.35rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.marmon-gri th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: right;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.marmon-gri th:first-child,
+.marmon-gri td:first-child {
+  text-align: left;
+  white-space: normal;
+}
+
+.marmon-gri td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.marmon-gri td.is-note {
+  text-align: left;
+  white-space: normal;
+}
+
+.marmon-gri tr.is-highlight td {
+  background: color-mix(in srgb, var(--accent-green) 18%, var(--card));
+}
+
+.marmon-gri tr.is-general td {
+  font-weight: 700;
+}
+
+.marmon-gri-notes {
+  margin: 0;
+  padding: 0.35rem 0.85rem 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.marmon-gri-notes:last-child {
+  padding-bottom: 0.8rem;
+}
+
 @media (max-width: 980px) {
   .gb-board-flow,
   .gb-board-flow.is-pair {

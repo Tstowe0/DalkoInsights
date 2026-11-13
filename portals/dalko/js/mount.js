@@ -1,5 +1,5 @@
 import { loadPortalCss } from "../../../shared/js/router.js";
-import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20261001-focusbold";
+import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20261112-fit";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../../../shared/images/earth.png", import.meta.url).href;
@@ -42,6 +42,7 @@ const TEMPLATE = `
           <div class="topbar-actions">
             <p class="topbar-status" id="status-text" aria-live="polite"></p>
             <button type="button" class="btn btn-clear-focus" id="btn-clear-focus" disabled>Clear focus</button>
+            <button type="button" class="btn btn-secondary" id="btn-export-report" disabled>Export Report</button>
             <button type="button" class="btn btn-primary" id="btn-upload">Upload file</button>
             <input type="file" id="file-input" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden />
           </div>

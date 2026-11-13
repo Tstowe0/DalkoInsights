@@ -1,5 +1,10 @@
 import { fmtMoney, fmtPct, fmtInt, formatCell } from "./format.js";
-import { sparklineSvg, renderMonthlyChart, destroyChart } from "./charts.js?v=20260922-corp2";
+import {
+  sparklineSvg,
+  renderMonthlyChart,
+  renderEquipmentDonut,
+  destroyChart,
+} from "./charts.js?v=20260922-corp2";
 import { hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
 
 /** Name, revenue, cost, profit, margin, loads */
@@ -73,6 +78,8 @@ export function openExecutiveReport(opts) {
   const accent = themeColor("--accent", "#2e90fa");
   const accentBlue = themeColor("--accent-blue", "#5a7fc4");
   const mutedFill = themeColor("--text-muted", "#6b778c");
+  const charts = overviewCharts(exec);
+  const ranks = reportRankHtml(results);
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -114,17 +121,28 @@ export function openExecutiveReport(opts) {
     </header>
 
     <section class="hero">
-      ${heroCard("Total revenue", fmtMoney(s.totalRevenue ?? 0))}
-      ${heroCard("Gross profit", fmtMoney(s.totalProfit ?? 0))}
+      ${heroCard("Total revenue", compactMoney(s.totalRevenue ?? 0))}
+      ${heroCard("Gross profit", compactMoney(s.totalProfit ?? 0))}
       ${heroCard("Total loads", fmtInt(s.totalLoads ?? 0))}
       ${heroCard("Profit margin", fmtPct(s.margin ?? 0))}
-      ${heroCard("Avg profit / load", fmtMoney(s.avgProfitPerLoad ?? 0))}
+      ${heroCard("Avg profit / load", compactMoney(s.avgProfitPerLoad ?? 0))}
       ${heroCard("Total miles", fmtInt(s.totalMiles ?? 0))}
     </section>
+
+    ${
+      charts.monthly
+        ? `<section class="chart-shot chart-wide">
+            <h2>Monthly performance</h2>
+            <p class="rank-note">Invoice date · revenue and profit</p>
+            <img src="${charts.monthly}" alt="Monthly revenue and profit" />
+          </section>`
+        : ""
+    }
 
     <section class="split-row">
       <div class="panel">
         <h2>Equipment mix</h2>
+        ${charts.donut ? `<img class="donut-img" src="${charts.donut}" alt="Equipment mix" />` : ""}
         <div class="mix">
           ${mixBar("LTL", split.ltl ?? 0, splitTotal, accent)}
           ${mixBar("Truckload", split.truckload ?? 0, splitTotal, accentBlue)}
@@ -141,32 +159,32 @@ export function openExecutiveReport(opts) {
                  <div><dt>Loads</dt><dd>${fmtInt(best.loads ?? 0)}</dd></div>
                  <div><dt>Late</dt><dd>${fmtInt(best.late ?? 0)}</dd></div>
                </dl>
-               <p class="muted">${escapeHtml(best.sub ?? "")}</p>`
+               `
             : `<p class="muted">${escapeHtml(best?.sub ?? "Insufficient transit data for carrier scoring.")}</p>`
         }
         ${
           acc
-            ? `<div class="acc-foot"><span>Net accessorials</span><strong>${escapeHtml(fmtMoney(acc.net))}</strong></div>`
+            ? `<div class="acc-foot"><span>Net accessorials</span><strong>${escapeHtml(compactMoney(acc.net))}</strong></div>`
             : ""
         }
       </div>
     </section>
 
-    ${sectionFromResultTable("Top customers", results.customers, 12, COL_PNL)}
-    ${sectionFromResultTable("Carrier profitability", results.carriers?.profitability, 10, COL_PNL)}
-    ${sectionCarrierPerformance(results.carriers?.performance)}
-    ${sectionFromResultTable("Sales reps", results.salesReps, 10, COL_PNL)}
-    ${sectionFromResultTable("Top lanes", results.lanes?.table, 12, COL_LANE)}
-    ${sectionAccessorials(results.accessorials)}
     ${sectionFinancial(fin)}
-    ${sectionFromResultTable("Office", results.officeDivision?.office, 8, COL_PNL)}
-    ${sectionFromResultTable("Division", results.officeDivision?.division, 8, COL_PNL)}
+    ${ranks}
 
     <footer class="foot">
       <span>DALKO Insights · Confidential</span>
       <span>Processed locally in your browser</span>
     </footer>
   </main>
+  <script>
+    window.addEventListener("load", function () {
+      var start = function () { setTimeout(function () { window.print(); }, 200); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start).catch(start);
+      else start();
+    });
+  </script>
 </body>
 </html>`;
 
@@ -530,7 +548,7 @@ function reportStyles() {
     }
     .btn-gold { background: ${ink}; color: ${onAccent}; }
     .btn-ghost { background: transparent; color: ${text}; border: 1px solid ${border}; }
-    .page { max-width: 1040px; margin: 0 auto; padding: 1.5rem 1.35rem 2.5rem; }
+    .page { max-width: 900px; margin: 0 auto; padding: 1.15rem 1.15rem 2rem; }
     .cover {
       border: 1px solid ${border};
       border-radius: 16px;
@@ -555,14 +573,14 @@ function reportStyles() {
     .meta span { display: block; color: ${muted}; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .meta strong { color: ${text}; font-weight: 600; }
     .hero {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
-      margin-bottom: 1.15rem;
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem;
+      margin-bottom: 0.85rem;
     }
     .hero-card {
       background: ${card};
       border: 1px solid ${border};
-      border-radius: 12px;
-      padding: 0.85rem 0.95rem;
+      border-radius: 10px;
+      padding: 0.55rem 0.6rem 0.6rem;
       border-top: 2px solid ${accent};
     }
     .hero-card span {
@@ -570,8 +588,9 @@ function reportStyles() {
       text-transform: uppercase; letter-spacing: 0.05em;
     }
     .hero-card strong {
-      display: block; margin-top: 0.35rem; font-size: 1.15rem; color: ${ink};
+      display: block; margin-top: 0.2rem; font-size: 0.92rem; color: ${ink};
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
     .split-row {
       display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;
@@ -590,7 +609,57 @@ function reportStyles() {
       border-bottom: 1px solid ${border};
       padding-bottom: 0.4rem;
     }
+    h3 {
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: ${ink};
+    }
     .section { margin-bottom: 1.25rem; break-inside: avoid; }
+    .rank-note { margin: -0.25rem 0 0.75rem; color: ${muted}; font-size: 0.75rem; }
+    .rank-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+    .rank-card {
+      background: ${card};
+      border: 1px solid ${border};
+      border-radius: 12px;
+      padding: 0.65rem 0.7rem 0.5rem;
+      break-inside: avoid;
+    }
+    .rank-card.wide { grid-column: 1 / -1; }
+    .rank-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 0.5rem; margin-bottom: 0.35rem;
+    }
+    .rank-head h2 { margin: 0; border: none; padding: 0; font-size: 0.84rem; }
+    .rank-head span { color: ${muted}; font-size: 0.66rem; white-space: nowrap; }
+    .mini-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .mini-stats div {
+      border: 1px solid ${border}; border-radius: 8px; padding: 0.35rem 0.45rem;
+    }
+    .mini-stats span {
+      display: block; color: ${muted}; font-size: 0.6rem;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .mini-stats strong { font-size: 0.82rem; color: ${ink}; font-variant-numeric: tabular-nums; }
+    .chart-shot {
+      background: ${card};
+      border: 1px solid ${border};
+      border-radius: 12px;
+      padding: 0.85rem 0.95rem 0.75rem;
+      break-inside: avoid;
+    }
+    .chart-wide { margin-bottom: 1.15rem; }
+    .chart-shot h2, .chart-shot h3 { border-bottom: none; margin-bottom: 0.35rem; padding-bottom: 0; }
+    .chart-shot img, .donut-img { width: 100%; height: auto; display: block; }
+    .donut-img { width: 180px; margin: 0 auto 0.75rem; }
     table {
       width: 100%; border-collapse: collapse; font-size: 0.78rem;
       background: ${card};
@@ -610,7 +679,38 @@ function reportStyles() {
     }
     tr:nth-child(even) td { background: ${light ? toolbar : "rgba(255,255,255,0.03)"}; }
     tr:last-child td { border-bottom: none; }
-    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    table.fit { table-layout: fixed; font-size: 0.68rem; border-radius: 8px; }
+    table.fit th, table.fit td { padding: 0.22rem 0.34rem; }
+    table.fit th { font-size: 0.58rem; letter-spacing: 0.04em; }
+    table.fit th.name { width: 46%; }
+    table.fit td.name {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    table.fit tr.band td {
+      padding: 0.38rem 0.34rem 0.08rem;
+      border-bottom: none;
+      background: transparent;
+      color: ${muted};
+      font-size: 0.58rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    table.fit tbody tr:nth-child(even):not(.band) td { background: ${light ? toolbar : "rgba(255,255,255,0.03)"}; }
+    .stat-strip { margin-bottom: 0.75rem; }
+    .stat-strip h2 { margin-bottom: 0.45rem; }
+    .stat-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.4rem; }
+    .stat-row div {
+      background: ${card}; border: 1px solid ${border}; border-radius: 10px;
+      padding: 0.4rem 0.45rem 0.45rem;
+    }
+    .stat-row span {
+      display: block; color: ${muted}; font-size: 0.58rem;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .stat-row strong {
+      display: block; margin-top: 0.15rem; color: ${ink};
+      font-size: 0.82rem; font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
     .muted { color: ${muted}; }
     .mix { display: flex; flex-direction: column; gap: 0.65rem; }
     .mix-row { display: grid; grid-template-columns: 7rem 1fr 3.2rem; gap: 0.5rem; align-items: center; }
@@ -635,15 +735,18 @@ function reportStyles() {
       border-top: 1px solid ${border};
       color: ${muted}; font-size: 0.72rem;
     }
+    @page { margin: 0.5in; }
     @media print {
       .no-print { display: none !important; }
       body { background: ${bg}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .page { max-width: none; padding: 0; }
-      .cover, .panel, .hero-card, table, .section { break-inside: avoid; }
+      .cover, .panel, .hero-card, .rank-card, .chart-shot, .stat-row div { break-inside: avoid; }
       tr { break-inside: avoid; }
+      .hero { grid-template-columns: repeat(3, 1fr); }
+      .stat-row { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 800px) {
-      .hero, .split-row, .meta { grid-template-columns: 1fr; }
+      .hero, .split-row, .meta, .rank-grid, .stat-row, .mini-stats { grid-template-columns: 1fr; }
     }
   `;
 }
@@ -669,121 +772,346 @@ function mixBar(label, value, total, color) {
 }
 
 /**
- * @param {string} title
- * @param {string[]} headers
- * @param {(string|number)[][]} rows
- * @param {boolean[]} [numFlags]
+ * Draw a chart off-screen and return a PNG data URL with the card color behind it.
+ * @param {number} width
+ * @param {number} height
+ * @param {(canvas: HTMLCanvasElement) => object | null} render
  */
-function sectionTable(title, headers, rows, numFlags = []) {
-  if (!rows.length) {
-    return `<section class="section"><h2>${escapeHtml(title)}</h2><p class="muted">No data for this section.</p></section>`;
+function snapshotChart(width, height, render) {
+  if (typeof Chart === "undefined") return "";
+  const host = document.createElement("div");
+  host.setAttribute("aria-hidden", "true");
+  host.style.cssText = `position:fixed;left:-12000px;top:0;width:${width}px;height:${height}px;pointer-events:none;`;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  host.appendChild(canvas);
+  document.body.appendChild(host);
+  /** @type {object | null} */
+  let chart = null;
+  try {
+    chart = render(canvas);
+    if (!chart?.canvas) return "";
+    chart.options.animation = false;
+    chart.options.devicePixelRatio = 2;
+    chart.resize(width, height);
+    chart.stop?.();
+    chart.update("none");
+    const src = /** @type {HTMLCanvasElement} */ (chart.canvas);
+    const out = document.createElement("canvas");
+    out.width = src.width;
+    out.height = src.height;
+    const ctx = out.getContext("2d");
+    if (!ctx) return "";
+    ctx.fillStyle = themeColor("--card", "#ffffff");
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(src, 0, 0);
+    return out.toDataURL("image/png");
+  } catch (err) {
+    console.error(err);
+    return "";
+  } finally {
+    destroyChart(chart);
+    host.remove();
   }
-  const head = headers
-    .map((h, i) => `<th class="${numFlags[i] ? "num" : ""}">${escapeHtml(h)}</th>`)
-    .join("");
-  const body = rows
-    .map((r) => {
-      const cells = r
-        .map((c, i) => `<td class="${numFlags[i] ? "num" : ""}">${escapeHtml(String(c ?? ""))}</td>`)
-        .join("");
-      return `<tr>${cells}</tr>`;
-    })
-    .join("");
-  return `<section class="section">
-    <h2>${escapeHtml(title)}</h2>
-    <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
-  </section>`;
 }
 
 /**
- * @param {string} title
- * @param {{ columns?: string[], rows?: { cells: unknown[], formats?: string[] }[] } | null | undefined} table
- * @param {number} limit
- * @param {number[]} colIndexes
+ * @param {object} exec
  */
-function sectionFromResultTable(title, table, limit, colIndexes) {
-  if (!table?.rows?.length || !table.columns?.length) {
-    return `<section class="section"><h2>${escapeHtml(title)}</h2><p class="muted">No data for this section.</p></section>`;
-  }
-  const headers = colIndexes.map((i) => table.columns[i] ?? `Col ${i}`);
-  const numFlags = colIndexes.map((i) => {
-    const fmt = table.rows[0]?.formats?.[i];
-    return Boolean(fmt && fmt !== "text");
-  });
-  const rows = table.rows.slice(0, limit).map((r) =>
-    colIndexes.map((i) => formatCell(r.cells[i], r.formats?.[i]))
-  );
-  return sectionTable(title, headers, rows, numFlags);
+function overviewCharts(exec) {
+  const monthly = exec?.monthlyChart?.labels?.length
+    ? snapshotChart(760, 210, (canvas) => renderMonthlyChart(canvas, exec.monthlyChart))
+    : "";
+  const donut = exec?.equipmentSplit
+    ? snapshotChart(240, 180, (canvas) => renderEquipmentDonut(canvas, exec.equipmentSplit))
+    : "";
+  return { monthly, donut };
 }
 
-/** @param {{ columns?: string[], rows?: { cells: unknown[], formats?: string[] }[] } | null | undefined} perf */
-function sectionCarrierPerformance(perf) {
-  if (!perf?.rows?.length) {
-    return `<section class="section"><h2>Carrier performance</h2><p class="muted">No transit performance data.</p></section>`;
+/**
+ * Highest rows stay in `top`. `bottom` is the lowest rows that are not already in `top`, worst first.
+ * @param {object[]} rows
+ * @param {number} n
+ */
+function splitTopBottom(rows, n) {
+  const list = rows ?? [];
+  const top = list.slice(0, Math.min(n, list.length));
+  const topSet = new Set(top);
+  /** @type {object[]} */
+  const bottom = [];
+  for (let i = list.length - 1; i >= 0 && bottom.length < n; i--) {
+    if (topSet.has(list[i])) continue;
+    bottom.push(list[i]);
   }
-  const scored = [...perf.rows]
-    .filter((r) => r.cells[2] != null && Number.isFinite(Number(r.cells[2])))
-    .sort((a, b) => Number(b.cells[2]) - Number(a.cells[2]))
-    .slice(0, 12);
-  const rows = (scored.length ? scored : perf.rows.slice(0, 12)).map((r) => [
-    String(r.focusValue ?? r.cells[0] ?? ""),
-    formatCell(r.cells[1], "pct"),
-    formatCell(r.cells[2], "zscore"),
-    formatCell(r.cells[3], "int"),
-    formatCell(r.cells[4], "int"),
-    formatCell(r.cells[5], "int"),
-  ]);
-  return sectionTable(
-    "Carrier performance (Z-score)",
-    ["Carrier", "On time %", "Z-score", "On time", "Late", "Loads w/ transit"],
-    rows,
-    [false, true, true, true, true, true]
-  );
+  return { top, bottom };
+}
+
+/** @param {unknown} value */
+function compactMoney(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  const sign = n < 0 ? "−" : "";
+  const a = Math.abs(n);
+  const trim = (s) => s.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+  if (a >= 999_500) return `${sign}$${trim((a / 1_000_000).toFixed(a >= 10_000_000 ? 1 : 2))}M`;
+  if (a >= 1_000) return `${sign}$${trim((a / 1_000).toFixed(a >= 100_000 ? 0 : 1))}k`;
+  return `${sign}$${Math.round(a).toLocaleString("en-US")}`;
+}
+
+/** @param {string} value @param {number} max */
+function clipLabel(value, max = 32) {
+  const text = String(value ?? "");
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+/**
+ * @param {object} row
+ * @param {{ kind: string, index?: number, indexes?: number[] }} field
+ */
+function rankFieldText(row, field) {
+  if (field.kind === "place") {
+    const city = String(row.cells?.[field.indexes?.[0] ?? 0] ?? "");
+    const state = String(row.cells?.[field.indexes?.[1] ?? 1] ?? "");
+    const place = state && state !== "—" ? `${city}, ${state}` : city;
+    return place;
+  }
+  if (field.kind === "name") return String(row.focusValue ?? row.cells?.[field.index ?? 0] ?? "");
+  const raw = row.cells?.[field.index ?? 0];
+  if (field.kind === "money") return compactMoney(raw);
+  if (field.kind === "pct") return fmtPct(Number(raw) || 0);
+  if (field.kind === "int") return fmtInt(Number(raw) || 0);
+  if (field.kind === "z") return formatCell(raw, "zscore");
+  return String(raw ?? "");
+}
+
+/**
+ * @param {{ label: string, kind: string, index?: number, indexes?: number[] }[]} fields
+ * @param {object[]} top
+ * @param {object[]} bottom
+ */
+function fitRankTable(fields, top, bottom) {
+  const head = fields
+    .map((field, i) => `<th class="${i ? "num" : "name"}">${escapeHtml(field.label)}</th>`)
+    .join("");
+  const renderRows = (list) =>
+    list
+      .map((row) => {
+        const cells = fields
+          .map((field, i) => {
+            const full = rankFieldText(row, field);
+            if (i === 0) {
+              return `<td class="name" title="${escapeHtml(full)}">${escapeHtml(clipLabel(full))}</td>`;
+            }
+            return `<td class="num">${escapeHtml(full)}</td>`;
+          })
+          .join("");
+        return `<tr>${cells}</tr>`;
+      })
+      .join("");
+  const span = fields.length;
+  const body = bottom.length
+    ? `<tr class="band"><td colspan="${span}">Top</td></tr>${renderRows(top)}<tr class="band band-low"><td colspan="${span}">Bottom</td></tr>${renderRows(bottom)}`
+    : renderRows(top);
+  return `<table class="fit"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+/**
+ * @param {{
+ *   title: string,
+ *   metric: string,
+ *   note?: string,
+ *   table: { columns?: string[], rows?: object[], ranked?: object[] } | null | undefined,
+ *   fields: { label: string, kind: string, index?: number, indexes?: number[] }[],
+ * }} spec
+ */
+function rankCard(spec) {
+  const table = spec.table;
+  const source = table?.ranked?.length ? table.ranked : (table?.rows ?? []);
+  if (!source.length || !table?.columns?.length) return "";
+  const { top, bottom } = splitTopBottom(source, 5);
+  const note = spec.note ?? `By ${spec.metric}`;
+  return `<article class="rank-card">
+    <div class="rank-head"><h2>${escapeHtml(spec.title)}</h2><span>${escapeHtml(note)}</span></div>
+    ${fitRankTable(spec.fields, top, bottom)}
+  </article>`;
+}
+
+/** @param {string} label */
+function pnlFields(label) {
+  return [
+    { label, kind: "name" },
+    { label: "Revenue", kind: "money", index: 1 },
+    { label: "Margin", kind: "pct", index: 4 },
+    { label: "Loads", kind: "int", index: 5 },
+  ];
+}
+
+/**
+ * @param {{ columns?: string[], rows?: { cells: unknown[] }[] } | null | undefined} perf
+ */
+function scoredPerformance(perf) {
+  if (!perf?.rows?.length || !perf.columns?.length) return null;
+  const rows = perf.rows.filter((r) => r.cells[2] != null && Number.isFinite(Number(r.cells[2])));
+  if (!rows.length) return null;
+  return { columns: perf.columns, rows };
+}
+
+/** @param {object} results */
+function reportRankHtml(results) {
+  const cards = [
+    rankCard({
+      title: "Lanes",
+      metric: "revenue",
+      table: results.lanes?.table,
+      fields: [
+        { label: "Lane", kind: "name" },
+        { label: "Loads", kind: "int", index: 1 },
+        { label: "Revenue", kind: "money", index: 2 },
+        { label: "Margin", kind: "pct", index: 5 },
+      ],
+    }),
+    rankCard({
+      title: "Customers",
+      metric: "revenue",
+      table: results.customers,
+      fields: pnlFields("Customer"),
+    }),
+    rankCard({
+      title: "Carriers",
+      metric: "revenue",
+      table: results.carriers?.profitability,
+      fields: pnlFields("Carrier"),
+    }),
+    rankCard({
+      title: "Carrier performance",
+      metric: "Z-score",
+      note: "10+ loads with transit days",
+      table: scoredPerformance(results.carriers?.performance),
+      fields: [
+        { label: "Carrier", kind: "name" },
+        { label: "On time", kind: "pct", index: 1 },
+        { label: "Z", kind: "z", index: 2 },
+        { label: "Loads", kind: "int", index: 5 },
+      ],
+    }),
+    rankCard({
+      title: "Sales reps",
+      metric: "revenue",
+      table: results.salesReps,
+      fields: pnlFields("Rep"),
+    }),
+    rankCard({
+      title: "Origin states",
+      metric: "loads",
+      table: results.geographic?.origin,
+      fields: [
+        { label: "State", kind: "name" },
+        { label: "Loads", kind: "int", index: 1 },
+        { label: "Revenue", kind: "money", index: 2 },
+      ],
+    }),
+    rankCard({
+      title: "Destination states",
+      metric: "loads",
+      table: results.geographic?.dest,
+      fields: [
+        { label: "State", kind: "name" },
+        { label: "Loads", kind: "int", index: 1 },
+        { label: "Revenue", kind: "money", index: 2 },
+      ],
+    }),
+    rankCard({
+      title: "Origin cities",
+      metric: "loads",
+      table: results.cities?.origin,
+      fields: [
+        { label: "City", kind: "place", indexes: [0, 1] },
+        { label: "Loads", kind: "int", index: 2 },
+        { label: "Revenue", kind: "money", index: 3 },
+      ],
+    }),
+    rankCard({
+      title: "Destination cities",
+      metric: "loads",
+      table: results.cities?.dest,
+      fields: [
+        { label: "City", kind: "place", indexes: [0, 1] },
+        { label: "Loads", kind: "int", index: 2 },
+        { label: "Revenue", kind: "money", index: 3 },
+      ],
+    }),
+    rankCard({
+      title: "Division",
+      metric: "revenue",
+      table: results.officeDivision?.division,
+      fields: pnlFields("Division"),
+    }),
+    rankCard({
+      title: "Office",
+      metric: "revenue",
+      table: results.officeDivision?.office,
+      fields: pnlFields("Office"),
+    }),
+    rankCard({
+      title: "LTL equipment",
+      metric: "revenue",
+      table: results.ltl?.table,
+      fields: pnlFields("Equipment"),
+    }),
+    rankCard({
+      title: "Truckload equipment",
+      metric: "revenue",
+      table: results.truckload?.table,
+      fields: pnlFields("Equipment"),
+    }),
+    sectionAccessorials(results.accessorials),
+  ].filter(Boolean);
+  if (!cards.length) return "";
+  return `<div class="rank-grid">${cards.join("")}</div>`;
 }
 
 /** @param {object | null | undefined} acc */
 function sectionAccessorials(acc) {
-  if (!acc?.hasAccessorialColumns) {
-    return `<section class="section"><h2>Accessorials</h2><p class="muted">No ACCESSORIAL columns in this file.</p></section>`;
-  }
-  const k = acc.kpis;
-  const summary = sectionTable(
-    "Accessorial summary",
-    ["Metric", "Value"],
-    [
-      ["Sell-side", fmtMoney(k.totalSell)],
-      ["Buy-side", fmtMoney(k.totalBuy)],
-      ["Net", fmtMoney(k.net)],
-      ["Loads with accessorials", `${fmtInt(k.loadsWith)} (${fmtPct(k.pct)})`],
-    ],
-    [false, true]
-  );
-  const types = (acc.typeRows ?? []).slice(0, 12).map((t) => [
-    t.type,
-    fmtMoney(t.sell),
-    fmtMoney(t.buy),
-    fmtMoney(t.net),
-  ]);
-  const typeTable = sectionTable(
-    "Accessorial types",
-    ["Type", "Sell", "Buy", "Net"],
-    types,
-    [false, true, true, true]
-  );
-  return summary + typeTable;
+  if (!acc?.hasAccessorialColumns) return "";
+  const k = acc.kpis ?? {};
+  const types = (acc.typeRows ?? []).slice(0, 5);
+  const rows = types
+    .map((t) => {
+      const name = String(t.type ?? "");
+      return `<tr><td class="name" title="${escapeHtml(name)}">${escapeHtml(clipLabel(name))}</td><td class="num">${escapeHtml(compactMoney(t.sell))}</td><td class="num">${escapeHtml(compactMoney(t.net))}</td></tr>`;
+    })
+    .join("");
+  const table = rows
+    ? `<table class="fit"><thead><tr><th class="name">Type</th><th class="num">Sell</th><th class="num">Net</th></tr></thead><tbody>${rows}</tbody></table>`
+    : "";
+  return `<article class="rank-card wide">
+    <div class="rank-head"><h2>Accessorials</h2><span>Top types by volume</span></div>
+    <div class="mini-stats">
+      <div><span>Sell</span><strong>${escapeHtml(compactMoney(k.totalSell))}</strong></div>
+      <div><span>Buy</span><strong>${escapeHtml(compactMoney(k.totalBuy))}</strong></div>
+      <div><span>Net</span><strong>${escapeHtml(compactMoney(k.net))}</strong></div>
+      <div><span>Loads</span><strong>${escapeHtml(fmtInt(k.loadsWith ?? 0))}</strong></div>
+    </div>
+    ${table}
+  </article>`;
 }
 
-/** @param {{ label: string, value: unknown, format?: string, sub?: string }[]} kpis */
+/** @param {{ label: string, value: unknown, format?: string }[]} kpis */
 function sectionFinancial(kpis) {
-  if (!kpis?.length) {
-    return `<section class="section"><h2>Financial</h2><p class="muted">No financial metrics.</p></section>`;
-  }
-  return sectionTable(
-    "Financial",
-    ["Metric", "Value", "Notes"],
-    kpis.map((k) => [k.label, formatCell(k.value, k.format), k.sub ?? ""]),
-    [false, true, false]
-  );
+  if (!kpis?.length) return "";
+  const tiles = kpis
+    .map((k) => {
+      const val =
+        k.format === "money"
+          ? compactMoney(k.value)
+          : k.format === "pct"
+            ? fmtPct(Number(k.value))
+            : fmtInt(Number(k.value));
+      return `<div><span>${escapeHtml(k.label)}</span><strong>${escapeHtml(val)}</strong></div>`;
+    })
+    .join("");
+  return `<section class="stat-strip"><h2>Collections</h2><div class="stat-row">${tiles}</div></section>`;
 }
 
 /** @param {Date | null | undefined} d */

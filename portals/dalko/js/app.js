@@ -9,13 +9,13 @@ import {
 } from "./data/filters.js?v=20260916-bugsweep";
 import { checkFileSize, checkRowCount, formatFileSize } from "./data/limits.js";
 import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=20261005-opcarrier";
-import { runAnalysis } from "./analytics/engine.js?v=20261005-opcarrier";
+import { runAnalysis } from "./analytics/engine.js?v=20261112-export";
 import { nextJobId, workerJob } from "./workers/client.js";
 import { navTitle, renderNav } from "./ui/nav.js?v=20260923-desk";
-import { renderView } from "./ui/render.js?v=20261001-focusbold";
+import { renderView } from "./ui/render.js?v=20261112-fit";
 import { RAIL_VIEWS, renderViewRail, teardownAllRails } from "./ui/page-rails.js?v=20260922-corp2";
 import { alertDialog, confirmDialog } from "./ui/dialog.js";
-import { runReport, teardownExecReport } from "./ui/report.js?v=20261001-nohier";
+import { runReport, teardownExecReport } from "./ui/report.js?v=20261112-fit";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 /** @type {import("./data/filters.js").FilterState} */
@@ -66,6 +66,7 @@ function bindElements() {
     tableSearch: document.getElementById("table-search"),
     btnClearFocus: document.getElementById("btn-clear-focus"),
     btnUpload: document.getElementById("btn-upload"),
+    btnExportReport: document.getElementById("btn-export-report"),
     btnBrandHome: document.getElementById("btn-brand-home"),
     btnBackHub: document.getElementById("btn-back-hub"),
     fileInput: document.getElementById("file-input"),
@@ -304,7 +305,18 @@ function setView(viewId) {
   });
 }
 
+function updateExportButton() {
+  const btn = el.btnExportReport;
+  if (!(btn instanceof HTMLButtonElement)) return;
+  const ready = Boolean(state.results?.executive);
+  btn.disabled = !ready;
+  btn.title = ready
+    ? "Print a PDF of charts and top and bottom 5 rankings"
+    : "Upload a data dump to export a report";
+}
+
 function refreshView() {
+  updateExportButton();
   if (!el.viewRoot) return;
   const content = el.viewRoot.closest(".content");
   const treeScroll = el.viewRoot.querySelector(".focus-tree-scroll");
@@ -404,7 +416,7 @@ function getParseWorker() {
 
 function getAnalyzeWorker() {
   if (!analyzeWorker) {
-    analyzeWorker = new Worker(new URL("./workers/analyze-worker.js?v=20261005-opcarrier", import.meta.url), {
+    analyzeWorker = new Worker(new URL("./workers/analyze-worker.js?v=20261112-export", import.meta.url), {
       type: "module",
     });
   }
@@ -820,6 +832,13 @@ export function initDalkoPortal(opts = {}) {
 
   bindFileInput(el.fileInput, signal);
   bindUploadButton(el.btnUpload, el.fileInput, signal);
+  el.btnExportReport?.addEventListener(
+    "click",
+    () => {
+      void handleRunReport("executive-analytics");
+    },
+    { signal }
+  );
 
   el.btnClearFocus?.addEventListener("click", () => clearFocus(), { signal });
   el.tableSearch?.addEventListener("input", () => applyTableSearch(), { signal });

@@ -103,14 +103,13 @@ export function ltlMarketLinehaul(freight, carrier) {
  *
  * 10 means market fuel = our fuel × 1.10.
  * The match is CARRIER NAME1 plus equipment type LTL.
- * A listed carrier with no percent stays blank and does not use the general fuel markup.
- * A Dynamic carrier passes our fuel through and does not use the general fuel markup.
- * A carrier that is not listed uses LTL_GENERAL_FUEL_MARKUP.
+ * A listed percent wins, including 0. A Dynamic carrier passes our fuel through and does not use the general fuel markup.
+ * Any other LTL carrier uses LTL_GENERAL_FUEL_MARKUP.
  * Truckload fuel does not use this list.
  */
 
 /** @type {number | null} */
-export const LTL_GENERAL_FUEL_MARKUP = null;
+export const LTL_GENERAL_FUEL_MARKUP = 41.5;
 
 /**
  * @typedef {{ carrier: string, equipment: string, percent: number | null }} LtlFuelRow
@@ -142,6 +141,22 @@ const LTL_FUEL_INDEX = new Map(
 );
 
 /**
+ * Equipment that uses the LTL carrier percents.
+ * Ground expedite and cargo van are included. The equipment name on the line stays as written.
+ * @param {unknown} raw
+ */
+export function isLtlMarketEquipment(raw) {
+  const text = String(raw ?? "").trim().toUpperCase().replace(/\s+/g, " ");
+  return (
+    /\bLTL\b/.test(text) ||
+    text.includes("LESS THAN TRUCKLOAD") ||
+    text.includes("LESS-THAN-TRUCKLOAD") ||
+    text.includes("GROUND EXPEDITE") ||
+    text.includes("CARGO VAN")
+  );
+}
+
+/**
  * @param {unknown} equipment
  */
 function equipmentKey(equipment) {
@@ -153,10 +168,7 @@ function equipmentKey(equipment) {
  * @param {unknown} equipment
  */
 function fuelEquipmentKey(equipment) {
-  const text = equipmentKey(equipment);
-  if (/\bLTL\b/.test(text) || text.includes("LESS THAN TRUCKLOAD") || text.includes("LESS-THAN-TRUCKLOAD")) {
-    return "LTL";
-  }
+  if (isLtlMarketEquipment(equipment)) return "LTL";
   return "";
 }
 
@@ -228,7 +240,11 @@ export function ltlMarkupCatalog() {
     ...LTL_CARRIER_ROWS.map((row) => ({
       ...row,
       equipment: "LTL",
-      fuelPercent: fuelByCarrier.get(carrierKey(row.name)) ?? null,
+      fuelPercent: row.dynamic
+        ? null
+        : fuelByCarrier.has(carrierKey(row.name))
+          ? fuelByCarrier.get(carrierKey(row.name))
+          : LTL_GENERAL_FUEL_MARKUP,
     })),
     ...LTL_FUEL_ROWS.filter((row) => !freightNames.has(carrierKey(row.carrier))).map((row) => ({
       name: row.carrier,

@@ -907,6 +907,12 @@ html[data-theme="yule-night"] .yule-scene {
   padding: 0.45rem 0.7rem;
   font-size: 0.78rem;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.chip-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .icon-btn {

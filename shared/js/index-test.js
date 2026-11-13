@@ -10,9 +10,9 @@ import {
   initDalkoPortal,
   setInsightsView,
   setEmbeddedInsightHide,
-} from "../../portals/dalko/js/app.js?v=20261001-loadsinside";
+} from "../../portals/dalko/js/app.js?v=20261112-fit";
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
-import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20260918-home";
+import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20261112-fit";
 import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261111-shore";
 import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261112-phinia";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";

@@ -1,9 +1,9 @@
 import { formatCell, fmtMoney, fmtPct, fmtInt } from "./format.js";
 import { attachTableSort, setSortValue } from "./table-sort.js";
-import { CHANGELOG_TEXT } from "../changelog.js?v=20260918-home";
+import { CHANGELOG_TEXT } from "../changelog.js?v=20261112-fit";
 import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js?v=20260922-corp2";
 import { navTitle } from "./nav.js?v=20260923-reports";
-import { renderReportsView, teardownExecReport } from "./report.js?v=20261001-nohier";
+import { renderReportsView, teardownExecReport } from "./report.js?v=20261112-fit";
 import { aggregateMonthRows } from "../analytics/accessorials.js?v=20261005-opcarrier";
 import { hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
 import { renderFocusBuilder } from "./focus-builder.js?v=20261001-focusbold";

@@ -351,25 +351,27 @@ function analyzeCustomers(rows, maps) {
     data[client].profit += safeFloat(getValue(row, "PROFIT", maps));
     data[client].loads++;
   }
+  const ranked = Object.entries(data)
+    .sort((a, b) => b[1].revenue - a[1].revenue)
+    .map(([name, d]) => ({
+      focusValue: name,
+      cells: [
+        name.length > 40 ? `${name.slice(0, 37)}…` : name,
+        d.revenue,
+        d.cost,
+        d.profit,
+        d.revenue > 0 ? (d.profit / d.revenue) * 100 : 0,
+        d.loads,
+        d.loads ? d.profit / d.loads : 0,
+      ],
+      formats: ["text", "money", "money", "money", "pct", "int", "money"],
+    }));
   return {
     focusColumn: "CLIENT NAME",
     columns: ["Customer", "Revenue", "Cost", "Profit", "Margin %", "Loads", "Avg profit/load"],
-    rows: Object.entries(data)
-      .sort((a, b) => b[1].revenue - a[1].revenue)
-      .slice(0, 50)
-      .map(([name, d]) => ({
-        focusValue: name,
-        cells: [
-          name.length > 40 ? `${name.slice(0, 37)}…` : name,
-          d.revenue,
-          d.cost,
-          d.profit,
-          d.revenue > 0 ? (d.profit / d.revenue) * 100 : 0,
-          d.loads,
-          d.loads ? d.profit / d.loads : 0,
-        ],
-        formats: ["text", "money", "money", "money", "pct", "int", "money"],
-      })),
+    // Full revenue ranking so Export Report can take a true bottom 5.
+    ranked,
+    rows: ranked.slice(0, 50),
   };
 }
 
@@ -449,6 +451,27 @@ function analyzeCarriers(rows, maps) {
     totalWithData += p.total;
   }
 
+  const carrierRanked = Object.entries(data)
+    .sort((a, b) => b[1].revenue - a[1].revenue)
+    .map(([name, d]) => {
+      const profit = d.revenue - d.cost;
+      return {
+        focusValue: name,
+        cells: [
+          name.length > 40 ? `${name.slice(0, 37)}…` : name,
+          d.revenue,
+          d.cost,
+          profit,
+          d.revenue > 0 ? (profit / d.revenue) * 100 : 0,
+          d.loads,
+          d.miles,
+          d.miles > 0 ? d.revenue / d.miles : 0,
+          d.miles > 0 ? d.cost / d.miles : 0,
+          d.miles > 0 ? profit / d.miles : 0,
+        ],
+        formats: ["text", "money", "money", "money", "pct", "int", "int", "money2", "money2", "money2"],
+      };
+    });
   const profitability = {
     focusColumn: "CARRIER NAME1",
     columns: [
@@ -463,28 +486,8 @@ function analyzeCarriers(rows, maps) {
       "Cost/mile",
       "Profit/mile",
     ],
-    rows: Object.entries(data)
-      .sort((a, b) => b[1].revenue - a[1].revenue)
-      .slice(0, 50)
-      .map(([name, d]) => {
-        const profit = d.revenue - d.cost;
-        return {
-          focusValue: name,
-          cells: [
-            name.length > 40 ? `${name.slice(0, 37)}…` : name,
-            d.revenue,
-            d.cost,
-            profit,
-            d.revenue > 0 ? (profit / d.revenue) * 100 : 0,
-            d.loads,
-            d.miles,
-            d.miles > 0 ? d.revenue / d.miles : 0,
-            d.miles > 0 ? d.cost / d.miles : 0,
-            d.miles > 0 ? profit / d.miles : 0,
-          ],
-          formats: ["text", "money", "money", "money", "pct", "int", "int", "money2", "money2", "money2"],
-        };
-      }),
+    ranked: carrierRanked,
+    rows: carrierRanked.slice(0, 50),
   };
 
   const performance = {
