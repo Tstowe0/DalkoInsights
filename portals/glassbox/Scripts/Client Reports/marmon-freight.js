@@ -246,8 +246,8 @@ export async function readZipText(bytes, name) {
   return new TextDecoder().decode(raw);
 }
 
-/** Truck Ordered Not Used, or the whole word TONU, in any letter case. */
-const UNUSED_TRUCK_TEXT = /TRUCK\s+ORDERED\s+NOT\s+USED|\bTONU\b/i;
+/** Truck Ordered Not Used, Truck Order And Not Used, Truck Order & Not Used, or the whole word TONU. Any letter case. */
+const UNUSED_TRUCK_TEXT = /TRUCK\s+ORDERED\s+NOT\s+USED|TRUCK\s+ORDER\s+(?:AND|&)\s+NOT\s+USED|\bTONU\b/i;
 
 /**
  * @param {unknown} value
@@ -257,7 +257,7 @@ export function isUnusedTruckText(value) {
 }
 
 /**
- * Sheet rows whose equipment or accessorial description is Truck Ordered Not Used or TONU.
+ * Sheet rows whose equipment or accessorial description is an unused truck or TONU.
  * Those lines are left out of the Marmon report.
  * @param {object} sheet SheetJS worksheet
  * @param {{ utils: { decode_range: Function, encode_cell: Function } }} XLSX
