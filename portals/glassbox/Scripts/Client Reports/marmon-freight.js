@@ -725,14 +725,18 @@ function money(value) {
 
 /**
  * Trip linehaul and trip fuel from one DAT rateResponses item.
+ * DAT's linehaul includes the fuel, so Dat Freight is the linehaul minus that fuel.
+ * Dat Fuel stays the fuel DAT returned. A missing fuel amount is not subtracted.
  * @param {object | undefined} item
  */
 export function datMoney(item) {
   const rate = item?.response?.rate;
-  return {
-    freight: money(rate?.perTrip?.rateUsd),
-    fuel: money(rate?.averageFuelSurchargePerTripUsd),
-  };
+  const fuel = money(rate?.averageFuelSurchargePerTripUsd);
+  let freight = money(rate?.perTrip?.rateUsd);
+  if (typeof freight === "number" && typeof fuel === "number") {
+    freight = Math.round((freight - fuel) * 100) / 100;
+  }
+  return { freight, fuel };
 }
 
 /**
