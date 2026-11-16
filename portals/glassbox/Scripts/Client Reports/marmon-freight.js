@@ -246,6 +246,53 @@ export async function readZipText(bytes, name) {
   return new TextDecoder().decode(raw);
 }
 
+/** Truck Ordered Not Used, or the whole word TONU, in any letter case. */
+const UNUSED_TRUCK_TEXT = /TRUCK\s+ORDERED\s+NOT\s+USED|\bTONU\b/i;
+
+/**
+ * @param {unknown} value
+ */
+export function isUnusedTruckText(value) {
+  return UNUSED_TRUCK_TEXT.test(String(value ?? ""));
+}
+
+/**
+ * Sheet rows whose equipment or accessorial description is Truck Ordered Not Used or TONU.
+ * Those lines are left out of the Marmon report.
+ * @param {object} sheet SheetJS worksheet
+ * @param {{ utils: { decode_range: Function, encode_cell: Function } }} XLSX
+ * @returns {Set<number>}
+ */
+export function unusedTruckSheetRows(sheet, XLSX) {
+  /** @type {Set<number>} */
+  const found = new Set();
+  const ref = sheet?.["!ref"];
+  if (!ref) return found;
+  const range = XLSX.utils.decode_range(ref);
+  /** @type {string[]} */
+  const headers = [];
+  for (let c = range.s.c; c <= range.e.c; c++) {
+    const cell = sheet[XLSX.utils.encode_cell({ r: range.s.r, c })];
+    headers.push(String(cell?.v ?? "").trim());
+  }
+  /** @type {number[]} */
+  const cols = [];
+  headers.forEach((name, index) => {
+    const key = name.toUpperCase().replace(/\s+/g, "");
+    if (key === "EQUIPMENT" || /^ACCESSORIAL\d+$/.test(key)) cols.push(range.s.c + index);
+  });
+  if (!cols.length) return found;
+  for (let r = range.s.r + 1; r <= range.e.r; r++) {
+    for (const col of cols) {
+      const cell = sheet[XLSX.utils.encode_cell({ r, c: col })];
+      if (!isUnusedTruckText(cell?.v)) continue;
+      found.add(r);
+      break;
+    }
+  }
+  return found;
+}
+
 /** Ferroworks Daily Shipment Report columns, mapped from a TMS data dump. */
 const FERRO_COLUMNS = [
   ["Client", ["CLIENT NAME"]],
@@ -695,6 +742,7 @@ function historicRatePeriod(value, now = new Date()) {
  * @returns {{ key: string, request: object } | null}
  */
 export function datLane(row) {
+  if (isUnusedTruckText(row[FERRO_COL.Eqpt])) return null;
   if (isTranscoEdmontonLoop(row[FERRO_COL.Client], row[FERRO_COL["Origin City"]], row[FERRO_COL["Destination City"]], row[FERRO_COL["Total Miles"]])) {
     return null;
   }

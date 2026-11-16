@@ -1,9 +1,9 @@
-import { mountFileTool } from "../_shared/file-ui.js?v=20261116-databout";
+import { mountFileTool } from "../_shared/file-ui.js?v=20261116-tonudat";
 import { ensureXlsx, readFileBuffer, readCellA1, downloadBlob } from "../_shared/excel.js";
 import { prevMonthNameYear } from "../_shared/mailto.js";
 import { prevMonthRange } from "../_shared/report-helpers.js";
 import { closeProgress, updateProgress } from "../../../../shared/js/dialog.js?v=20261007-progress";
-import { MARMON_TABS, applyDumpMiles, applyLtlDumpFreight, applyMissingFuelShare, applyMissingLoadFuel, applyOtherEquipmentLoads, applyOtherEquipmentRates, applyTranscoEdmontonLoads, applyTranscoEdmontonRates, applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, utlxRateRows } from "./marmon-freight.js?v=20261116-databout";
+import { MARMON_TABS, applyDumpMiles, applyLtlDumpFreight, applyMissingFuelShare, applyMissingLoadFuel, applyOtherEquipmentLoads, applyOtherEquipmentRates, applyTranscoEdmontonLoads, applyTranscoEdmontonRates, applyUtlxDatFreight, buildMarmonPackage, fillDatRates, fillMissingMiles, ferroRowsToXml, readFerroRows, readUtlxLoads, unusedTruckSheetRows, utlxRateRows } from "./marmon-freight.js?v=20261116-tonudat";
 import { ltlMarkupCatalog, markupLabel } from "./marmon-ltl-markups.js?v=20261113-datfallback";
 
 export const meta = {
@@ -69,6 +69,8 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
   let utlxLoads;
   /** @type {object | undefined} */
   let dumpSheet;
+  /** @type {Set<number>} */
+  let unusedTrucks = new Set();
   if (needsDump || needsUtlx || needsFuel) {
     await onProgress?.({
       step: "read",
@@ -82,13 +84,16 @@ export async function buildMarmonWorkbook(buffer, include, onProgress, includeDa
     const dumpWb = XLSX.read(buffer, { type: "array", cellDates: true });
     dumpSheet = dumpWb.Sheets[dumpWb.SheetNames[0]];
     if (!dumpSheet) throw new Error("The data dump has no worksheet.");
+    unusedTrucks = unusedTruckSheetRows(dumpSheet, XLSX);
     if (needsUtlx || needsFuel || needsDump) utlxLoads = readUtlxLoads(dumpSheet, XLSX);
+    if (utlxLoads) utlxLoads = utlxLoads.filter((load) => !unusedTrucks.has(load.sheetRow));
     if (utlxLoads) await fillMissingMiles(utlxLoads, onProgress);
   }
   /** @type {unknown[][] | undefined} */
   let rows;
   if (needsDump && dumpSheet) rows = readFerroRows(dumpSheet, globalThis.XLSX);
   else if ((needsUtlx || needsFuel) && includeDat && utlxLoads) rows = utlxRateRows(utlxLoads);
+  if (rows && unusedTrucks.size) rows = rows.filter((row) => !unusedTrucks.has(row.sheetRow));
   if (rows) applyMissingFuelShare(rows);
   if (utlxLoads) applyMissingLoadFuel(utlxLoads);
   if (rows && includeDat) {
