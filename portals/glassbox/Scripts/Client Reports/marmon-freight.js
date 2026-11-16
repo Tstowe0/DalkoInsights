@@ -246,14 +246,62 @@ export async function readZipText(bytes, name) {
   return new TextDecoder().decode(raw);
 }
 
-/** Truck Ordered Not Used, Truck Order And Not Used, Truck Order & Not Used, or the whole word TONU. Any letter case. */
-const UNUSED_TRUCK_TEXT = /TRUCK\s+ORDERED\s+NOT\s+USED|TRUCK\s+ORDER\s+(?:AND|&)\s+NOT\s+USED|\bTONU\b/i;
+/** Unused truck phrases, or the whole word TONU. Any letter case. */
+const UNUSED_TRUCK_TEXT = /TRUCK\s+ORDER(?:ED)?\s+(?:(?:AND|&)\s+)?NOT\s+USED|\bTONU\b/i;
 
 /**
  * @param {unknown} value
  */
 export function isUnusedTruckText(value) {
   return UNUSED_TRUCK_TEXT.test(String(value ?? ""));
+}
+
+/**
+ * Equipment and ACCESSORIALn columns, using the sheet's real column index.
+ * @param {string[]} headers
+ * @param {number} startCol
+ * @returns {number[]}
+ */
+function unusedTruckColumnIndexes(headers, startCol) {
+  /** @type {number[]} */
+  const cols = [];
+  headers.forEach((name, index) => {
+    const key = String(name ?? "").toUpperCase().replace(/\s+/g, "");
+    if (key === "EQUIPMENT" || /^ACCESSORIAL\d+$/.test(key)) cols.push(startCol + index);
+  });
+  return cols;
+}
+
+/**
+ * @param {object} sheet
+ * @param {{ utils: { encode_cell: Function } }} XLSX
+ * @param {number} row
+ * @param {number[]} cols
+ */
+function rowIsUnusedTruck(sheet, XLSX, row, cols) {
+  for (const col of cols) {
+    const cell = sheet[XLSX.utils.encode_cell({ r: row, c: col })];
+    if (isUnusedTruckText(cell?.v) || isUnusedTruckText(cell?.w)) return true;
+  }
+  return false;
+}
+
+/**
+ * Delete unused-truck rows from the dump before any report step reads them.
+ * @param {object} sheet
+ * @param {{ utils: { decode_range: Function, encode_cell: Function } }} XLSX
+ * @returns {number}
+ */
+export function removeUnusedTruckRows(sheet, XLSX) {
+  const rows = unusedTruckSheetRows(sheet, XLSX);
+  if (!rows.size || !sheet?.["!ref"]) return 0;
+  const range = XLSX.utils.decode_range(sheet["!ref"]);
+  for (const row of rows) {
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      delete sheet[XLSX.utils.encode_cell({ r: row, c })];
+    }
+  }
+  return rows.size;
 }
 
 /**
@@ -275,20 +323,10 @@ export function unusedTruckSheetRows(sheet, XLSX) {
     const cell = sheet[XLSX.utils.encode_cell({ r: range.s.r, c })];
     headers.push(String(cell?.v ?? "").trim());
   }
-  /** @type {number[]} */
-  const cols = [];
-  headers.forEach((name, index) => {
-    const key = name.toUpperCase().replace(/\s+/g, "");
-    if (key === "EQUIPMENT" || /^ACCESSORIAL\d+$/.test(key)) cols.push(range.s.c + index);
-  });
+  const cols = unusedTruckColumnIndexes(headers, range.s.c);
   if (!cols.length) return found;
   for (let r = range.s.r + 1; r <= range.e.r; r++) {
-    for (const col of cols) {
-      const cell = sheet[XLSX.utils.encode_cell({ r, c: col })];
-      if (!isUnusedTruckText(cell?.v)) continue;
-      found.add(r);
-      break;
-    }
+    if (rowIsUnusedTruck(sheet, XLSX, r, cols)) found.add(r);
   }
   return found;
 }
@@ -1136,9 +1174,10 @@ export function applyLtlDumpFreight(rows) {
  * Dat Freight and Dat Fuel are blank until fillDatRates runs.
  * @param {object} sheet SheetJS worksheet
  * @param {{ utils: { decode_range: Function, encode_cell: Function } }} XLSX
+ * @param {{ omitUnusedTrucks?: boolean }} [options]
  * @returns {unknown[][]}
  */
-export function readFerroRows(sheet, XLSX) {
+export function readFerroRows(sheet, XLSX, options = {}) {
   const ref = sheet?.["!ref"];
   if (!ref) throw new Error("The data dump has no worksheet.");
   const range = XLSX.utils.decode_range(ref);
@@ -1173,10 +1212,12 @@ export function readFerroRows(sheet, XLSX) {
   const fuelCols = ["SELL FUEL1", "SELL FUEL2"].map((name) => locate([name]));
   const totalFreight = FERRO_COL["Total Freight"];
   const totalFuel = FERRO_COL["Total Fuel"];
+  const unusedCols = options.omitUnusedTrucks ? unusedTruckColumnIndexes(headers, range.s.c) : [];
 
   /** @type {unknown[][]} */
   const data = [];
   for (let r = range.s.r + 1; r <= range.e.r; r++) {
+    if (unusedCols.length && rowIsUnusedTruck(sheet, XLSX, r, unusedCols)) continue;
     const row = sources.map((col) => {
       if (col < 0) return "";
       const cell = sheet[XLSX.utils.encode_cell({ r, c: col })];
@@ -1261,9 +1302,11 @@ export function readUtlxLoads(sheet, XLSX) {
   }
   const textAt = (row, col) =>
     col < 0 ? "" : String(sheet[XLSX.utils.encode_cell({ r: row, c: col })]?.v ?? "").trim();
+  const unusedCols = unusedTruckColumnIndexes(headers, range.s.c);
   /** @type {UtlxLoad[]} */
   const loads = [];
   for (let r = range.s.r + 1; r <= range.e.r; r++) {
+    if (rowIsUnusedTruck(sheet, XLSX, r, unusedCols)) continue;
     const client = textAt(r, clientCol);
     const section = sectionForClient(client);
     if (!section) continue;

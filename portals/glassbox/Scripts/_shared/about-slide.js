@@ -3,7 +3,7 @@
  * Matches desktop hover-slide / click-to-open behavior.
  */
 
-import { getToolAbout } from "./tool-abouts.js?v=20261116-tonuand";
+import { getToolAbout } from "./tool-abouts.js?v=20261116-stripfirst";
 
 /**
  * @param {string} value
