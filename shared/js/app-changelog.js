@@ -12,6 +12,14 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Integrations checks DALKO CRM at mycrm.shipdalko.com. The tile shows Running when the site answers and Offline when it does not.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "Phinia Shipment Upload has a Default Carrier dropdown. It starts blank, which leaves the output Carrier column blank. Choosing R&L CARRIERS fills every row for Run and Save Locally and Run and Send To TMS.",
     ],
   },
