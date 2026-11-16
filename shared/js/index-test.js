@@ -90,6 +90,7 @@ GROUP_FOR["integrations-entra"] = "settings";
 GROUP_FOR["integrations-currency"] = "settings";
 GROUP_FOR["integrations-zip"] = "settings";
 GROUP_FOR["integrations-fmcsa"] = "settings";
+GROUP_FOR["integrations-crm"] = "settings";
 GROUP_FOR["integrations-ftp"] = "settings";
 GROUP_FOR.themes = "settings";
 GROUP_FOR.permissions = "settings";
@@ -107,6 +108,7 @@ const TITLES = {
   "integrations-currency": "Currency Converter",
   "integrations-zip": "Zip Calculator",
   "integrations-fmcsa": "FMCSA QCMobile",
+  "integrations-crm": "DALKO CRM",
   "integrations-ftp": "File transfer",
   themes: "Themes",
   permissions: "Permissions",
@@ -441,6 +443,13 @@ function renderIntegrationsHtml() {
       </header>
 
       <section class="integ-section">
+        <h2>CRM</h2>
+        <div class="integ-grid">
+          ${integTile("crm", "DALKO CRM", "Server status for mycrm.shipdalko.com")}
+        </div>
+      </section>
+
+      <section class="integ-section">
         <h2>Identity</h2>
         <div class="integ-grid">
           ${integTile("entra", "Microsoft Entra / Graph", "Dalko sign-in. Also confirms who may reveal DAT secrets.")}
@@ -688,6 +697,24 @@ function paintFileTransferGrid() {
     });
   });
   ftpUnits.forEach((unit) => paintIntegHealth(ftpStatusId(unit)));
+}
+
+function renderCrmHtml() {
+  return `
+    <div class="page-canvas integ-page">
+      ${integHead("DALKO CRM", "mycrm.shipdalko.com", "crm")}
+      ${integBlock(
+        "Info",
+        integCred("App", "DALKO CRM") + integCred("Check", "The site answers")
+      )}
+      ${integBlock(
+        "Environment",
+        integCred("Site", "https://mycrm.shipdalko.com") +
+          integCred("Health", "https://mycrm.shipdalko.com/api/health")
+      )}
+      ${integBlock("Credentials", integCred("Auth", "None for the status check"))}
+      ${integLab("crm", "mycrm.shipdalko.com")}
+    </div>`;
 }
 
 function renderFmcsaHtml() {
@@ -1074,6 +1101,7 @@ const INTEG_NAMES = {
   entra: "Microsoft Entra / Graph",
   dat: "DAT RateView",
   fmcsa: "FMCSA QCMobile",
+  crm: "DALKO CRM",
   ftp: "File transfer",
   currency: "Currency Converter",
   zip: "Zip Calculator",
@@ -1089,6 +1117,7 @@ const integLabs = {
   fmcsa: { idle: "Look up USDOT 44110.", busy: "Checking USDOT 44110…", html: "" },
   currency: { idle: "Load the USD book.", busy: "Checking USD…", html: "" },
   zip: { idle: "Look up 16150.", busy: "Checking 16150…", html: "" },
+  crm: { idle: "Check mycrm.shipdalko.com.", busy: "Checking the CRM…", html: "" },
 };
 
 function labLine(text) {
@@ -1195,6 +1224,39 @@ async function probeEntra() {
   } catch {
     integLabs.entra.html = labLine("Could not reach Microsoft Graph.");
     setIntegHealth("entra", "failed", "Failed", "Could not reach Microsoft Graph.");
+  }
+}
+
+const CRM_ORIGIN = "https://mycrm.shipdalko.com";
+
+async function probeCrm() {
+  setIntegHealth("crm", "testing", "Checking");
+  const started = performance.now();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    let answered = false;
+    try {
+      const res = await fetch(`${CRM_ORIGIN}/api/health`, {
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => null);
+      answered = Boolean(res.ok && data?.ok === true);
+    } catch {
+      answered = false;
+    }
+    if (!answered) {
+      await fetch(CRM_ORIGIN, { mode: "no-cors", cache: "no-store", signal: controller.signal });
+    }
+    const ms = Math.round(performance.now() - started);
+    integLabs.crm.html = labLane("DALKO CRM", `Answered in ${ms.toLocaleString()} ms`);
+    setIntegHealth("crm", "healthy", "Running", `mycrm.shipdalko.com · ${ms.toLocaleString()} ms`);
+  } catch {
+    integLabs.crm.html = labLine("Could not reach https://mycrm.shipdalko.com.");
+    setIntegHealth("crm", "failed", "Offline", "Could not reach https://mycrm.shipdalko.com.");
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -1343,12 +1405,14 @@ async function probeAllIntegrations() {
     setIntegHealth("fmcsa", "testing", "Checking");
     setIntegHealth("currency", "testing", "Checking");
     setIntegHealth("zip", "testing", "Checking");
+    setIntegHealth("crm", "testing", "Checking");
     await Promise.all([
       probeEntra(),
       testDatConnection(),
       probeFmcsa(),
       probeCurrency(),
       probeZip(),
+      probeCrm(),
       allowsMenu("integrations-ftp") ? probeFtpServices() : Promise.resolve(),
     ]);
   })().finally(() => {
@@ -1476,6 +1540,7 @@ function renderSettingsHtml() {
   if (shellView === "integrations-currency") return renderCurrencyHtml();
   if (shellView === "integrations-zip") return renderZipHtml();
   if (shellView === "integrations-fmcsa") return renderFmcsaHtml();
+  if (shellView === "integrations-crm") return renderCrmHtml();
   if (isFtpServiceView(shellView)) return renderFtpServiceHtml();
   if (shellView === "integrations") return renderIntegrationsHtml();
   return renderChangelogHtml();
@@ -1700,12 +1765,14 @@ function paintSettings() {
   document.getElementById("fmcsa-test")?.addEventListener("click", () => void probeFmcsa());
   document.getElementById("currency-test")?.addEventListener("click", () => void probeCurrency());
   document.getElementById("zip-test")?.addEventListener("click", () => void probeZip());
+  document.getElementById("crm-test")?.addEventListener("click", () => void probeCrm());
   Object.keys(integStatus).forEach((id) => paintIntegHealth(id));
   if (shellView === "integrations") paintFileTransferGrid();
   if (shellView === "integrations-entra") paintEntraBoard();
   if (shellView === "integrations-fmcsa") paintIntegLab("fmcsa");
   if (shellView === "integrations-currency") paintIntegLab("currency");
   if (shellView === "integrations-zip") paintIntegLab("zip");
+  if (shellView === "integrations-crm") paintIntegLab("crm");
   if (isFtpServiceView(shellView)) {
     const unit = ftpUnitFromView(shellView);
     if (unit) paintIntegLab(ftpStatusId(unit));
@@ -1822,6 +1889,7 @@ function isSettingsView(id) {
     id === "integrations-currency" ||
     id === "integrations-zip" ||
     id === "integrations-fmcsa" ||
+    id === "integrations-crm" ||
     isFtpServiceView(id) ||
     id === "themes" ||
     id === "permissions"
