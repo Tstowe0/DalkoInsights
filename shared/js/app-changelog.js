@@ -12,7 +12,7 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
-      "Integrations checks DALKO CRM at mycrm.shipdalko.com. The tile shows Running when the site answers and Offline when it does not.",
+      "Integrations checks DALKO CRM at mycrm.shipdalko.com/api/health every 60 seconds. The tile shows Running only when that check returns ok, and Offline when the CRM does not.",
     ],
   },
   {

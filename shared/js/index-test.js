@@ -14,7 +14,7 @@ import {
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20261112-fit";
 import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261111-shore";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261116-crmlog";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261116-crmwatch";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
@@ -705,7 +705,7 @@ function renderCrmHtml() {
       ${integHead("DALKO CRM", "mycrm.shipdalko.com", "crm")}
       ${integBlock(
         "Info",
-        integCred("App", "DALKO CRM") + integCred("Check", "The site answers")
+        integCred("App", "DALKO CRM") + integCred("Check", "Every 60 seconds")
       )}
       ${integBlock(
         "Environment",
@@ -1063,6 +1063,7 @@ async function onAuthAction() {
     revealApp();
     void probeAllIntegrations();
   } else {
+    stopCrmWatch();
     lockApp();
     setSplashReady(true);
   }
@@ -1169,10 +1170,14 @@ function paintIntegHealth(id) {
 }
 
 function setIntegHealth(id, kind, label, detail) {
-  integStatus[id] = { kind, label, detail: detail || "" };
+  const prev = integStatus[id];
+  const nextDetail = detail || "";
+  integStatus[id] = { kind, label, detail: nextDetail };
   paintIntegHealth(id);
   paintIntegLab(id);
-  if (kind !== "testing") paintAlerts();
+  if (kind === "testing") return;
+  const alertSame = prev && prev.kind === kind && (kind === "healthy" || prev.detail === nextDetail);
+  if (!alertSame) paintAlerts();
 }
 
 function integAlerts() {
@@ -1228,33 +1233,56 @@ async function probeEntra() {
 }
 
 const CRM_ORIGIN = "https://mycrm.shipdalko.com";
+const CRM_RECHECK_MS = 60_000;
+/** @type {number} */
+let crmWatch = 0;
+/** @type {Promise<void> | null} */
+let crmProbe = null;
 
-async function probeCrm() {
-  setIntegHealth("crm", "testing", "Checking");
+function startCrmWatch() {
+  if (crmWatch) return;
+  crmWatch = window.setInterval(() => {
+    void probeCrm({ quiet: true });
+  }, CRM_RECHECK_MS);
+}
+
+function stopCrmWatch() {
+  if (!crmWatch) return;
+  window.clearInterval(crmWatch);
+  crmWatch = 0;
+}
+
+async function probeCrm({ quiet = false } = {}) {
+  if (crmProbe) return crmProbe;
+  crmProbe = runCrmProbe(quiet).finally(() => {
+    crmProbe = null;
+  });
+  return crmProbe;
+}
+
+async function runCrmProbe(quiet) {
+  startCrmWatch();
+  if (!quiet) setIntegHealth("crm", "testing", "Checking");
   const started = performance.now();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    let answered = false;
-    try {
-      const res = await fetch(`${CRM_ORIGIN}/api/health`, {
-        cache: "no-store",
-        signal: controller.signal,
-      });
-      const data = await res.json().catch(() => null);
-      answered = Boolean(res.ok && data?.ok === true);
-    } catch {
-      answered = false;
-    }
-    if (!answered) {
-      await fetch(CRM_ORIGIN, { mode: "no-cors", cache: "no-store", signal: controller.signal });
+    const res = await fetch(`${CRM_ORIGIN}/api/health`, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || data?.ok !== true) {
+      integLabs.crm.html = labLine("DALKO CRM is not running.");
+      setIntegHealth("crm", "failed", "Offline", "DALKO CRM is not running.");
+      return;
     }
     const ms = Math.round(performance.now() - started);
     integLabs.crm.html = labLane("DALKO CRM", `Answered in ${ms.toLocaleString()} ms`);
     setIntegHealth("crm", "healthy", "Running", `mycrm.shipdalko.com · ${ms.toLocaleString()} ms`);
   } catch {
-    integLabs.crm.html = labLine("Could not reach https://mycrm.shipdalko.com.");
-    setIntegHealth("crm", "failed", "Offline", "Could not reach https://mycrm.shipdalko.com.");
+    integLabs.crm.html = labLine("DALKO CRM is not running.");
+    setIntegHealth("crm", "failed", "Offline", "DALKO CRM is not running.");
   } finally {
     clearTimeout(timer);
   }
