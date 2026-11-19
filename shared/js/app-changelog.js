@@ -12,7 +12,7 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
-      "Oceanic Night pairs hot pink and cyan accents with a coastal skyline, silhouetted palms, and the occasional bird at dusk.",
+      "Oceanic Night is a new dynamic theme. Above the console, the shore runs a day and night cycle: daylight gives way to a dark sky and city lights. Palms stand on the skyline, and a bird soars past now and then.",
     ],
   },
   {

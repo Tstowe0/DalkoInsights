@@ -17,7 +17,7 @@ import { hallowedNightScene } from "./themes/hallowed-night.js";
 import { oceanicNightScene } from "./themes/oceanic-night.js";
 import { yuleNightScene } from "./themes/yule-night.js";
 import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261119-theme-files";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261119-goldpalms";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261119-oceanic-log";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
