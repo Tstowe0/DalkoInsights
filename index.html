@@ -8,13 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="shared/css/theme.css?v=20261111-shore" />
+  <link rel="stylesheet" href="shared/css/theme.css?v=20261119-theme-files" />
   <link rel="stylesheet" href="portals/dalko/css/portal.css?v=20261001-focusbold" />
   <link rel="stylesheet" href="portals/glassbox/css/portal.css?v=20261113-gri4" />
-  <link rel="stylesheet" href="shared/css/index-test.css?v=20261112-export" />
+  <link rel="stylesheet" href="shared/css/index-test.css?v=20261119-theme-files" />
   <script>
     try {
       var themeId = localStorage.getItem("dalko-shell-theme");
+      if (themeId === "gta-6") themeId = "oceanic-night";
       var known = {
         harbor: 1,
         daybreak: 1,
@@ -27,6 +28,7 @@
         "ember-forge": 1,
         "graphite-lime": 1,
         "slate-coral": 1,
+        "oceanic-night": 1,
         "hallowed-night": 1,
         "yule-night": 1,
       };
@@ -153,27 +155,6 @@
       </nav>
 
       <div class="sidebar-cal-wrap">
-        <div class="hallow-tombs" aria-hidden="true">
-          <span class="hallow-tomb hallow-tomb-a"><i></i></span>
-          <span class="hallow-tomb hallow-tomb-b"><i></i></span>
-          <span class="hallow-tomb hallow-tomb-c"><i></i></span>
-          <span class="hallow-pumpkin"></span>
-        </div>
-        <div class="yule-scene" aria-hidden="true">
-          <span class="yule-gift yule-gift-a"></span>
-          <span class="yule-tree-mark">
-            <span class="yule-star"></span>
-            <span class="yule-layer yule-l1"></span>
-            <span class="yule-layer yule-l2"></span>
-            <span class="yule-layer yule-l3"></span>
-            <span class="yule-orn yule-orn-a"></span>
-            <span class="yule-orn yule-orn-b"></span>
-            <span class="yule-orn yule-orn-c"></span>
-            <span class="yule-trunk"></span>
-          </span>
-          <span class="yule-gift yule-gift-b"></span>
-          <span class="yule-gift yule-gift-c"></span>
-        </div>
         <button type="button" class="sidebar-console" id="gb-btn-console" aria-pressed="false">Console</button>
       </div>
     </aside>
@@ -237,6 +218,6 @@
 
   <script src="shared/vendor/xlsx-js-style.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script type="module" src="shared/js/index-test.js?v=20261116-crmwatch"></script>
+  <script type="module" src="shared/js/index-test.js?v=20261119-theme-files"></script>
 </body>
 </html>

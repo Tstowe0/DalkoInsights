@@ -1,0 +1,118 @@
+/* —— Alternate: cool steel / ocean —— */
+[data-theme="ocean-steel"] {
+  --bg: #041018;
+  --bg-elevated: #071820;
+  --bg-main: #06141c;
+  --card: #0b1c28;
+  --card-elevated: #102636;
+  --card-hover: #163246;
+  --card-border: rgba(180, 220, 240, 0.1);
+  --card-border-gold: rgba(94, 184, 210, 0.35);
+  --card-border-strong: #1a3a4c;
+  --accent: #5eb8d2;
+  --accent-bright: #8fd4e8;
+  --accent-deep: #3a8eaa;
+  --accent-orange: #6ec4c0;
+  --accent-dim: rgba(94, 184, 210, 0.14);
+  --accent-glow: rgba(143, 212, 232, 0.35);
+  --accent-hover: #a8e0f0;
+  --accent-muted: #6a9aab;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #5eb8d2;
+  --accent-blue: #5a9fc4;
+  --accent-purple: #6a8a9a;
+  --on-accent: #041018;
+  --text: #f2f8fb;
+  --text-muted: #8eafc0;
+  --text-soft: #c5d8e2;
+  --gold-trim: #041018;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 rgba(4, 16, 24, 0.92),
+    -1px 0 0 rgba(4, 16, 24, 0.92),
+    0 1px 0 rgba(4, 16, 24, 0.92),
+    0 -1px 0 rgba(4, 16, 24, 0.92);
+  --gold-trim-shadow-soft:
+    0 0 1px rgba(4, 16, 24, 0.75),
+    1px 0 0 rgba(4, 16, 24, 0.65),
+    -1px 0 0 rgba(4, 16, 24, 0.65),
+    0 1px 0 rgba(4, 16, 24, 0.65),
+    0 -1px 0 rgba(4, 16, 24, 0.65);
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(143, 212, 232, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(142, 175, 192, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(142, 175, 192, 0.72);
+  --type-gold-soft: rgba(142, 175, 192, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(94, 184, 210, 0.32);
+  --divider: rgba(30, 70, 90, 0.55);
+  --row-alt: rgba(12, 32, 42, 0.85);
+  --overlay: rgba(2, 10, 14, 0.72);
+  --sidebar-bg: linear-gradient(180deg, #071820 0%, #041018 100%);
+  --hairline: rgba(180, 220, 240, 0.08);
+
+  --panel-bg: rgba(8, 24, 34, 0.55);
+  --panel-bg-quiet: rgba(6, 18, 26, 0.4);
+  --panel-bg-focus: linear-gradient(160deg, rgba(16, 40, 54, 0.75) 0%, rgba(8, 22, 32, 0.88) 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(180, 220, 240, 0.05);
+  --panel-border-focus: rgba(94, 184, 210, 0.2);
+  --panel-rail: rgba(94, 184, 210, 0.4);
+  --panel-rail-quiet: rgba(142, 175, 192, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(143, 212, 232, 0.8), rgba(94, 184, 210, 0.25));
+  --panel-title: rgba(143, 212, 232, 0.9);
+  --panel-title-quiet: rgba(168, 196, 208, 0.9);
+
+  --input-bg: rgba(180, 220, 240, 0.05);
+  --input-bg-solid: #123040;
+  --input-border: rgba(180, 220, 240, 0.14);
+  --toolbar-bg: rgba(0, 0, 0, 0.22);
+  --drop-bg: rgba(94, 184, 210, 0.05);
+  --result-bg: rgba(94, 184, 210, 0.08);
+  --result-border: rgba(94, 184, 210, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(94, 184, 210, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(143, 212, 232, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(94, 184, 210, 0.55);
+  --btn-secondary-bg-hover: rgba(94, 184, 210, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(143, 212, 232, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --ink: var(--type-gold-strong);
+  --nav-fg: var(--type-gold-nav);
+  --nav-fg-muted: var(--type-gold-nav-dim);
+  --nav-fg-strong: #ffffff;
+  --nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --nav-active-bg: rgba(255, 255, 255, 0.1);
+  --nav-sub-fg: var(--type-gold-nav-dim);
+  --cal-bg: var(--card);
+  --cal-fg: var(--text);
+  --cal-muted: var(--text-muted);
+  --chart-style: classic;
+  --color-scheme: dark;
+
+  --theme-swatch-1: #041018;
+  --theme-swatch-2: #0b1c28;
+  --theme-swatch-3: #5eb8d2;
+  --theme-swatch-4: #8fd4e8;
+}
+

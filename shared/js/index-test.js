@@ -13,15 +13,18 @@ import {
 } from "../../portals/dalko/js/app.js?v=20261112-fit";
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20261112-fit";
-import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261111-shore";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261116-crmwatch";
+import { hallowedNightScene } from "./themes/hallowed-night.js";
+import { oceanicNightScene } from "./themes/oceanic-night.js";
+import { yuleNightScene } from "./themes/yule-night.js";
+import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261119-theme-files";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261119-goldpalms";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
 import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
 import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20260819-fxsweep";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261111-shore";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261119-theme-files";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261023-ttx";
 import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261023-ttx";
 import {
@@ -2024,6 +2027,10 @@ function closeMenus() {
 
 function init() {
   globalThis.__DALKO_XLSX_STYLE__ = true;
+  document.getElementById("gb-btn-console")?.insertAdjacentHTML(
+    "beforebegin",
+    hallowedNightScene + yuleNightScene + oceanicNightScene
+  );
   initTheme();
   window.addEventListener("dalko-theme", () => {
     if (shellView === "insights") setInsightsView(snap().activeView || insightsPage);

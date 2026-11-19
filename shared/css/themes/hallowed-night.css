@@ -1,0 +1,454 @@
+/* —— Hallowed Night: seasonal Halloween —— */
+[data-theme="hallowed-night"] {
+  --bg: #07040c;
+  --bg-elevated: #0e0816;
+  --bg-main: #0b0612;
+  --card: #160e22;
+  --card-elevated: #1e1430;
+  --card-hover: #271a3c;
+  --card-border: rgba(255, 176, 92, 0.12);
+  --card-border-gold: rgba(255, 122, 24, 0.4);
+  --card-border-strong: #3a2450;
+  --accent: #ff7a18;
+  --accent-bright: #ffb347;
+  --accent-deep: #c4520c;
+  --accent-orange: #ff9a32;
+  --accent-dim: rgba(255, 122, 24, 0.16);
+  --accent-glow: rgba(255, 179, 71, 0.42);
+  --accent-hover: #ffc05c;
+  --accent-muted: #c46a28;
+  --accent-red: #e23b3b;
+  --accent-green: #7dff6a;
+  --accent-yellow: #ffb347;
+  --accent-blue: #b57bff;
+  --accent-purple: #8a4dff;
+  --on-accent: #14080a;
+  --text: #f6ead8;
+  --text-muted: #b89ab0;
+  --text-soft: #e4d0c0;
+  --gold-trim: #07040c;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #07040ceb,
+    -1px 0 0 #07040ceb,
+    0 1px 0 #07040ceb,
+    0 -1px 0 #07040ceb;
+  --gold-trim-shadow-soft:
+    0 0 1px #07040cbf,
+    1px 0 0 #07040ca6,
+    -1px 0 0 #07040ca6,
+    0 1px 0 #07040ca6,
+    0 -1px 0 #07040ca6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 28px rgba(255, 122, 24, 0.28);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(246, 234, 216, 0.78);
+  --type-gold-nav-dim: rgba(184, 154, 176, 0.9);
+  --type-gold-note: rgba(246, 234, 216, 0.86);
+  --type-gold-note-dim: rgba(184, 154, 176, 0.72);
+  --type-gold-soft: rgba(184, 154, 176, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(181, 123, 255, 0.35);
+  --divider: rgba(255, 122, 24, 0.22);
+  --row-alt: #0e0816d9;
+  --overlay: #07040cc4;
+  --sidebar-bg: linear-gradient(180deg, #140a1c 0%, #07040c 100%);
+  --hairline: rgba(255, 176, 92, 0.08);
+
+  --panel-bg: #160e228f;
+  --panel-bg-quiet: #0b061266;
+  --panel-bg-focus: linear-gradient(160deg, #1e1430cc 0%, #160e22e6 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(181, 123, 255, 0.12);
+  --panel-border-focus: rgba(255, 122, 24, 0.28);
+  --panel-rail: rgba(255, 122, 24, 0.55);
+  --panel-rail-quiet: rgba(181, 123, 255, 0.4);
+  --panel-rail-focus: linear-gradient(180deg, rgba(255, 179, 71, 0.85), rgba(138, 77, 255, 0.35));
+  --panel-title: rgba(255, 179, 71, 0.95);
+  --panel-title-quiet: rgba(228, 208, 192, 0.85);
+
+  --input-bg: rgba(255, 179, 71, 0.05);
+  --input-bg-solid: #1e1430;
+  --input-border: rgba(255, 176, 92, 0.18);
+  --toolbar-bg: rgba(7, 4, 12, 0.45);
+  --drop-bg: rgba(255, 122, 24, 0.06);
+  --result-bg: rgba(181, 123, 255, 0.1);
+  --result-border: rgba(255, 122, 24, 0.32);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 16px rgba(255, 122, 24, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 24px rgba(255, 179, 71, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(181, 123, 255, 0.5);
+  --btn-secondary-bg-hover: rgba(181, 123, 255, 0.12);
+  --btn-secondary-shadow-hover: 0 0 18px rgba(181, 123, 255, 0.22);
+  --btn-ghost-bg: rgba(181, 123, 255, 0.08);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 122, 24, 0.12);
+  --btn-danger-bg: linear-gradient(180deg, #f07070 0%, var(--accent-red) 55%, #a82828 100%);
+  --btn-danger-fg: #1a0808;
+  --btn-danger-shadow: 0 2px 14px rgba(226, 59, 59, 0.4);
+
+  --ink: var(--type-gold-strong);
+  --nav-fg: var(--type-gold-nav);
+  --nav-fg-muted: var(--type-gold-nav-dim);
+  --nav-fg-strong: #fff4e4;
+  --nav-hover-bg: rgba(255, 122, 24, 0.1);
+  --nav-active-bg: rgba(181, 123, 255, 0.16);
+  --nav-sub-fg: var(--type-gold-nav-dim);
+  --cal-bg: var(--card);
+  --cal-fg: var(--text);
+  --cal-muted: var(--text-muted);
+  --chart-style: classic;
+  --color-scheme: dark;
+
+  --theme-swatch-1: #09060e;
+  --theme-swatch-2: #1a1024;
+  --theme-swatch-3: #ff7a18;
+  --theme-swatch-4: #b57bff;
+}
+
+html[data-theme="hallowed-night"] .sidebar-cal-wrap {
+  position: relative;
+  z-index: 33;
+}
+
+.hallow-tombs {
+  display: none;
+  position: relative;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.7rem;
+  height: 1.85rem;
+  margin: 0 0.35rem 0.15rem;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+html[data-theme="hallowed-night"] .hallow-tombs {
+  display: flex;
+}
+
+.hallow-tombs::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0;
+  height: 4px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #3a2a22, #1c1410);
+}
+
+.hallow-tomb {
+  position: relative;
+  width: 0.92rem;
+  background:
+    linear-gradient(180deg, #8a8490 0%, #5c5664 42%, #3a3440 100%);
+  border-radius: 0.55rem 0.55rem 0.14rem 0.14rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset -1px 0 0 rgba(0, 0, 0, 0.2),
+    0 2px 0 #1a1420;
+}
+
+.hallow-tomb i {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 42%;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(18, 12, 22, 0.45);
+  transform: translateX(-50%);
+}
+
+.hallow-tomb i::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 28%;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(18, 12, 22, 0.32);
+  transform: translateX(-50%);
+}
+
+.hallow-tomb-a {
+  height: 1.05rem;
+  width: 0.82rem;
+}
+
+.hallow-tomb-b {
+  height: 1.5rem;
+  width: 1.02rem;
+}
+
+.hallow-tomb-b i {
+  display: none;
+}
+
+.hallow-tomb-b::before,
+.hallow-tomb-b::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  background: rgba(18, 12, 22, 0.42);
+  border-radius: 1px;
+  transform: translateX(-50%);
+}
+
+.hallow-tomb-b::before {
+  top: 0.2rem;
+  width: 2px;
+  height: 0.5rem;
+}
+
+.hallow-tomb-b::after {
+  top: 0.34rem;
+  width: 0.42rem;
+  height: 2px;
+}
+
+.hallow-tomb-c {
+  height: 1.18rem;
+  width: 0.88rem;
+}
+
+.hallow-pumpkin {
+  position: relative;
+  width: 1.12rem;
+  height: 1rem;
+  margin: 0 0 0.04rem 0.05rem;
+  border-radius: 50% 50% 46% 46%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 226, 160, 0.85) 0 10%, transparent 22%),
+    linear-gradient(90deg, transparent 47%, rgba(176, 62, 8, 0.28) 47% 53%, transparent 53%),
+    linear-gradient(180deg, #ffc56a 0%, #ff8a1e 48%, #e25a0c 100%);
+  box-shadow:
+    inset 0 -0.16rem 0 rgba(150, 42, 0, 0.28),
+    0 -3px 7px 1px rgba(255, 156, 48, 0.6),
+    0 -6px 12px 2px rgba(255, 122, 24, 0.32);
+}
+
+.hallow-pumpkin::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -0.2rem;
+  width: 0.16rem;
+  height: 0.26rem;
+  border-radius: 0.08rem 0.08rem 0.03rem 0.03rem;
+  background: linear-gradient(180deg, #6fbf62, #2f7a38);
+  transform: translateX(-50%) rotate(12deg);
+  box-shadow: 0.14rem 0.08rem 0 -0.04rem #3d8f45;
+}
+
+.hallow-pumpkin::after {
+  content: "";
+  position: absolute;
+  left: 0.24rem;
+  top: 0.32rem;
+  width: 0.13rem;
+  height: 0.12rem;
+  border-radius: 0.02rem 0.02rem 0.08rem 0.02rem;
+  background: #4a220c;
+  box-shadow: 0.42rem 0.02rem 0 #4a220c;
+}
+
+/* —— Hallowed Night: ghost lingers above the graveyard —— */
+.hallow-ghost {
+  position: fixed;
+  left: var(--gx, 0px);
+  top: var(--gy, 0px);
+  z-index: 34;
+  width: 1.3rem;
+  height: 1.575rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(248, 244, 255, 0.78);
+  filter: drop-shadow(0 0 6px rgba(181, 123, 255, 0.35));
+  pointer-events: auto;
+  cursor: pointer;
+  appearance: none;
+  transform-origin: 50% 90%;
+}
+
+.hallow-ghost:focus-visible {
+  outline: 2px solid var(--accent-bright, #ffb347);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+.hallow-ghost.is-enter {
+  animation-name: hallow-ghost-enter;
+}
+
+.hallow-ghost svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hallow-ghost-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.42s cubic-bezier(0.22, 0.7, 0.3, 1);
+  transform: translate(var(--look-x, 0px), var(--look-y, 0px));
+}
+
+.hallow-ghost-bob {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: hallow-ghost-bob 5.6s ease-in-out infinite;
+}
+
+.hallow-ghost.is-enter .hallow-ghost-bob,
+.hallow-ghost.is-rtl .hallow-ghost-bob {
+  transform: scaleX(-1);
+  animation-name: hallow-ghost-bob-rtl;
+}
+
+@keyframes hallow-ghost-emerge {
+  0% {
+    opacity: 0;
+    transform: translate(0, 14px) scale(0.1);
+  }
+  9% {
+    opacity: 0.9;
+    transform: translate(5px, -14px) scale(0.42);
+  }
+  20% {
+    opacity: 0.9;
+    transform: translate(16px, -26px) scale(0.82);
+  }
+  78% {
+    opacity: 0.82;
+    transform: translate(var(--to-x, 360px), var(--to-y, -20px)) scale(var(--scale, 1));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--to-x, 360px), calc(var(--to-y, -20px) - 10px)) scale(var(--scale, 1));
+  }
+}
+
+@keyframes hallow-ghost-enter {
+  0% {
+    opacity: 0;
+    transform: translate(var(--to-x, 360px), var(--to-y, -20px)) scale(var(--scale, 1));
+  }
+  10% {
+    opacity: 0.85;
+    transform: translate(var(--to-x, 360px), var(--to-y, -20px)) scale(var(--scale, 1));
+  }
+  68% {
+    opacity: 0.85;
+    transform: translate(22px, -22px) scale(0.7);
+  }
+  84% {
+    opacity: 0.6;
+    transform: translate(4px, -4px) scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 12px) scale(0.06);
+  }
+}
+
+@keyframes hallow-ghost-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes hallow-ghost-bob-rtl {
+  0%,
+  100% {
+    transform: scaleX(-1) translateY(0);
+  }
+  50% {
+    transform: scaleX(-1) translateY(-4px);
+  }
+}
+
+.hallow-ghost.is-pop {
+  pointer-events: none;
+  cursor: default;
+  transform-origin: 50% 50%;
+  animation: hallow-ghost-pop 0.42s cubic-bezier(0.2, 0.85, 0.3, 1) forwards;
+}
+
+.hallow-ghost.is-pop .hallow-ghost-bob {
+  animation: none;
+}
+
+.hallow-pop-speck {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 5px;
+  height: 5px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: #ffb347;
+  box-shadow: 0 0 6px #ffb347;
+  pointer-events: none;
+  animation: hallow-speck 0.42s ease-out forwards;
+}
+
+.hallow-pop-speck:nth-child(odd) {
+  background: #b57bff;
+  box-shadow: 0 0 6px #b57bff;
+}
+
+@keyframes hallow-ghost-pop {
+  0% {
+    opacity: 1;
+    transform: var(--pop-from, none) scale(1);
+    filter: drop-shadow(0 0 10px rgba(181, 123, 255, 0.35));
+  }
+  32% {
+    opacity: 1;
+    transform: var(--pop-from, none) scale(1.38);
+    filter: drop-shadow(0 0 16px rgba(255, 179, 71, 0.7));
+  }
+  100% {
+    opacity: 0;
+    transform: var(--pop-from, none) scale(0.08);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
+
+@keyframes hallow-speck {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--a, 0deg)) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a, 0deg)) translateY(-1.7rem) scale(0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hallow-ghost {
+    display: none !important;
+  }
+}

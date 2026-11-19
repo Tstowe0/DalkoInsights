@@ -1,0 +1,117 @@
+/* —— Slate Coral —— */
+[data-theme="slate-coral"] {
+  --bg: #080b0e;
+  --bg-elevated: #0c1014;
+  --bg-main: #10151a;
+  --card: #171e26;
+  --card-elevated: #1e2832;
+  --card-hover: #273340;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-gold: rgba(232, 137, 122, 0.35);
+  --card-border-strong: #334050;
+  --accent: #e8897a;
+  --accent-bright: #f0b0a4;
+  --accent-deep: #c05e52;
+  --accent-orange: #e8a090;
+  --accent-dim: rgba(232, 137, 122, 0.14);
+  --accent-glow: rgba(240, 176, 164, 0.35);
+  --accent-hover: #f0b0a4;
+  --accent-muted: #c05e52;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #e8897a;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #180c0a;
+  --text: #f6f2f0;
+  --text-muted: #a8b0b8;
+  --text-soft: #d4d8dc;
+  --gold-trim: #080b0e;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #080b0eeb,
+    -1px 0 0 #080b0eeb,
+    0 1px 0 #080b0eeb,
+    0 -1px 0 #080b0eeb;
+  --gold-trim-shadow-soft:
+    0 0 1px #080b0ebf,
+    1px 0 0 #080b0ea6,
+    -1px 0 0 #080b0ea6,
+    0 1px 0 #080b0ea6,
+    0 -1px 0 #080b0ea6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(240, 176, 164, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(168, 176, 184, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(168, 176, 184, 0.72);
+  --type-gold-soft: rgba(168, 176, 184, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(232, 137, 122, 0.32);
+  --divider: rgba(232, 137, 122, 0.22);
+  --row-alt: #0c1014d9;
+  --overlay: #080b0eb8;
+  --sidebar-bg: linear-gradient(180deg, #0c1014 0%, #080b0e 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  --panel-bg: #171e268c;
+  --panel-bg-quiet: #10151a66;
+  --panel-bg-focus: linear-gradient(160deg, #1e2832bf 0%, #171e26e0 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(232, 137, 122, 0.2);
+  --panel-rail: rgba(232, 137, 122, 0.4);
+  --panel-rail-quiet: rgba(168, 176, 184, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(240, 176, 164, 0.8), rgba(232, 137, 122, 0.25));
+  --panel-title: rgba(240, 176, 164, 0.9);
+  --panel-title-quiet: rgba(212, 216, 220, 0.9);
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #1e2832;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --toolbar-bg: rgba(0, 0, 0, 0.28);
+  --drop-bg: rgba(232, 137, 122, 0.05);
+  --result-bg: rgba(232, 137, 122, 0.08);
+  --result-border: rgba(232, 137, 122, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(232, 137, 122, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(240, 176, 164, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(232, 137, 122, 0.55);
+  --btn-secondary-bg-hover: rgba(232, 137, 122, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(240, 176, 164, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --ink: var(--type-gold-strong);
+  --nav-fg: var(--type-gold-nav);
+  --nav-fg-muted: var(--type-gold-nav-dim);
+  --nav-fg-strong: #ffffff;
+  --nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --nav-active-bg: rgba(255, 255, 255, 0.1);
+  --nav-sub-fg: var(--type-gold-nav-dim);
+  --cal-bg: var(--card);
+  --cal-fg: var(--text);
+  --cal-muted: var(--text-muted);
+  --chart-style: classic;
+  --color-scheme: dark;
+
+  --theme-swatch-1: #0c1014;
+  --theme-swatch-2: #171e26;
+  --theme-swatch-3: #e8897a;
+  --theme-swatch-4: #f0b0a4;
+}

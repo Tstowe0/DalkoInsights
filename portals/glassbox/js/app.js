@@ -9,7 +9,7 @@ import {
   renderClientReports,
   renderChangelog,
   renderThemes,
-} from "./views.js?v=20261023-penn";
+} from "./views.js?v=20261119-theme-files";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;

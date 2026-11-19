@@ -1,0 +1,118 @@
+/* —— Ember Forge —— */
+[data-theme="ember-forge"] {
+  --bg: #0c0704;
+  --bg-elevated: #120a06;
+  --bg-main: #160c08;
+  --card: #241610;
+  --card-elevated: #2e1c14;
+  --card-hover: #3a2418;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-gold: rgba(224, 138, 69, 0.35);
+  --card-border-strong: #4a3020;
+  --accent: #e08a45;
+  --accent-bright: #f0b078;
+  --accent-deep: #b86830;
+  --accent-orange: #e8a045;
+  --accent-dim: rgba(224, 138, 69, 0.14);
+  --accent-glow: rgba(240, 176, 120, 0.35);
+  --accent-hover: #f0b078;
+  --accent-muted: #b86830;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #e08a45;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #140804;
+  --text: #fff4ec;
+  --text-muted: #c4a08a;
+  --text-soft: #e8d0bc;
+  --gold-trim: #0c0704;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #0c0704eb,
+    -1px 0 0 #0c0704eb,
+    0 1px 0 #0c0704eb,
+    0 -1px 0 #0c0704eb;
+  --gold-trim-shadow-soft:
+    0 0 1px #0c0704bf,
+    1px 0 0 #0c0704a6,
+    -1px 0 0 #0c0704a6,
+    0 1px 0 #0c0704a6,
+    0 -1px 0 #0c0704a6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(240, 176, 120, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(196, 160, 138, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(196, 160, 138, 0.72);
+  --type-gold-soft: rgba(196, 160, 138, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(224, 138, 69, 0.32);
+  --divider: rgba(224, 138, 69, 0.22);
+  --row-alt: #120a06d9;
+  --overlay: #0c0704b8;
+  --sidebar-bg: linear-gradient(180deg, #120a06 0%, #0c0704 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  --panel-bg: #2416108c;
+  --panel-bg-quiet: #160c0866;
+  --panel-bg-focus: linear-gradient(160deg, #2e1c14bf 0%, #241610e0 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(224, 138, 69, 0.2);
+  --panel-rail: rgba(224, 138, 69, 0.4);
+  --panel-rail-quiet: rgba(196, 160, 138, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(240, 176, 120, 0.8), rgba(224, 138, 69, 0.25));
+  --panel-title: rgba(240, 176, 120, 0.9);
+  --panel-title-quiet: rgba(232, 208, 188, 0.9);
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #2e1c14;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --toolbar-bg: rgba(0, 0, 0, 0.28);
+  --drop-bg: rgba(224, 138, 69, 0.05);
+  --result-bg: rgba(224, 138, 69, 0.08);
+  --result-border: rgba(224, 138, 69, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(224, 138, 69, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(240, 176, 120, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(224, 138, 69, 0.55);
+  --btn-secondary-bg-hover: rgba(224, 138, 69, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(240, 176, 120, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --ink: var(--type-gold-strong);
+  --nav-fg: var(--type-gold-nav);
+  --nav-fg-muted: var(--type-gold-nav-dim);
+  --nav-fg-strong: #ffffff;
+  --nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --nav-active-bg: rgba(255, 255, 255, 0.1);
+  --nav-sub-fg: var(--type-gold-nav-dim);
+  --cal-bg: var(--card);
+  --cal-fg: var(--text);
+  --cal-muted: var(--text-muted);
+  --chart-style: classic;
+  --color-scheme: dark;
+
+  --theme-swatch-1: #120a06;
+  --theme-swatch-2: #241610;
+  --theme-swatch-3: #e08a45;
+  --theme-swatch-4: #f0b078;
+}
+

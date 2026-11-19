@@ -12,6 +12,14 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Oceanic Night pairs hot pink and cyan accents with a coastal skyline, silhouetted palms, and the occasional bird at dusk.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "Integrations checks DALKO CRM at mycrm.shipdalko.com/api/health every 60 seconds. The tile shows Running only when that check returns ok, and Offline when the CRM does not.",
     ],
   },

@@ -1,0 +1,165 @@
+/* —— Default theme (also applied when data-theme is missing) —— */
+:root,
+[data-theme="midnight-gold"] {
+  /* Palette */
+  --bg: #030508;
+  --bg-elevated: #080e1a;
+  --bg-main: #050910;
+  --card: #0c1322;
+  --card-elevated: #101a2e;
+  --card-hover: #152238;
+  --card-border: rgba(255, 255, 255, 0.07);
+  --card-border-gold: rgba(217, 174, 66, 0.22);
+  --card-border-strong: #1e2d4a;
+  --accent: #d9ae42;
+  --accent-bright: #f0c14a;
+  --accent-deep: #b8922a;
+  --accent-orange: #e8a045;
+  --accent-dim: rgba(217, 174, 66, 0.14);
+  --accent-glow: rgba(240, 193, 74, 0.4);
+  --accent-hover: #f5cc5c;
+  --accent-muted: #9a8450;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #d9ae42;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #0a1018;
+  --text: #ffffff;
+  --text-muted: #8b9cb8;
+  --text-soft: #d1d5db;
+  --gold-trim: #030508;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 rgba(3, 5, 8, 0.92),
+    -1px 0 0 rgba(3, 5, 8, 0.92),
+    0 1px 0 rgba(3, 5, 8, 0.92),
+    0 -1px 0 rgba(3, 5, 8, 0.92);
+  --gold-trim-shadow-soft:
+    0 0 1px rgba(3, 5, 8, 0.75),
+    1px 0 0 rgba(3, 5, 8, 0.65),
+    -1px 0 0 rgba(3, 5, 8, 0.65),
+    0 1px 0 rgba(3, 5, 8, 0.65),
+    0 -1px 0 rgba(3, 5, 8, 0.65);
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(240, 193, 74, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(139, 156, 184, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(139, 156, 184, 0.72);
+  --type-gold-soft: rgba(139, 156, 184, 0.85);
+
+  /* Layout tokens (theme-aware) */
+  --sidebar-w: 260px;
+  --radius: 12px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.75rem;
+  --page-gutter: 1.5rem;
+  --stack-gap: 1.35rem;
+
+  /* Semantic surfaces / borders */
+  --surface-0: var(--bg);
+  --surface-1: var(--bg-main);
+  --surface-2: var(--card);
+  --surface-3: var(--card-elevated);
+  --surface-hover: var(--card-hover);
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(217, 174, 66, 0.28);
+  --divider: rgba(32, 60, 97, 0.55);
+  --row-alt: rgba(21, 26, 34, 0.85);
+  --overlay: rgba(3, 5, 8, 0.72);
+  --sidebar-bg: linear-gradient(180deg, #0a101c 0%, #050910 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  /* Panels */
+  --panel-bg: rgba(10, 16, 28, 0.55);
+  --panel-bg-quiet: rgba(8, 13, 24, 0.4);
+  --panel-bg-focus: linear-gradient(160deg, rgba(18, 30, 52, 0.72) 0%, rgba(10, 16, 28, 0.85) 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(217, 174, 66, 0.14);
+  --panel-rail: rgba(217, 174, 66, 0.35);
+  --panel-rail-quiet: rgba(139, 156, 184, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(240, 193, 74, 0.75), rgba(217, 174, 66, 0.25));
+  --panel-title: rgba(217, 174, 66, 0.85);
+  --panel-title-quiet: rgba(168, 184, 208, 0.9);
+
+  /* Forms */
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #1f2937;
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-fg: var(--text);
+  --toolbar-bg: rgba(0, 0, 0, 0.18);
+  --drop-bg: rgba(240, 193, 74, 0.03);
+  --result-bg: rgba(240, 193, 74, 0.06);
+  --result-border: rgba(217, 174, 66, 0.25);
+
+  /* Status */
+  --danger: var(--accent-red);
+  --danger-bg: rgba(239, 107, 107, 0.1);
+  --danger-border: rgba(239, 107, 107, 0.45);
+  --danger-fg: #ffb4b4;
+  --success: var(--accent-green);
+
+  /* Buttons — every .btn* variant reads these */
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(228, 188, 74, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(255, 213, 106, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(228, 188, 74, 0.55);
+  --btn-secondary-bg-hover: rgba(228, 188, 74, 0.1);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(255, 213, 106, 0.12);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.06);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  /* Theme picker preview swatches */
+  --ink: var(--type-gold-strong);
+  --nav-fg: var(--type-gold-nav);
+  --nav-fg-muted: var(--type-gold-nav-dim);
+  --nav-fg-strong: #ffffff;
+  --nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --nav-active-bg: rgba(255, 255, 255, 0.1);
+  --nav-sub-fg: var(--type-gold-nav-dim);
+  --cal-bg: var(--card);
+  --cal-fg: var(--text);
+  --cal-muted: var(--text-muted);
+  --accent-text: var(--accent-bright);
+  --chart-style: classic;
+  --chart-tick: var(--text-muted);
+  --chart-grid: var(--card-border);
+  --chart-tooltip-bg: var(--card-elevated);
+  --chart-tooltip-title: var(--text);
+  --chart-tooltip-body: var(--text-soft);
+  --chart-tooltip-border: var(--card-border-strong);
+  --chart-navy-deep: var(--text-muted);
+  --chart-label-stroke: var(--bg);
+  --chart-point-border: var(--card);
+  --color-scheme: dark;
+
+  --theme-swatch-1: #030508;
+  --theme-swatch-2: #0c1322;
+  --theme-swatch-3: #d9ae42;
+  --theme-swatch-4: #f0c14a;
+}

@@ -1,0 +1,320 @@
+/* —— Oceanic Night: hot pink, neon cyan, purple shore —— */
+[data-theme="oceanic-night"] {
+  --bg: #07040e;
+  --bg-elevated: #100818;
+  --bg-main: #0c0614;
+  --card: #170c24;
+  --card-elevated: #211232;
+  --card-hover: #2c1842;
+  --card-border: rgba(255, 45, 138, 0.16);
+  --card-border-gold: rgba(46, 230, 255, 0.38);
+  --card-border-strong: #3a2058;
+  --accent: #ff2d8a;
+  --accent-bright: #ff6eb3;
+  --accent-deep: #c41268;
+  --accent-orange: #ffb15a;
+  --accent-dim: rgba(255, 45, 138, 0.16);
+  --accent-glow: rgba(255, 110, 179, 0.42);
+  --accent-hover: #ff8ac4;
+  --accent-muted: #c46a98;
+  --accent-red: #ff4d6a;
+  --accent-green: #3dffb0;
+  --accent-yellow: #ffb15a;
+  --accent-blue: #2ee6ff;
+  --accent-purple: #c084fc;
+  --on-accent: #1a0610;
+  --text: #fff4fa;
+  --text-muted: #c4a8c8;
+  --text-soft: #f0dce8;
+  --gold-trim: #07040e;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #07040eeb,
+    -1px 0 0 #07040eeb,
+    0 1px 0 #07040eeb,
+    0 -1px 0 #07040eeb;
+  --gold-trim-shadow-soft:
+    0 0 1px #07040ebf,
+    1px 0 0 #07040ea6,
+    -1px 0 0 #07040ea6,
+    0 1px 0 #07040ea6,
+    0 -1px 0 #07040ea6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 28px rgba(255, 45, 138, 0.28);
+  --type-gold: #7af4ff;
+  --type-gold-strong: #ff6eb3;
+  --type-gold-nav: rgba(255, 244, 250, 0.78);
+  --type-gold-nav-dim: rgba(196, 168, 200, 0.9);
+  --type-gold-note: rgba(255, 244, 250, 0.86);
+  --type-gold-note-dim: rgba(196, 168, 200, 0.72);
+  --type-gold-soft: rgba(196, 168, 200, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(46, 230, 255, 0.35);
+  --divider: rgba(255, 45, 138, 0.22);
+  --row-alt: #100818d9;
+  --overlay: #07040ec4;
+  --sidebar-bg: linear-gradient(180deg, #1a0a28 0%, #07040e 100%);
+  --hairline: rgba(46, 230, 255, 0.1);
+
+  --panel-bg: #170c248f;
+  --panel-bg-quiet: #0c061466;
+  --panel-bg-focus: linear-gradient(160deg, #211232cc 0%, #170c24e6 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(46, 230, 255, 0.12);
+  --panel-border-focus: rgba(255, 45, 138, 0.32);
+  --panel-rail: rgba(255, 45, 138, 0.55);
+  --panel-rail-quiet: rgba(46, 230, 255, 0.4);
+  --panel-rail-focus: linear-gradient(180deg, rgba(122, 244, 255, 0.85), rgba(255, 45, 138, 0.35));
+  --panel-title: rgba(122, 244, 255, 0.95);
+  --panel-title-quiet: rgba(240, 220, 232, 0.85);
+
+  --input-bg: rgba(255, 45, 138, 0.05);
+  --input-bg-solid: #211232;
+  --input-border: rgba(46, 230, 255, 0.2);
+  --toolbar-bg: rgba(7, 4, 14, 0.45);
+  --drop-bg: rgba(255, 45, 138, 0.06);
+  --result-bg: rgba(46, 230, 255, 0.08);
+  --result-border: rgba(255, 45, 138, 0.32);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 16px rgba(255, 45, 138, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 24px rgba(255, 110, 179, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(46, 230, 255, 0.5);
+  --btn-secondary-bg-hover: rgba(46, 230, 255, 0.12);
+  --btn-secondary-shadow-hover: 0 0 18px rgba(46, 230, 255, 0.22);
+  --btn-ghost-bg: rgba(46, 230, 255, 0.08);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 45, 138, 0.12);
+  --btn-danger-bg: linear-gradient(180deg, #ff7a8a 0%, var(--accent-red) 55%, #c41840 100%);
+  --btn-danger-fg: #1a0610;
+  --btn-danger-shadow: 0 2px 14px rgba(255, 77, 106, 0.4);
+
+  --ink: var(--type-gold-strong);
+  --nav-fg: var(--type-gold-nav);
+  --nav-fg-muted: var(--type-gold-nav-dim);
+  --nav-fg-strong: #fff4fa;
+  --nav-hover-bg: rgba(255, 45, 138, 0.12);
+  --nav-active-bg: rgba(46, 230, 255, 0.14);
+  --nav-sub-fg: var(--type-gold-nav-dim);
+  --cal-bg: var(--card);
+  --cal-fg: var(--text);
+  --cal-muted: var(--text-muted);
+  --chart-style: classic;
+  --color-scheme: dark;
+
+  --theme-swatch-1: #07040e;
+  --theme-swatch-2: #170c24;
+  --theme-swatch-3: #ff2d8a;
+  --theme-swatch-4: #2ee6ff;
+}
+
+html[data-theme="oceanic-night"] :is(.brand-name, .gb-tile-title) {
+  color: #ffd9ee;
+  font-family: Caveat, "Segoe Print", cursive;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-shadow: 0 0 2px #ff81bd99, 0 0 7px #f34c9d8c, 0 0 14px #e73b894d;
+}
+
+html[data-theme="oceanic-night"] .brand-name {
+  padding: 0.08rem 0.2rem 0.1rem;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.shore-scene {
+  --shore-cycle: 1800s;
+  display: none;
+  position: relative;
+  height: 6.75rem;
+  margin: 0 0 0.45rem;
+  border-radius: 14px;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 82% 94%, #ffd29a 0%, transparent 55%),
+    linear-gradient(180deg, #485982 0%, #7777a8 27%, #bd79a8 47%, #eb8fa6 65%, #ffad8d 86%, #e890a0 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.shore-day,
+.shore-night {
+  position: absolute;
+  inset: 0;
+}
+
+.shore-day {
+  opacity: 0;
+  background: linear-gradient(180deg, #548acc, #99c9e8 58%, #ffdaaf);
+}
+
+.shore-night {
+  opacity: 0;
+  background:
+    radial-gradient(circle at 73% 26%, #f3ecff 0 2px, transparent 2.8px),
+    radial-gradient(circle at 86% 15%, #a7a4df 0 0.7px, transparent 1.3px),
+    radial-gradient(circle at 54% 32%, #a7a4df 0 0.7px, transparent 1.3px),
+    linear-gradient(180deg, #111633 10%, #252452 60%, #663b74);
+}
+
+.shore-city-lights {
+  opacity: 0;
+}
+
+.shore-neon-pink { filter: drop-shadow(0 0 2px #ff3ab2); }
+.shore-neon-cyan { filter: drop-shadow(0 0 2px #26e8ff); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .shore-day { animation: shore-day var(--shore-cycle) ease-in-out infinite; }
+  .shore-night { animation: shore-night var(--shore-cycle) ease-in-out infinite; }
+  .shore-city-lights { animation: shore-city-lights var(--shore-cycle) ease-in-out infinite; }
+}
+
+@keyframes shore-day {
+  0%, 56.667%, 100% { opacity: 0.64; }
+  66.667%, 93.333% { opacity: 0; }
+}
+
+@keyframes shore-night {
+  0%, 60%, 100% { opacity: 0; }
+  73.333%, 90% { opacity: 0.78; }
+}
+
+@keyframes shore-city-lights {
+  0%, 66.667%, 100% { opacity: 0; }
+  76.667%, 90% { opacity: 0.85; }
+}
+
+html[data-theme="oceanic-night"] .shore-scene {
+  display: block;
+}
+
+html[data-theme="oceanic-night"] .sidebar-console {
+  margin-top: 0;
+}
+
+.shore-scene::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.18rem;
+  background: #3a355b;
+}
+
+.shore-palms {
+  --palm-sway-duration: 24s;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  color: #323553;
+}
+
+.shore-palm-small {
+  --palm-sway-angle: -0.9deg;
+  --palm-sway-delay: -0.8s;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shore-palm-sway {
+    transform-origin: -10px 54px;
+    animation: shore-palm-sway var(--palm-sway-duration) ease-in-out var(--palm-sway-delay, 0s) infinite;
+  }
+
+  .shore-palm-crown {
+    transform-origin: 0 1px;
+    animation: shore-palm-sway var(--palm-sway-duration) ease-in-out calc(var(--palm-sway-delay, 0s) + 0.55s) infinite;
+  }
+}
+
+@keyframes shore-palm-sway {
+  0%, 100% { transform: rotate(0deg); }
+  43% { transform: rotate(var(--palm-sway-angle, 0.7deg)); }
+  73% { transform: rotate(calc(var(--palm-sway-angle, 0.7deg) * 0.25)); }
+}
+
+.shore-bird {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: 22px;
+  height: 13px;
+  color: #25243f;
+  pointer-events: none;
+}
+
+.shore-bird svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shore-bird-wing {
+  transform-origin: 14px 9px;
+  animation: shore-bird-wing 1.8s ease-in-out infinite;
+}
+
+.shore-bird-wing-far {
+  animation-delay: -0.12s;
+}
+
+@keyframes shore-bird-wing {
+  0%, 32%, 100% { transform: scaleY(1); }
+  12%, 24% { transform: scaleY(0.3); }
+  18% { transform: scaleY(0.95); }
+}
+
+.shore-bird.is-rtl svg {
+  transform: scaleX(-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shore-bird {
+    display: none;
+  }
+}
+
+/* Oceanic Night right-pane gradient. Remove these rules together to roll it back. */
+html[data-theme="oceanic-night"] .app > .main {
+  background:
+    linear-gradient(180deg, #0c0614bf, #0c0614b8),
+    radial-gradient(ellipse at 82% 94%, #ffd29a 0%, transparent 55%),
+    linear-gradient(180deg, #485982 0%, #7777a8 27%, #bd79a8 47%, #eb8fa6 65%, #ffad8d 86%, #e890a0 100%);
+}
+
+html[data-theme="oceanic-night"] .app > .main :is(
+  .insights-host, .tools-host, .settings-root, .gb-workspace, .tools-host .gb-main
+) {
+  background: transparent;
+}
+
+html[data-theme="oceanic-night"] .app > .main > .topbar {
+  background: color-mix(in srgb, var(--bg-main) 40%, transparent);
+}
+
+html[data-theme="oceanic-night"] .gb-tile {
+  grid-template-rows: minmax(2.6rem, auto) 56px auto;
+}
+
+html[data-theme="oceanic-night"] .gb-tile-title {
+  font-size: 1.3rem;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme="oceanic-night"] .gb-tile-skipped .gb-tile-title {
+  color: var(--danger);
+  text-shadow: 0 0 7px color-mix(in srgb, var(--danger) 55%, transparent);
+}

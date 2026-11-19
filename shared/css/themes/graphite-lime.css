@@ -1,0 +1,118 @@
+/* —— Graphite Lime —— */
+[data-theme="graphite-lime"] {
+  --bg: #080a07;
+  --bg-elevated: #0b0d0a;
+  --bg-main: #0e100c;
+  --card: #171a14;
+  --card-elevated: #1f241c;
+  --card-hover: #2a3024;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-gold: rgba(168, 216, 74, 0.35);
+  --card-border-strong: #343c2c;
+  --accent: #a8d84a;
+  --accent-bright: #c8f06a;
+  --accent-deep: #7aaa30;
+  --accent-orange: #b8e050;
+  --accent-dim: rgba(168, 216, 74, 0.14);
+  --accent-glow: rgba(200, 240, 106, 0.35);
+  --accent-hover: #c8f06a;
+  --accent-muted: #7aaa30;
+  --accent-red: #ef6b6b;
+  --accent-green: #5fd68a;
+  --accent-yellow: #a8d84a;
+  --accent-blue: #5a7fc4;
+  --accent-purple: #8a7a58;
+  --on-accent: #101408;
+  --text: #f4f8ec;
+  --text-muted: #a0b088;
+  --text-soft: #d4e0c0;
+  --gold-trim: #080a07;
+  --gold-trim-shadow:
+    0 0 1px var(--gold-trim),
+    1px 0 0 #080a07eb,
+    -1px 0 0 #080a07eb,
+    0 1px 0 #080a07eb,
+    0 -1px 0 #080a07eb;
+  --gold-trim-shadow-soft:
+    0 0 1px #080a07bf,
+    1px 0 0 #080a07a6,
+    -1px 0 0 #080a07a6,
+    0 1px 0 #080a07a6,
+    0 -1px 0 #080a07a6;
+  --gold-trim-shadow-brand:
+    var(--gold-trim-shadow),
+    0 0 24px rgba(200, 240, 106, 0.2);
+  --type-gold: var(--accent-bright);
+  --type-gold-strong: var(--accent);
+  --type-gold-nav: rgba(255, 255, 255, 0.72);
+  --type-gold-nav-dim: rgba(160, 176, 136, 0.9);
+  --type-gold-note: rgba(255, 255, 255, 0.82);
+  --type-gold-note-dim: rgba(160, 176, 136, 0.72);
+  --type-gold-soft: rgba(160, 176, 136, 0.85);
+
+  --border: var(--card-border);
+  --border-strong: var(--card-border-strong);
+  --border-accent: var(--card-border-gold);
+  --border-dashed: rgba(168, 216, 74, 0.32);
+  --divider: rgba(168, 216, 74, 0.22);
+  --row-alt: #0b0d0ad9;
+  --overlay: #080a07b8;
+  --sidebar-bg: linear-gradient(180deg, #0b0d0a 0%, #080a07 100%);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  --panel-bg: #171a148c;
+  --panel-bg-quiet: #0e100c66;
+  --panel-bg-focus: linear-gradient(160deg, #1f241cbf 0%, #171a14e0 100%);
+  --panel-border: var(--border);
+  --panel-border-quiet: rgba(255, 255, 255, 0.045);
+  --panel-border-focus: rgba(168, 216, 74, 0.2);
+  --panel-rail: rgba(168, 216, 74, 0.4);
+  --panel-rail-quiet: rgba(160, 176, 136, 0.35);
+  --panel-rail-focus: linear-gradient(180deg, rgba(200, 240, 106, 0.8), rgba(168, 216, 74, 0.25));
+  --panel-title: rgba(200, 240, 106, 0.9);
+  --panel-title-quiet: rgba(212, 224, 192, 0.9);
+
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-solid: #1f241c;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --toolbar-bg: rgba(0, 0, 0, 0.28);
+  --drop-bg: rgba(168, 216, 74, 0.05);
+  --result-bg: rgba(168, 216, 74, 0.08);
+  --result-border: rgba(168, 216, 74, 0.3);
+
+  --btn-primary-bg: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-deep) 100%);
+  --btn-primary-fg: var(--on-accent);
+  --btn-primary-shadow: 0 2px 14px rgba(168, 216, 74, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --btn-primary-shadow-hover: 0 4px 22px rgba(200, 240, 106, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --btn-secondary-bg: transparent;
+  --btn-secondary-fg: var(--type-gold);
+  --btn-secondary-border: rgba(168, 216, 74, 0.55);
+  --btn-secondary-bg-hover: rgba(168, 216, 74, 0.12);
+  --btn-secondary-shadow-hover: 0 0 16px rgba(200, 240, 106, 0.14);
+  --btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --btn-ghost-fg: var(--text-muted);
+  --btn-ghost-border: var(--card-border);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-danger-bg: linear-gradient(180deg, #f28b8b 0%, var(--accent-red) 55%, #c94d4d 100%);
+  --btn-danger-fg: #1a0a0a;
+  --btn-danger-shadow: 0 2px 14px rgba(239, 107, 107, 0.35);
+
+  --ink: var(--type-gold-strong);
+  --nav-fg: var(--type-gold-nav);
+  --nav-fg-muted: var(--type-gold-nav-dim);
+  --nav-fg-strong: #ffffff;
+  --nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --nav-active-bg: rgba(255, 255, 255, 0.1);
+  --nav-sub-fg: var(--type-gold-nav-dim);
+  --cal-bg: var(--card);
+  --cal-fg: var(--text);
+  --cal-muted: var(--text-muted);
+  --chart-style: classic;
+  --color-scheme: dark;
+
+  --theme-swatch-1: #0b0d0a;
+  --theme-swatch-2: #171a14;
+  --theme-swatch-3: #a8d84a;
+  --theme-swatch-4: #c8f06a;
+}
+

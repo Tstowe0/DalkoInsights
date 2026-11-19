@@ -70,6 +70,12 @@ HTML Version/
 
 Each portal is self-contained: put that portal’s UI, styles, and logic under its folder. The shell loads a portal through `mount.js` (`mount` / `unmount`).
 
+## Themes
+
+Each palette has a stylesheet in `shared/css/themes/`. Add its import to `shared/css/theme.css` and its picker entry to `shared/js/theme.js` when registering a new theme.
+
+Hallowed Night, Yule Night, and Oceanic Night keep their sidebar scene markup in matching modules under `shared/js/themes/`. Those modules also own any JavaScript effects for the scene. Their theme stylesheets contain the artwork and CSS animations.
+
 ## Deploy to GitHub Pages
 
 1. Push the contents of `HTML Version/` to a repo (or a `/docs` folder).
