@@ -5,11 +5,17 @@
 
 /** @typedef {{ id: string, name: string, description: string, swatches: string[], group?: "day" | "night" | "seasonal" }} ThemeInfo */
 
-import { syncHalloweenGhosts } from "./themes/hallowed-night.js";
+import { syncHalloweenGhosts } from "./themes/hallowed-night.js?v=20261121-seasonal";
 import { syncOceanicNight } from "./themes/oceanic-night.js";
+import { syncYuleSleigh } from "./themes/yule-night.js?v=20261120-hourly-sleigh";
 
 const LIVE_STORAGE_KEY = "dalko-insights-theme";
 const SHELL_STORAGE_KEY = "dalko-shell-theme";
+const THEME_ALIASES = new Map([
+  ["gta-6", "oceanic-night"],
+  ["hallowed-night-v2", "hallowed-night"],
+  ["yule-night-v2", "yule-night"],
+]);
 
 /** @type {ThemeInfo[]} */
 export const THEMES = [
@@ -101,15 +107,15 @@ export const THEMES = [
     id: "hallowed-night",
     name: "Hallowed Night",
     group: "seasonal",
-    description: "Graveyard black, jack-o’-lantern orange, and witch-purple — seasonal spooky mode.",
-    swatches: ["#09060e", "#1a1024", "#ff7a18", "#b57bff"],
+    description: "A harvest moon over a hillside manor, with amber windows and deep plum panels.",
+    swatches: ["#0e0b17", "#21182d", "#ffa453", "#cbb5ed"],
   },
   {
     id: "yule-night",
     name: "Yule Night",
     group: "seasonal",
-    description: "Deep pine, holly red, and candle gold — a dark Christmas console.",
-    swatches: ["#050e0a", "#122018", "#e23d3d", "#e8c56a"],
+    description: "A snowbound village under a teal winter sky, with candlelit windows and cranberry accents.",
+    swatches: ["#0a151e", "#183137", "#ff9eaa", "#ffdc99"],
   },
 ];
 
@@ -131,11 +137,9 @@ function fallbackTheme() {
 /** @returns {string} */
 export function getThemeId() {
   try {
-    let stored = localStorage.getItem(storageKey());
-    if (stored === "gta-6") {
-      stored = "oceanic-night";
-      localStorage.setItem(storageKey(), stored);
-    }
+    const saved = localStorage.getItem(storageKey());
+    const stored = THEME_ALIASES.get(saved) ?? saved;
+    if (stored !== saved) localStorage.setItem(storageKey(), stored);
     if (stored && THEMES.some((t) => t.id === stored)) return stored;
   } catch {
     /* ignore */
@@ -147,6 +151,7 @@ export function getThemeId() {
  * @param {string} id
  */
 export function setTheme(id) {
+  id = THEME_ALIASES.get(id) ?? id;
   const theme = THEMES.find((t) => t.id === id) || THEMES.find((t) => t.id === fallbackTheme()) || THEMES[0];
   document.documentElement.dataset.theme = theme.id;
   document.documentElement.style.colorScheme = theme.group === "day" ? "light" : "dark";
@@ -158,6 +163,7 @@ export function setTheme(id) {
   window.dispatchEvent(new CustomEvent("dalko-theme", { detail: { id: theme.id } }));
   syncHalloweenGhosts(theme.id);
   syncOceanicNight(theme.id);
+  syncYuleSleigh(theme.id);
   return theme.id;
 }
 

@@ -6,6 +6,7 @@ import {
   destroyChart,
 } from "./charts.js?v=20260922-corp2";
 import { hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
+import { allowsAction } from "../../../../shared/js/permissions.js?v=20261120-actions";
 
 /** Name, revenue, cost, profit, margin, loads */
 const COL_PNL = [0, 1, 2, 3, 4, 5];
@@ -338,7 +339,9 @@ function renderExecutiveInApp(root, ctx, onPrint) {
     </div>
   `;
 
-  wrap.querySelector("[data-exec-print]")?.addEventListener("click", () => onPrint?.());
+  const printBtn = wrap.querySelector("[data-exec-print]");
+  if (!allowsAction("insights:print") && printBtn instanceof HTMLElement) printBtn.hidden = true;
+  printBtn?.addEventListener("click", () => onPrint?.());
   root.appendChild(wrap);
   mountExecMonthlyChart(wrap, exec.monthlyChart);
 }

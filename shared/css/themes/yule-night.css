@@ -1,31 +1,30 @@
-/* —— Yule Night: seasonal Christmas, dark —— */
 [data-theme="yule-night"] {
-  --bg: #040a08;
-  --bg-elevated: #0a1410;
-  --bg-main: #07110c;
-  --card: #122018;
-  --card-elevated: #182a20;
-  --card-hover: #1e3428;
-  --card-border: rgba(232, 197, 106, 0.12);
-  --card-border-gold: rgba(226, 61, 61, 0.4);
-  --card-border-strong: #2a4a38;
-  --accent: #e23d3d;
-  --accent-bright: #f06a6a;
-  --accent-deep: #a81e28;
+  --bg: #0a151e;
+  --bg-elevated: #13272f;
+  --bg-main: #0d1b24;
+  --card: #183137;
+  --card-elevated: #203c42;
+  --card-hover: #28474c;
+  --card-border: #b9e4dc2b;
+  --card-border-gold: #ffb1b76b;
+  --card-border-strong: #44646b;
+  --accent: #ff9eaa;
+  --accent-bright: #ffc0c7;
+  --accent-deep: #d67785;
   --accent-orange: #e8c56a;
   --accent-dim: rgba(226, 61, 61, 0.16);
-  --accent-glow: rgba(240, 106, 106, 0.38);
-  --accent-hover: #f08080;
+  --accent-glow: #ff9eaa38;
+  --accent-hover: #ffd4d9;
   --accent-muted: #c45a4a;
   --accent-red: #e23d3d;
   --accent-green: #3dcc7a;
-  --accent-yellow: #e8c56a;
+  --accent-yellow: #ffdc99;
   --accent-blue: #7ec8d4;
   --accent-purple: #c45a5a;
   --on-accent: #140808;
-  --text: #f4f0e6;
-  --text-muted: #9ab0a0;
-  --text-soft: #dce8dc;
+  --text: #f5f6ee;
+  --text-muted: #b8cdd0;
+  --text-soft: #d8e7e5;
   --gold-trim: #040a08;
   --gold-trim-shadow:
     0 0 1px var(--gold-trim),
@@ -43,7 +42,7 @@
     var(--gold-trim-shadow),
     0 0 28px rgba(232, 197, 106, 0.22);
   --type-gold: var(--accent-yellow);
-  --type-gold-strong: #ff8f8f;
+  --type-gold-strong: var(--accent);
   --type-gold-nav: rgba(244, 240, 230, 0.78);
   --type-gold-nav-dim: rgba(154, 176, 160, 0.9);
   --type-gold-note: rgba(244, 240, 230, 0.86);
@@ -57,12 +56,12 @@
   --divider: rgba(61, 204, 122, 0.18);
   --row-alt: #0a1410d9;
   --overlay: #040a08c4;
-  --sidebar-bg: linear-gradient(180deg, #0c1a12 0%, #040a08 100%);
+  --sidebar-bg: #0b1821;
   --hairline: rgba(232, 197, 106, 0.1);
 
-  --panel-bg: #1220188f;
-  --panel-bg-quiet: #07110c66;
-  --panel-bg-focus: linear-gradient(160deg, #182a20cc 0%, #122018e6 100%);
+  --panel-bg: #183137e6;
+  --panel-bg-quiet: #112832d9;
+  --panel-bg-focus: linear-gradient(150deg, #203c42, #183137);
   --panel-border: var(--border);
   --panel-border-quiet: rgba(61, 204, 122, 0.14);
   --panel-border-focus: rgba(226, 61, 61, 0.3);
@@ -73,7 +72,7 @@
   --panel-title-quiet: rgba(220, 232, 220, 0.85);
 
   --input-bg: rgba(232, 197, 106, 0.05);
-  --input-bg-solid: #182a20;
+  --input-bg-solid: var(--card-elevated);
   --input-border: rgba(232, 197, 106, 0.18);
   --toolbar-bg: rgba(4, 10, 8, 0.45);
   --drop-bg: rgba(226, 61, 61, 0.06);
@@ -98,184 +97,398 @@
   --btn-danger-shadow: 0 2px 14px rgba(226, 61, 61, 0.4);
 
   --ink: var(--type-gold-strong);
-  --nav-fg: var(--type-gold-nav);
-  --nav-fg-muted: var(--type-gold-nav-dim);
-  --nav-fg-strong: #fff8ee;
-  --nav-hover-bg: rgba(61, 204, 122, 0.1);
-  --nav-active-bg: rgba(226, 61, 61, 0.16);
-  --nav-sub-fg: var(--type-gold-nav-dim);
+  --nav-fg: #e5eeed;
+  --nav-fg-muted: #b9cdd1;
+  --nav-fg-strong: #fff7ef;
+  --nav-hover-bg: #20363d;
+  --nav-active-bg: #3b303e;
+  --nav-sub-fg: #d0e1e2;
   --cal-bg: var(--card);
   --cal-fg: var(--text);
   --cal-muted: var(--text-muted);
   --chart-style: classic;
   --color-scheme: dark;
 
-  --theme-swatch-1: #050e0a;
-  --theme-swatch-2: #122018;
-  --theme-swatch-3: #e23d3d;
-  --theme-swatch-4: #e8c56a;
+  --theme-swatch-1: #0a151e;
+  --theme-swatch-2: #183137;
+  --theme-swatch-3: #ff9eaa;
+  --theme-swatch-4: #ffdc99;
 }
 
 .yule-scene {
   display: none;
-  position: relative;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 0.28rem;
-  height: 2.45rem;
-  margin: 0 0.35rem -0.18rem;
   pointer-events: none;
-  z-index: 1;
+}
+
+html[data-theme="yule-night"] .app > .sidebar {
+  --yule-horizon: clamp(7rem, 24vh, 13rem);
+}
+
+html[data-theme="yule-night"] #sidebar-theme-scenes {
+  height: var(--yule-horizon);
 }
 
 html[data-theme="yule-night"] .yule-scene {
-  display: flex;
-}
-
-.yule-scene::after {
-  content: "";
+  display: block;
   position: absolute;
-  left: 22%;
-  right: 22%;
-  bottom: 0;
-  height: 3px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, #1a3a28, #0c1812);
-  box-shadow: 0 0 8px rgba(232, 197, 106, 0.14);
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 68% 94%, #a0c8bc 0%, #3a6a76 15%, transparent 50%),
+    linear-gradient(155deg, #172a36, #0a1620 51%, #112d3d);
 }
 
-.yule-tree-mark {
-  position: relative;
-  width: 1.75rem;
-  height: 2.2rem;
+html[data-theme="yule-night"] .sidebar .brand {
+  background: #ddffe809;
+  box-shadow: inset 0 0 0 1px #d4f7e62b;
 }
 
-.yule-star {
+html[data-theme="yule-night"] .brand-name {
+  color: var(--accent-yellow);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.45rem;
+  letter-spacing: 0;
+}
+
+html[data-theme="yule-night"] .sidebar :is(.nav-item, .nav-sub-item).is-active {
+  background: var(--nav-active-bg);
+  color: var(--nav-fg-strong);
+  box-shadow: inset 2px 0 var(--accent);
+}
+
+html[data-theme="yule-night"] .app > .main {
+  background: radial-gradient(ellipse at top right, #26464b, var(--bg-main) 66%);
+}
+
+html[data-theme="yule-night"] .app > .main :is(
+  .tools-host, .insights-host, .settings-root, .gb-workspace, .tools-host .gb-main
+) {
+  background: transparent;
+}
+
+html[data-theme="yule-night"] .gb-tile {
+  background: linear-gradient(145deg, var(--card-elevated), var(--card) 75%);
+  border-color: var(--card-border-strong);
+}
+
+html[data-theme="yule-night"] .gb-tile:hover:not(:disabled) {
+  border-color: var(--accent-yellow);
+  box-shadow: 0 6px 24px #ffdc9926;
+}
+
+.yule-village {
   position: absolute;
-  left: 50%;
-  top: 0;
-  width: 0.4rem;
-  height: 0.4rem;
-  background: #e8c56a;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  transform: translateX(-50%);
-  filter: drop-shadow(0 0 4px rgba(232, 197, 106, 0.85));
+  inset: auto 0 0;
+  height: var(--yule-horizon);
+  overflow: hidden;
 }
 
-.yule-layer {
+.yule-sleigh {
   position: absolute;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  transform: translateX(-50%);
-}
-
-.yule-l1 {
-  top: 0.26rem;
-  border-width: 0 0.42rem 0.5rem;
-  border-color: transparent transparent #3dcc7a transparent;
-}
-
-.yule-l2 {
-  top: 0.52rem;
-  border-width: 0 0.6rem 0.58rem;
-  border-color: transparent transparent #2f9a58 transparent;
-}
-
-.yule-l3 {
-  top: 0.86rem;
-  border-width: 0 0.8rem 0.66rem;
-  border-color: transparent transparent #1f7340 transparent;
-}
-
-.yule-trunk {
-  position: absolute;
-  left: 50%;
-  bottom: 0.08rem;
-  width: 0.26rem;
-  height: 0.3rem;
-  background: #6b3e22;
-  border-radius: 1px;
-  transform: translateX(-50%);
-}
-
-.yule-orn {
-  position: absolute;
-  width: 0.22rem;
-  height: 0.22rem;
-  border-radius: 50%;
-  box-shadow: 0 0 4px currentColor;
-}
-
-.yule-orn-a {
-  left: 0.42rem;
-  top: 0.78rem;
-  background: #e23d3d;
-  color: #e23d3d;
-}
-
-.yule-orn-b {
-  right: 0.38rem;
-  top: 1.05rem;
-  background: #e8c56a;
-  color: #e8c56a;
-}
-
-.yule-orn-c {
-  left: 0.7rem;
-  top: 1.28rem;
-  background: #7ec8d4;
-  color: #7ec8d4;
-}
-
-.yule-gift {
-  position: relative;
-  border-radius: 1px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
-}
-
-.yule-gift::before,
-.yule-gift::after {
-  content: "";
-  position: absolute;
-  background: #f4f0e6;
-}
-
-.yule-gift::before {
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  transform: translateX(-50%);
-}
-
-.yule-gift::after {
+  bottom: calc(var(--yule-horizon) * 0.88);
   left: 0;
-  right: 0;
-  top: 42%;
-  height: 2px;
+  width: 104px;
+  height: 19px;
+  color: #0e2531;
+  filter: drop-shadow(0 0 1px #e2e6bd85);
 }
 
-.yule-gift-a {
-  width: 0.52rem;
-  height: 0.42rem;
-  background: #e23d3d;
+.yule-sleigh-carriage {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  width: 22px;
+  height: 14px;
+  background: currentColor;
+  clip-path: polygon(
+    0 36%, 12% 36%, 10% 15%, 23% 9%, 38% 20%, 45% 38%,
+    51% 31%, 52% 14%, 65% 3%, 79% 12%, 75% 27%, 81% 40%,
+    93% 42%, 100% 28%, 98% 58%, 84% 71%, 75% 75%, 75% 87%,
+    92% 87%, 99% 78%, 100% 89%, 92% 100%, 4% 100%, 0 88%,
+    24% 88%, 24% 75%, 10% 67%
+  );
 }
 
-.yule-gift-b {
-  width: 0.46rem;
-  height: 0.36rem;
-  background: #3dcc7a;
+.yule-sleigh-reins {
+  position: absolute;
+  top: 9px;
+  left: 19px;
+  width: 73px;
+  border-top: 1px solid currentColor;
+  transform: rotate(-4deg);
 }
 
-.yule-gift-c {
-  width: 0.4rem;
-  height: 0.32rem;
-  background: #e8c56a;
+.yule-sleigh-team {
+  position: absolute;
+  top: 2px;
+  left: 28px;
+  display: flex;
+  gap: 3px;
+  transform: rotate(-3deg);
 }
 
-.yule-gift-c::before,
-.yule-gift-c::after {
-  background: #a81e28;
+.yule-sleigh-deer {
+  width: 16px;
+  height: 13px;
+  background: currentColor;
+  clip-path: polygon(
+    0 55%, 16% 42%, 53% 45%, 68% 27%, 70% 14%, 59% 2%, 69% 5%,
+    78% 17%, 85% 9%, 83% 0, 92% 5%, 89% 23%, 100% 30%, 95% 41%,
+    82% 40%, 73% 62%, 96% 78%, 94% 91%, 72% 81%, 51% 68%,
+    32% 67%, 16% 94%, 2% 100%, 13% 77%, 9% 65%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yule-sleigh { display: none; }
+}
+
+.yule-moon {
+  position: absolute;
+  top: 10%;
+  right: 16%;
+  height: 26%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fffbe5, #d1ebdd 70%, #a4cdbf);
+  box-shadow: 0 0 28px #defced77;
+}
+
+.yule-mountains {
+  position: absolute;
+  inset: 19% 0 0;
+  background: linear-gradient(155deg, #b0cbd2 5%, #7195a1 37%, #274553 70%);
+  clip-path: polygon(0 43%, 16% 16%, 23% 29%, 40% 2%, 63% 41%, 72% 24%, 79% 36%, 89% 19%, 100% 49%, 100% 100%, 0 100%);
+}
+
+.yule-snowbank {
+  position: absolute;
+  inset: auto -10% -1px;
+  height: 31%;
+  background: linear-gradient(172deg, #eff8ec, #b0c9d2 67%, #7896a8);
+  border-radius: 50% 62% 0 0 / 49% 46% 0 0;
+}
+
+.yule-cabin {
+  position: absolute;
+  width: 29%;
+  height: 34%;
+  background: linear-gradient(145deg, #5b3c40, #2b2635 68%);
+  clip-path: polygon(0 47%, 49% 0, 74% 25%, 74% 8%, 84% 8%, 84% 34%, 100% 47%, 91% 47%, 91% 100%, 9% 100%, 9% 47%);
+}
+
+.yule-cabin::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#f5f7e8, #c1d4dc);
+  clip-path: polygon(0 47%, 49% 0, 100% 47%, 94% 51%, 49% 13%, 5% 52%);
+}
+
+.yule-cabin::after {
+  content: "";
+  position: absolute;
+  inset: 50% 19% 0;
+  background:
+    linear-gradient(90deg, #ffda93 44%, #935943 44% 57%, #ffda93 57%) left 20% / 28% 37%,
+    linear-gradient(90deg, #ffe9b0 44%, #935943 44% 57%, #ffe9b0 57%) right 20% / 28% 37%,
+    linear-gradient(#513345, #402c39) center bottom / 24% 68%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 4px #ffbc746b);
+}
+
+.yule-cabin-left {
+  left: 6%;
+  bottom: 17%;
+}
+
+.yule-cabin-right {
+  right: 6%;
+  bottom: 19%;
+  width: 24%;
+  height: 28%;
+  background: linear-gradient(145deg, #67434b, #302937 70%);
+}
+
+.yule-drift {
+  position: absolute;
+  height: 12%;
+  background: linear-gradient(170deg, #e4efed, #bed2da 55%, #a3bfcc 92%);
+  clip-path: polygon(
+    0 69%, 9% 48%, 16% 57%, 24% 29%, 31% 22%, 43% 45%, 49% 42%,
+    57% 56%, 69% 39%, 78% 12%, 87% 17%, 93% 48%, 100% 67%, 95% 79%,
+    67% 91%, 32% 100%, 10% 87%
+  );
+}
+
+.yule-drift-left {
+  left: 7%;
+  bottom: 12%;
+  width: 29%;
+}
+
+.yule-drift-right {
+  right: 4%;
+  bottom: 14%;
+  width: 26%;
+  transform: scaleX(-1);
+}
+
+.yule-tree,
+.yule-tree-lights {
+  position: absolute;
+  left: 35%;
+  bottom: 11%;
+  width: 32%;
+  height: 65%;
+}
+
+.yule-tree {
+  background: linear-gradient(135deg, #42695f, #183e3e 57%, #0e2935);
+  clip-path: polygon(
+    50% 0, 68% 28%, 61% 27%, 78% 47%, 72% 47%, 89% 68%, 81% 67%,
+    100% 88%, 59% 91%, 58% 100%, 43% 100%, 43% 91%, 0 88%, 19% 67%,
+    11% 68%, 28% 47%, 22% 47%, 39% 27%, 32% 28%
+  );
+}
+
+.yule-tree-lights {
+  background:
+    radial-gradient(circle at 50% 7%, #fff3c3 0 2px, #ffe09c66 3px, transparent 7px),
+    radial-gradient(circle at 43% 25%, #ffb2be 0 1px, transparent 2px),
+    radial-gradient(circle at 62% 33%, #ffe19e 0 1px, transparent 2px),
+    radial-gradient(circle at 37% 43%, #fff6de 0 1px, transparent 2px),
+    radial-gradient(circle at 55% 50%, #ffabb6 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 69% 52%, #fff6de 0 1px, transparent 2px),
+    radial-gradient(circle at 23% 64%, #ffe19e 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 41% 68%, #fff6de 0 1px, transparent 2px),
+    radial-gradient(circle at 73% 70%, #ffabb6 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 32% 81%, #ffb2be 0 1px, transparent 2px),
+    radial-gradient(circle at 59% 82%, #ffe19e 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 84% 84%, #fff6de 0 1px, transparent 2px);
+  filter: drop-shadow(0 0 3px #ffdb9a8a);
+}
+
+.yule-eaves,
+.yule-eaves::after {
+  position: absolute;
+  inset: 0;
+}
+
+.yule-eaves {
+  background:
+    radial-gradient(circle at 22% 39%, #ffdc8c 0 1px, transparent 2.1px),
+    radial-gradient(circle at 49% 20%, #fff0c6 0 1px, transparent 2.1px),
+    radial-gradient(circle at 77% 39%, #ffc0c9 0 1px, transparent 2.1px);
+  filter: drop-shadow(0 0 3px #ffd49d9e);
+}
+
+.yule-eaves::after {
+  content: "";
+  background:
+    radial-gradient(circle at 36% 29%, #ffc0c9 0 1px, transparent 2.1px),
+    radial-gradient(circle at 63% 29%, #c2f0de 0 1px, transparent 2.1px);
+}
+
+.yule-smoke {
+  position: absolute;
+  width: 16%;
+  height: 22%;
+}
+
+.yule-smoke-left {
+  left: 28%;
+  bottom: 48%;
+}
+
+.yule-smoke-right {
+  left: 75%;
+  bottom: 45%;
+  transform: scaleX(-1);
+}
+
+.yule-smoke::before,
+.yule-smoke::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 12% 88%, #cadbda6e, transparent 20%),
+    radial-gradient(ellipse at 34% 68%, #d4e4df4d, transparent 29%),
+    radial-gradient(ellipse at 58% 46%, #d4e4df2e, transparent 36%);
+}
+
+.yule-smoke::after {
+  opacity: 0.55;
+  transform: translate(8%, -22%);
+}
+
+.yule-presents {
+  position: absolute;
+  left: 40%;
+  bottom: 8%;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.16rem;
+  height: 8%;
+}
+
+.yule-presents span {
+  --ribbon: #ffdc99;
+  position: relative;
+  height: 84%;
+  aspect-ratio: 1.1;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, transparent 39%, var(--ribbon) 39% 58%, transparent 58%),
+    linear-gradient(#ffffff3d 0 22%, transparent 22%),
+    #a54961;
+  box-shadow: inset -2px -2px #101e2a36, 0 2px 3px #294f5c5c;
+  transform: rotate(-7deg);
+}
+
+.yule-presents span:nth-child(2) {
+  --ribbon: #ffc5ce;
+  height: 66%;
+  background-color: #537f7b;
+  transform: rotate(6deg);
+}
+
+.yule-presents span:last-child {
+  --ribbon: #a34e66;
+  height: 100%;
+  background-color: #d7a66a;
+  transform: rotate(9deg) translateY(-9%);
+}
+
+.yule-presents span::before {
+  content: "";
+  position: absolute;
+  inset: -32% 13% auto;
+  height: 43%;
+  background:
+    radial-gradient(ellipse at 29% 54%, transparent 18%, var(--ribbon) 21% 43%, transparent 49%) left / 60% 100%,
+    radial-gradient(ellipse at 71% 54%, transparent 18%, var(--ribbon) 21% 43%, transparent 49%) right / 60% 100%;
+  background-repeat: no-repeat;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .yule-smoke::before { animation: yule-smoke 8s ease-in-out infinite; }
+  .yule-smoke::after { animation: yule-smoke 11s ease-in-out -5s infinite; }
+  .yule-smoke-right::before { animation-delay: -3s; }
+  .yule-eaves::after { animation: yule-twinkle 4.5s ease-in-out infinite alternate; }
+  .yule-cabin-right .yule-eaves::after { animation-delay: -2s; }
+  .yule-tree-lights { animation: yule-twinkle 6s ease-in-out infinite alternate; }
+}
+
+@keyframes yule-smoke {
+  0% { opacity: 0; transform: translate(-3%, 10%) scale(0.85); }
+  30% { opacity: 0.82; }
+  100% { opacity: 0; transform: translate(32%, -45%) scale(1.2); }
+}
+
+@keyframes yule-twinkle {
+  0%, 58%, 100% { opacity: 1; }
+  32%, 79% { opacity: 0.76; }
 }

@@ -1,4 +1,6 @@
-﻿/** @typedef {{ id: string, label: string, column: string, equipmentMode?: "ltl" | "truckload" }} FocusLayer */
+﻿import { allowsAction } from "../../../../shared/js/permissions.js?v=20261120-actions";
+
+/** @typedef {{ id: string, label: string, column: string, equipmentMode?: "ltl" | "truckload" }} FocusLayer */
 /** @typedef {{ id: string, label: string, icon: string, layers: FocusLayer[] }} FocusCategory */
 
 /** @type {FocusCategory[]} */
@@ -389,7 +391,7 @@ export function renderFocusBuilder(opts) {
         if (alreadyOn(layer.column, value)) present.push({ column: layer.column, value });
       }
     }
-    if (!present.length) return;
+    if (!present.length || !allowsAction("insights:delete-focus")) return;
     forget(present);
     syncChecks();
     if (opts.onRemoveMany) {
@@ -455,6 +457,10 @@ export function renderFocusBuilder(opts) {
       box.checked = alreadyOn(layer.column, value);
       box.addEventListener("change", () => {
         const item = { column: layer.column, value };
+        if (!box.checked && !allowsAction("insights:delete-focus")) {
+          box.checked = true;
+          return;
+        }
         if (box.checked) {
           remember([item]);
           syncChecks();

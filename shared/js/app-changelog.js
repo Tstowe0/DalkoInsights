@@ -15,7 +15,12 @@ export const SHELL_RELEASES = [
       "Report and tool tiles are square. They wrap onto the next line instead of stretching wide.",
       "Oceanic Night draws a neon trim around each report and tool tile, and the title uses that same color. Opening the board again picks new colors.",
       "The left navigation item for the dump analyzer is named Data Dump Analyzer.",
+      "The console moved out of the sidebar into Settings, under Troubleshooting. Theme scenes sit in that sidebar spot.",
+      "Hallowed Night is a harvest moon over a hillside manor. A ghost rises from the graves and looks toward the pointer.",
+      "Yule Night is a snowbound village under a teal sky. A sleigh pulled by four reindeer crosses about once an hour.",
       "Dropping a file on a report stays on that report. The page no longer also opens the file in DALKO Insights, which was showing a missing-columns error.",
+      "Permissions is a user list. Edit a person to choose their group, then the pages and functions they can open.",
+      "Each section has Pop ups and buttons. A person can open a page with Run, Send, Export, or Delete left off.",
     ],
   },
   {

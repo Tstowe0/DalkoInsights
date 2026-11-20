@@ -10,21 +10,21 @@ import {
   initDalkoPortal,
   setInsightsView,
   setEmbeddedInsightHide,
-} from "../../portals/dalko/js/app.js?v=20261112-fit";
+} from "../../portals/dalko/js/app.js?v=20261120-actions";
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20261112-fit";
-import { hallowedNightScene } from "./themes/hallowed-night.js";
+import { hallowedNightScene } from "./themes/hallowed-night.js?v=20261121-seasonal";
 import { oceanicNightScene } from "./themes/oceanic-night.js";
-import { yuleNightScene } from "./themes/yule-night.js";
-import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261119-theme-files";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261120-match";
+import { yuleNightScene } from "./themes/yule-night.js?v=20261120-hourly-sleigh";
+import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261120-hourly-sleigh";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261120-actions";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
 import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
-import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20260819-fxsweep";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261120-match2";
+import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261120-actions";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261120-hourly-sleigh";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261023-ttx";
 import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261023-ttx";
 import {
@@ -44,6 +44,7 @@ import {
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
 import { fetchRack, rackAuthHeaders, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261023-id";
 import {
+  allowsAction,
   allowsMenu,
   allowsTool,
   bindPermissionsPage,
@@ -52,7 +53,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261120-troubleshooting";
+} from "./permissions.js?v=20261120-actions";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -1654,10 +1655,13 @@ function paintChrome() {
     }
   }
   const clearData = document.getElementById("btn-clear-data");
+  const showClear = Boolean(fileName) && allowsAction("insights:clear-data");
   if (clearData) {
-    clearData.hidden = !fileName;
-    clearData.classList.toggle("hidden", !fileName);
+    clearData.hidden = !showClear;
+    clearData.classList.toggle("hidden", !showClear);
   }
+  const upload = document.getElementById("btn-upload");
+  if (upload) upload.hidden = !allowsAction("insights:upload");
   paintAlerts();
 }
 
@@ -2121,7 +2125,7 @@ function init() {
       return;
     }
     const file = e.dataTransfer?.files?.[0];
-    if (!file) return;
+    if (!file || !allowsAction("insights:upload")) return;
     e.preventDefault();
     void handleInsightsFile(file).then(() => {
       if (shellView !== "insights") setShellView("insights");
@@ -2129,6 +2133,7 @@ function init() {
   });
 
   document.getElementById("btn-clear-data")?.addEventListener("click", () => {
+    if (!allowsAction("insights:clear-data")) return;
     clearHeldData();
   });
 

@@ -1,11 +1,18 @@
 import { prefersReducedMotion } from "./motion.js";
 
 const HALLOWEEN_THEME = "hallowed-night";
-const GHOST_SVG = `<svg viewBox="0 0 40 48" aria-hidden="true">
+
+const GHOST_BOW = `<g stroke="#8c2b65" stroke-width="0.9" stroke-linejoin="round">
+  <path fill="#f68cbd" d="M27 7c-2-2-5-3-6-2-1 1-1 4 0 6 1 1 4 0 6-2m2-2c2-2 5-3 6-2 1 1 1 4 0 6-1 1-4 0-6-2"/>
+  <rect x="26" y="6" width="4" height="4" rx="1.5" fill="#ffc5e0"/>
+</g>`;
+
+const ghostSvg = (hasBow) => `<svg viewBox="0 0 40 48" aria-hidden="true">
   <path fill="currentColor" d="M20 3.5C11.4 3.5 4.5 10.6 4.5 20.2V41c0 1.9 2.2 2.2 3.2.6 1.3-2.1 3.4-2.1 4.8 0 1.3 2.1 3.4 2.1 4.8 0 1.3-2.1 3.4-2.1 4.8 0 1.3 2.1 3.4 2.1 4.8 0 1-1.6 3.2-1.3 3.2-.6V20.2C35.5 10.6 28.6 3.5 20 3.5Z"/>
   <g class="hallow-ghost-eye"><circle cx="14.2" cy="20" r="2.15" fill="#1a1024"/></g>
   <g class="hallow-ghost-eye"><circle cx="24.6" cy="20" r="2.15" fill="#1a1024"/></g>
   <ellipse cx="19.4" cy="27.2" rx="2.6" ry="1.5" fill="#1a1024" opacity=".32"/>
+  ${hasBow ? GHOST_BOW : ""}
 </svg>`;
 
 /** @type {number} */
@@ -29,7 +36,9 @@ function lookToward(wrap, x, y) {
   const dx = x - (box.left + box.width * 0.5);
   const dy = y - (box.top + box.height * 0.4);
   const dist = Math.hypot(dx, dy) || 1;
-  wrap.style.setProperty("--look-x", `${((dx / dist) * 2.8).toFixed(2)}px`);
+  const sprite = wrap.querySelector("svg");
+  const facing = sprite && getComputedStyle(sprite).scale.startsWith("-") ? -1 : 1;
+  wrap.style.setProperty("--look-x", `${((dx / dist) * 2.8 * facing).toFixed(2)}px`);
   wrap.style.setProperty("--look-y", `${((dy / dist) * 2).toFixed(2)}px`);
 }
 
@@ -108,11 +117,11 @@ function scheduleHalloweenGhost(soon) {
   ghostTimer = window.setTimeout(spawnHalloweenGhost, wait);
 }
 
-function tombAnchor() {
-  const stones = document.querySelectorAll(".hallow-tombs .hallow-tomb");
-  if (!stones.length) return null;
-  const stone = stones[Math.floor(Math.random() * stones.length)];
-  const r = stone.getBoundingClientRect();
+function ghostAnchor() {
+  const gravestones = document.querySelectorAll(".hallow-graves .hallow-grave");
+  const anchor = gravestones[Math.floor(Math.random() * gravestones.length)];
+  if (!anchor?.getClientRects().length) return null;
+  const r = anchor.getBoundingClientRect();
   return {
     x: r.left + r.width / 2,
     y: r.top,
@@ -134,6 +143,10 @@ function popGhost(wrap) {
   stopGhostLook();
   const cs = getComputedStyle(wrap);
   wrap.style.setProperty("--pop-from", cs.transform === "none" ? "translate(0, 0)" : cs.transform);
+  wrap.getAnimations().forEach((anim) => {
+    if (anim.effect?.target === wrap) anim.cancel();
+  });
+  wrap.querySelector("svg")?.getAnimations().forEach((anim) => anim.pause());
   wrap.classList.add("is-pop");
   wrap.setAttribute("aria-hidden", "true");
   wrap.removeAttribute("tabindex");
@@ -149,15 +162,15 @@ const GHOST_W = 21;
 const GHOST_H = 25;
 
 function yardBounds() {
-  const yard = document.querySelector(".hallow-tombs");
+  const yard = document.querySelector(".hallow-graves");
   const side = document.querySelector(".sidebar");
   if (!yard || !side) return null;
   const stones = yard.getBoundingClientRect();
   const bar = side.getBoundingClientRect();
   const minX = bar.left + 8;
   const maxX = Math.max(minX, bar.right - GHOST_W - 8);
-  const maxY = stones.top - GHOST_H + 9;
-  const minY = maxY - 22;
+  const minY = stones.top - GHOST_H - 13;
+  const maxY = stones.bottom - GHOST_H;
   return { minX, maxX, minY, maxY };
 }
 
@@ -203,10 +216,13 @@ function roamGhost(wrap) {
     y: yard.minY + Math.random() * (yard.maxY - yard.minY),
   });
   const home = clampYard({ x: gx, y: gy - 4 }, yard);
-  const stops = [home, spot(), spot(), spot(), home];
+  const grave = ghostAnchor();
+  if (!grave) return null;
+  const destination = clampYard({ x: grave.x - GHOST_W / 2, y: grave.y - GHOST_H + 2 }, yard);
+  const stops = [home, spot(), spot(), spot(), destination];
   const samples = driftPath(stops).map((point) => clampYard(point, yard));
   samples[0] = home;
-  samples[samples.length - 1] = home;
+  samples[samples.length - 1] = destination;
   const frames = samples.map((point, index) => {
     const dx = Math.round((point.x - gx) * 10) / 10;
     const dy = Math.round((point.y - gy) * 10) / 10;
@@ -215,6 +231,13 @@ function roamGhost(wrap) {
       opacity: 0.92,
       transform: `translate(${dx}px, ${dy}px) scale(0.94)`,
     };
+  });
+  let facing = 1;
+  const turns = samples.map((point, index) => {
+    const next = samples[index + 1] ?? point;
+    const dx = next.x - point.x;
+    if (Math.abs(dx) >= 0.5) facing = Math.sign(dx);
+    return { offset: frames[index].offset, scale: `${facing} 1`, easing: "steps(1, end)" };
   });
   const emerge = wrap.animate(
     [
@@ -225,11 +248,27 @@ function roamGhost(wrap) {
   );
   emerge.onfinish = () => {
     if (!wrap.isConnected || wrap.classList.contains("is-pop")) return;
-    wrap.animate(frames, {
+    const timing = {
       duration: 32000 + Math.random() * 8000,
       easing: "linear",
-      iterations: Infinity,
-    });
+      fill: "forwards",
+    };
+    const drift = wrap.animate(frames, timing);
+    wrap.querySelector("svg")?.animate(turns, timing);
+    drift.onfinish = () => {
+      if (!wrap.isConnected || wrap.classList.contains("is-pop")) return;
+      stopGhostLook();
+      const { opacity, transform } = frames[frames.length - 1];
+      const sink = wrap.animate([
+        { opacity, transform },
+        { opacity: 0, transform: `translate(${grave.x - GHOST_W / 2 - gx}px, ${grave.y - gy - 5}px) scale(0.12)` },
+      ], {
+        duration: 1300,
+        easing: "ease-in",
+        fill: "forwards",
+      });
+      sink.onfinish = () => finishGhost(wrap);
+    };
   };
   wrap.dataset.roam = "1";
   return emerge;
@@ -240,7 +279,7 @@ function spawnHalloweenGhost() {
   if (document.documentElement.dataset.theme !== HALLOWEEN_THEME || prefersReducedMotion()) {
     return;
   }
-  const tomb = tombAnchor();
+  const tomb = ghostAnchor();
   if (!tomb) {
     scheduleHalloweenGhost(false);
     return;
@@ -255,13 +294,11 @@ function spawnHalloweenGhost() {
   wrap.title = "Pop";
   wrap.style.setProperty("--gx", `${Math.round(tomb.x - GHOST_W / 2)}px`);
   wrap.style.setProperty("--gy", `${Math.round(tomb.y - GHOST_H + 6)}px`);
-  wrap.innerHTML = `<span class="hallow-ghost-bob">${GHOST_SVG}</span>`;
+  const hasBow = Math.random() < 0.5;
+  wrap.innerHTML = `<span class="hallow-ghost-bob">${ghostSvg(hasBow)}</span>`;
   wrap.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    wrap.getAnimations().forEach((anim) => {
-      if (anim.effect?.target === wrap) anim.cancel();
-    });
     popGhost(wrap);
   });
   wrap.addEventListener("animationend", (event) => {
@@ -279,9 +316,17 @@ export function syncHalloweenGhosts(themeId) {
   if (themeId === HALLOWEEN_THEME) scheduleHalloweenGhost(true);
 }
 
-export const hallowedNightScene = `<div class="hallow-tombs" aria-hidden="true">
-  <span class="hallow-tomb hallow-tomb-a"><i></i></span>
-  <span class="hallow-tomb hallow-tomb-b"><i></i></span>
-  <span class="hallow-tomb hallow-tomb-c"><i></i></span>
-  <span class="hallow-pumpkin"></span>
+export const hallowedNightScene = `<div class="hallow-scene" aria-hidden="true">
+  <div class="hallow-landscape">
+    <div class="hallow-moon"></div>
+    <div class="hallow-ridge"></div>
+    <div class="hallow-manor"><div class="hallow-windows"></div></div>
+    <div class="hallow-tree"></div>
+    <div class="hallow-fog"></div>
+    <div class="hallow-ground"></div>
+    <div class="hallow-lantern"></div>
+    <div class="hallow-graves">
+      <span class="hallow-grave"></span><span class="hallow-grave"></span><span class="hallow-grave"></span>
+    </div>
+  </div>
 </div>`;

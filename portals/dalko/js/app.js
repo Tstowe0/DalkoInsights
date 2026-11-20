@@ -12,11 +12,12 @@ import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=2026100
 import { runAnalysis } from "./analytics/engine.js?v=20261112-export";
 import { nextJobId, workerJob } from "./workers/client.js";
 import { navTitle, renderNav } from "./ui/nav.js?v=20260923-desk";
-import { renderView } from "./ui/render.js?v=20261112-fit";
+import { renderView } from "./ui/render.js?v=20261120-actions";
 import { RAIL_VIEWS, renderViewRail, teardownAllRails } from "./ui/page-rails.js?v=20260922-corp2";
 import { alertDialog, confirmDialog } from "./ui/dialog.js";
-import { runReport, teardownExecReport } from "./ui/report.js?v=20261112-fit";
+import { runReport, teardownExecReport } from "./ui/report.js?v=20261120-actions";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
+import { allowsAction } from "../../../shared/js/permissions.js?v=20261120-actions";
 
 /** @type {import("./data/filters.js").FilterState} */
 let filters = createDefaultFilters();
@@ -202,7 +203,7 @@ function setLoading(on, message = "Working…", detail = "", pct = null) {
 
 function updateFocusButton() {
   if (!el.btnClearFocus) return;
-  const on = hasFocuses(filters);
+  const on = hasFocuses(filters) && allowsAction("insights:clear-focus");
   el.btnClearFocus.disabled = !on;
   el.btnClearFocus.hidden = embedMode ? !on : el.btnClearFocus.hidden;
   el.btnClearFocus.classList.toggle("hidden", embedMode && !on);
@@ -308,8 +309,10 @@ function setView(viewId) {
 function updateExportButton() {
   const btn = el.btnExportReport;
   if (!(btn instanceof HTMLButtonElement)) return;
+  const allowed = allowsAction("insights:export");
   const ready = Boolean(state.results?.executive);
-  btn.disabled = !ready;
+  btn.hidden = !allowed;
+  btn.disabled = !allowed || !ready;
   btn.title = ready
     ? "Print a PDF of charts and top and bottom 5 rankings"
     : "Upload a data dump to export a report";

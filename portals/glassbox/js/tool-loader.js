@@ -2,6 +2,8 @@
  * Resolves and loads a tool module from Scripts/ (mirrors Python _launch_tool).
  */
 
+import { gateToolButtons } from "../../../shared/js/permissions.js?v=20261120-actions";
+
 /**
  * @typedef {object} ToolContext
  * @property {() => void} onBack
@@ -32,6 +34,7 @@ export async function launchTool(scriptPath, parent, ctx) {
     }
     parent.innerHTML = "";
     await mod.loadGui(parent, ctx);
+    gateToolButtons(parent, scriptPath);
     ctx.log(`${scriptPath} loaded successfully.`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

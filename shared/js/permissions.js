@@ -18,8 +18,8 @@ const STAFF_ID = "everything-no-ftp";
 const FTP_MENU = "integrations-ftp";
 const OWNER_EMAIL = "terry.stowe@shipdalko.com";
 
-/** @typedef {{ id: string, name: string, menus: string[], tools: string[] }} PermGroup */
-/** @typedef {{ email: string, groupId: string }} PermMember */
+/** @typedef {{ id: string, name: string, menus: string[], tools: string[], actions: string[] }} PermGroup */
+/** @typedef {{ email: string, groupId: string, menus: string[], tools: string[], actions: string[] }} PermMember */
 /** @typedef {{ groups: PermGroup[], members: PermMember[], released: string[] }} PermStore */
 
 const INSIGHT_PAGE_IDS = INSIGHT_NAV.filter((item) => item.id !== "changelog").map((item) => item.id);
@@ -32,8 +32,47 @@ const TOOL_SHORTCUTS = [
 const SIDEBAR_TOOL_IDS = new Set(TOOL_SHORTCUTS.map((item) => item.tool));
 
 /**
- * @typedef {{ label: string, menus?: string[], tools?: string[], children?: PermNode[] }} PermNode
+ * @typedef {{ label: string, menus?: string[], tools?: string[], actions?: string[], children?: PermNode[] }} PermNode
  */
+
+/** Buttons and popups that can stay off while the page stays on. */
+const POPUP_ACTIONS = {
+  insights: [
+    { id: "insights:upload", label: "Upload TMS" },
+    { id: "insights:export", label: "Export Report" },
+    { id: "insights:print", label: "Print / PDF" },
+    { id: "insights:clear-focus", label: "Clear focus" },
+    { id: "insights:clear-data", label: "Clear data" },
+    { id: "insights:delete-focus", label: "Delete focus" },
+  ],
+  reports: [
+    { id: "reports:run", label: "Run" },
+    { id: "reports:clear", label: "Clear" },
+  ],
+  uploads: [
+    { id: "uploads:run", label: "Run and save" },
+    { id: "uploads:send", label: "Run and send" },
+    { id: "uploads:clear", label: "Clear" },
+  ],
+  tools: [
+    { id: "tools:run", label: "Run" },
+    { id: "tools:export", label: "Export" },
+    { id: "tools:clear", label: "Clear" },
+    { id: "tools:delete", label: "Delete" },
+  ],
+  permissions: [
+    { id: "permissions:add-group", label: "Add group" },
+    { id: "permissions:delete-group", label: "Delete group" },
+  ],
+};
+
+/** @param {{ id: string, label: string }[]} items */
+function popupSection(items) {
+  return {
+    label: "Pop ups and buttons",
+    children: items.map((item) => ({ label: item.label, actions: [item.id] })),
+  };
+}
 
 /** The sidebar, then the pages and tools that live under each section. */
 function permissionTree() {
@@ -42,26 +81,35 @@ function permissionTree() {
     {
       label: "Reports",
       menus: ["client-reports"],
-      children: CLIENT_REPORT_BANDS.map((band) => ({
-        label: band.label,
-        children: band.tools.map((tool) => ({ label: tool.label, tools: [tool.id] })),
-      })),
+      children: [
+        ...CLIENT_REPORT_BANDS.map((band) => ({
+          label: band.label,
+          children: band.tools.map((tool) => ({ label: tool.label, tools: [tool.id] })),
+        })),
+        popupSection(POPUP_ACTIONS.reports),
+      ],
     },
     {
       label: "Client Uploads",
       menus: ["client-uploads"],
-      children: (SECTIONS.find((section) => section.id === "client-uploads")?.tools || []).map((tool) => ({
-        label: tool.label,
-        tools: [tool.id],
-      })),
+      children: [
+        ...(SECTIONS.find((section) => section.id === "client-uploads")?.tools || []).map((tool) => ({
+          label: tool.label,
+          tools: [tool.id],
+        })),
+        popupSection(POPUP_ACTIONS.uploads),
+      ],
     },
     {
       label: "Data Dump Analyzer",
       menus: ["insights"],
-      children: INSIGHT_NAV.filter((item) => item.id !== "changelog").map((item) => ({
-        label: item.label,
-        menus: [`insight:${item.id}`],
-      })),
+      children: [
+        ...INSIGHT_NAV.filter((item) => item.id !== "changelog").map((item) => ({
+          label: item.label,
+          menus: [`insight:${item.id}`],
+        })),
+        popupSection(POPUP_ACTIONS.insights),
+      ],
     },
     {
       label: "Tools",
@@ -78,6 +126,7 @@ function permissionTree() {
             .filter((tool) => !SIDEBAR_TOOL_IDS.has(tool.id))
             .map((tool) => ({ label: tool.label, tools: [tool.id] })),
         })),
+        popupSection(POPUP_ACTIONS.tools),
       ],
     },
     {
@@ -92,7 +141,7 @@ function permissionTree() {
             { label: "CRM switch", tools: ["crm-switch"] },
           ],
         },
-        { label: "Permissions", menus: ["permissions"] },
+        { label: "Permissions", menus: ["permissions"], children: [popupSection(POPUP_ACTIONS.permissions)] },
         { label: "Themes", menus: ["themes"] },
       ],
     },
@@ -103,12 +152,14 @@ function permissionTree() {
 function grantsOf(node) {
   const menus = [...(node.menus || [])];
   const tools = [...(node.tools || [])];
+  const actions = [...(node.actions || [])];
   for (const child of node.children || []) {
     const sub = grantsOf(child);
     menus.push(...sub.menus);
     tools.push(...sub.tools);
+    actions.push(...sub.actions);
   }
-  return { menus, tools };
+  return { menus, tools, actions };
 }
 
 function emptyStore() {
@@ -121,24 +172,28 @@ function collectGrants(skipMenus = new Set()) {
   const menus = new Set();
   /** @type {Set<string>} */
   const tools = new Set();
+  /** @type {Set<string>} */
+  const actions = new Set();
   /** @param {PermNode} node */
   const walk = (node) => {
     for (const id of node.menus || []) if (!skipMenus.has(id)) menus.add(id);
     for (const id of node.tools || []) tools.add(id);
+    for (const id of node.actions || []) actions.add(id);
     for (const child of node.children || []) walk(child);
   };
   for (const node of permissionTree()) walk(node);
-  return { menus: [...menus], tools: [...tools] };
+  return { menus: [...menus], tools: [...tools], actions: [...actions] };
 }
 
-/** Menus required to open the page that holds a grant. @param {string[]} menus @param {string[]} tools */
-function ancestorMenusFor(menus, tools) {
+/** Menus required to open the page that holds a grant. @param {string[]} menus @param {string[]} tools @param {string[]} [actions] */
+function ancestorMenusFor(menus, tools, actions = []) {
   /** @type {Map<string, string[]>} */
   const map = new Map();
   /** @param {PermNode} node @param {string[]} ancestors */
   const walk = (node, ancestors) => {
     for (const id of node.menus || []) map.set(`m:${id}`, ancestors);
     for (const id of node.tools || []) map.set(`t:${id}`, ancestors);
+    for (const id of node.actions || []) map.set(`a:${id}`, ancestors);
     const next = ancestors.concat(node.menus || []);
     for (const child of node.children || []) walk(child, next);
   };
@@ -146,6 +201,7 @@ function ancestorMenusFor(menus, tools) {
   const extra = new Set();
   for (const id of menus) for (const parent of map.get(`m:${id}`) || []) extra.add(parent);
   for (const id of tools) for (const parent of map.get(`t:${id}`) || []) extra.add(parent);
+  for (const id of actions) for (const parent of map.get(`a:${id}`) || []) extra.add(parent);
   return [...extra];
 }
 
@@ -154,7 +210,13 @@ function ensureAdmin(store) {
   let changed = false;
   let admin = store.groups.find((group) => group.id === ADMIN_ID);
   if (!admin) {
-    admin = { id: ADMIN_ID, name: "Admin", menus: ["permissions"], tools: [] };
+    admin = {
+      id: ADMIN_ID,
+      name: "Admin",
+      menus: ["permissions"],
+      tools: [],
+      actions: POPUP_ACTIONS.permissions.map((item) => item.id),
+    };
     store.groups.unshift(admin);
     changed = true;
   } else if (store.groups[0]?.id !== ADMIN_ID) {
@@ -167,7 +229,7 @@ function ensureAdmin(store) {
   }
   const owner = store.members.find((member) => member.email === OWNER_EMAIL);
   if (!owner) {
-    store.members.push({ email: OWNER_EMAIL, groupId: ADMIN_ID });
+    store.members.push({ email: OWNER_EMAIL, groupId: ADMIN_ID, menus: [], tools: [], actions: [] });
     changed = true;
   } else if (owner.groupId !== ADMIN_ID) {
     owner.groupId = ADMIN_ID;
@@ -187,6 +249,7 @@ function ensureStaff(store) {
       name: "Everything no FTP",
       menus: grants.menus,
       tools: grants.tools.filter((tool) => tool !== "crm-switch"),
+      actions: grants.actions.filter((id) => id !== "uploads:send"),
     };
     changed = true;
   }
@@ -202,6 +265,29 @@ function ensureStaff(store) {
   return changed;
 }
 
+/** Buttons that belong with the pages this group already has. @param {PermGroup} group */
+function defaultActionsFor(group) {
+  const actions = new Set();
+  const menus = new Set(group.menus || []);
+  const tools = new Set(group.tools || []);
+  const reportTools = new Set(CLIENT_REPORT_BANDS.flatMap((band) => band.tools.map((tool) => tool.id)));
+  const uploadTools = new Set((SECTIONS.find((section) => section.id === "client-uploads")?.tools || []).map((tool) => tool.id));
+  const grant = (items) => {
+    for (const item of items) actions.add(item.id);
+  };
+  if (menus.has("insights") || [...menus].some((id) => id.startsWith("insight:"))) grant(POPUP_ACTIONS.insights);
+  if (menus.has("client-reports") || [...tools].some((id) => reportTools.has(id))) grant(POPUP_ACTIONS.reports);
+  if (menus.has("client-uploads") || [...tools].some((id) => uploadTools.has(id))) {
+    grant(POPUP_ACTIONS.uploads);
+    if (group.id === STAFF_ID) actions.delete("uploads:send");
+  }
+  const toolMenus = ["accounting", "tracking", "ops", "data-tools", "carrier-search", "zip-calculator", "currency-converter"];
+  const otherTool = [...tools].some((id) => !reportTools.has(id) && !uploadTools.has(id) && id !== "crm-switch");
+  if (toolMenus.some((id) => menus.has(id)) || otherTool) grant(POPUP_ACTIONS.tools);
+  if (menus.has("permissions")) grant(POPUP_ACTIONS.permissions);
+  return [...actions];
+}
+
 /** @returns {PermStore} */
 function normalizeStore(data) {
   const groups = Array.isArray(data?.groups) ? data.groups : [];
@@ -209,18 +295,37 @@ function normalizeStore(data) {
   return {
     groups: groups
       .filter((group) => group && typeof group.id === "string")
-      .map((group) => ({
-        id: group.id,
-        name: String(group.name || "Group").slice(0, 60),
-        menus: Array.isArray(group.menus) ? group.menus.map(String) : [],
-        tools: Array.isArray(group.tools) ? group.tools.map(String) : [],
-      })),
+      .map((group) => {
+        const menus = Array.isArray(group.menus) ? group.menus.map(String) : [];
+        const tools = Array.isArray(group.tools) ? group.tools.map(String) : [];
+        const hadActions = Array.isArray(group.actions);
+        /** @type {PermGroup} */
+        const next = {
+          id: group.id,
+          name: String(group.name || "Group").slice(0, 60),
+          menus,
+          tools,
+          actions: hadActions ? group.actions.map(String) : [],
+        };
+        if (!hadActions) next.actions = defaultActionsFor(next);
+        return next;
+      }),
     members: [...members.reduce((map, member) => {
       if (!member || typeof member.email !== "string" || typeof member.groupId !== "string") return map;
       const email = member.email.trim().toLowerCase();
-      if (email.includes("@")) map.set(email, member.groupId);
+      if (!email.includes("@")) return map;
+      const menus = Array.isArray(member.menus) ? member.menus.map(String) : [];
+      const tools = Array.isArray(member.tools) ? member.tools.map(String) : [];
+      const actions = Array.isArray(member.actions) ? member.actions.map(String) : [];
+      map.set(email, { groupId: member.groupId, menus, tools, actions });
       return map;
-    }, new Map())].map(([email, groupId]) => ({ email, groupId })),
+    }, new Map())].map(([email, item]) => ({
+      email,
+      groupId: item.groupId,
+      menus: item.menus,
+      tools: item.tools,
+      actions: item.actions,
+    })),
     released: [...new Set(
       (Array.isArray(data?.released) ? data.released : [])
         .map((email) => String(email || "").trim().toLowerCase())
@@ -401,9 +506,17 @@ export function loadPermissions() {
 function repairGrantParents(store) {
   let changed = false;
   for (const group of store.groups) {
-    for (const id of ancestorMenusFor(group.menus, group.tools)) {
+    for (const id of ancestorMenusFor(group.menus, group.tools, group.actions)) {
       if (group.menus.includes(id)) continue;
       group.menus.push(id);
+      changed = true;
+    }
+  }
+  for (const member of store.members) {
+    const group = store.groups.find((item) => item.id === member.groupId);
+    for (const id of ancestorMenusFor(member.menus, member.tools, member.actions)) {
+      if (member.menus.includes(id) || group?.menus.includes(id)) continue;
+      member.menus.push(id);
       changed = true;
     }
   }
@@ -434,6 +547,7 @@ export function createGroup(name) {
     name: String(name || "New group").trim().slice(0, 60) || "New group",
     menus: [],
     tools: [],
+    actions: [],
   };
   store.groups.push(group);
   savePermissions(store);
@@ -498,7 +612,7 @@ export function renameGroup(groupId, name) {
 
 /**
  * @param {string} groupId
- * @param {"menus" | "tools"} key
+ * @param {"menus" | "tools" | "actions"} key
  * @param {string} id
  * @param {boolean} on
  */
@@ -514,7 +628,7 @@ export function toggleGroupItem(groupId, key, id, on) {
 
 /**
  * @param {string} groupId
- * @param {"menus" | "tools"} key
+ * @param {"menus" | "tools" | "actions"} key
  * @param {string[]} ids
  * @param {boolean} on
  */
@@ -741,8 +855,12 @@ export function assignMember(email, groupId) {
   const previous = store.members.find((member) => member.email === clean);
   if (previous?.groupId === groupId) return { ok: true, movedFrom: "" };
   const fromGroup = previous ? store.groups.find((group) => group.id === previous.groupId) : null;
+  const nextGroup = store.groups.find((group) => group.id === groupId);
+  const menus = (previous?.menus || []).filter((id) => !nextGroup.menus.includes(id));
+  const tools = (previous?.tools || []).filter((id) => !nextGroup.tools.includes(id));
+  const actions = (previous?.actions || []).filter((id) => !(nextGroup.actions || []).includes(id));
   store.members = store.members.filter((member) => member.email !== clean);
-  store.members.push({ email: clean, groupId });
+  store.members.push({ email: clean, groupId, menus, tools, actions });
   store.released = store.released.filter((email) => email !== clean);
   savePermissions(store);
   return { ok: true, movedFrom: fromGroup?.name || "" };
@@ -768,56 +886,134 @@ function placeUnassigned(emails) {
   for (const email of emails) {
     const clean = dalkoEmail(email);
     if (!clean || clean === OWNER_EMAIL || assigned.has(clean) || released.has(clean)) continue;
-    store.members.push({ email: clean, groupId: STAFF_ID });
+    store.members.push({ email: clean, groupId: STAFF_ID, menus: [], tools: [], actions: [] });
     assigned.add(clean);
     changed = true;
   }
   if (changed) savePermissions(store);
 }
 
-function currentGroup() {
+/**
+ * The group is the starting set. Extra sections on the person are added on top.
+ * The owner, and anyone left on Full access, can open every section.
+ * @returns {{ menus: Set<string>, tools: Set<string>, actions: Set<string> } | null}
+ */
+function restrictedGrants() {
+  if (getEmail() === OWNER_EMAIL) return null;
   const email = getEmail();
   if (!email) return null;
   const store = loadPermissions();
   const member = store.members.find((item) => item.email === email);
   if (!member) return null;
-  return store.groups.find((group) => group.id === member.groupId) ?? null;
-}
-
-/** Assigned people are limited to their group. Everyone else, including the owner, is unrestricted. */
-function restrictedGroup() {
-  if (getEmail() === OWNER_EMAIL) return null;
-  return currentGroup();
+  const group = store.groups.find((item) => item.id === member.groupId);
+  if (!group) return null;
+  return {
+    menus: new Set([...group.menus, ...member.menus]),
+    tools: new Set([...group.tools, ...member.tools]),
+    actions: new Set([...(group.actions || []), ...(member.actions || [])]),
+  };
 }
 
 /** @param {string} view */
 export function allowsMenu(view) {
   if (view === "troubleshooting") return true;
-  const group = restrictedGroup();
-  if (!group) return true;
-  if (view === FTP_MENU || String(view).startsWith("integrations-ftp")) return group.menus.includes(FTP_MENU);
-  if (String(view).startsWith("integrations")) return group.menus.includes("integrations");
-  return group.menus.includes(view);
+  const grants = restrictedGrants();
+  if (!grants) return true;
+  if (view === FTP_MENU || String(view).startsWith("integrations-ftp")) return grants.menus.has(FTP_MENU);
+  if (String(view).startsWith("integrations")) return grants.menus.has("integrations");
+  return grants.menus.has(view);
 }
 
 /** @param {string} pageId Insights inner page id */
 export function allowsInsightPage(pageId) {
-  const group = restrictedGroup();
-  if (!group) return true;
-  return group.menus.includes(`insight:${pageId}`);
+  const grants = restrictedGrants();
+  if (!grants) return true;
+  return grants.menus.has(`insight:${pageId}`);
 }
 
 /** @returns {string[]} Insight page ids the current group cannot open. */
 export function hiddenInsightPages() {
-  if (!restrictedGroup()) return [];
+  if (!restrictedGrants()) return [];
   return INSIGHT_PAGE_IDS.filter((id) => !allowsInsightPage(id));
 }
 
 /** @param {string} toolId */
 export function allowsTool(toolId) {
-  const group = restrictedGroup();
-  if (!group) return true;
-  return group.tools.includes(toolId);
+  const grants = restrictedGrants();
+  if (!grants) return true;
+  return grants.tools.has(toolId);
+}
+
+/** A popup or button. Page access can stay on when this is off. @param {string} actionId */
+export function allowsAction(actionId) {
+  const grants = restrictedGrants();
+  if (!grants) return true;
+  return grants.actions.has(actionId);
+}
+
+/** Hide Run, Send, Clear, Export, and Delete when this person cannot use them. @param {ParentNode} root @param {string} scriptPath */
+export function gateToolButtons(root, scriptPath) {
+  const kind = scriptPath.startsWith("Client Reports/")
+    ? "reports"
+    : scriptPath.startsWith("Client Uploads/")
+      ? "uploads"
+      : "tools";
+  /** @type {[string, string][]} */
+  const rules = [
+    ["[data-run]", `${kind}:run`],
+    ["[data-clear]", `${kind}:clear`],
+    ["[data-export]", `${kind}:export`],
+    ["[data-delete-preset], [data-delete]", "tools:delete"],
+  ];
+  if (kind === "uploads") rules.push(["[data-send]", "uploads:send"]);
+  for (const [selector, actionId] of rules) {
+    if (allowsAction(actionId)) continue;
+    root.querySelectorAll(selector).forEach((el) => {
+      if (el instanceof HTMLElement) el.hidden = true;
+    });
+  }
+}
+
+/**
+ * Extra sections for one person, on top of their group.
+ * @param {string} email
+ * @param {string[]} menuIds
+ * @param {string[]} toolIds
+ * @param {string[]} actionIds
+ * @param {boolean} on
+ */
+function setMemberExtras(email, menuIds, toolIds, actionIds, on) {
+  const clean = String(email || "").trim().toLowerCase();
+  if (!clean || clean === OWNER_EMAIL) return;
+  const store = loadPermissions();
+  const member = store.members.find((item) => item.email === clean);
+  if (!member) return;
+  const group = store.groups.find((item) => item.id === member.groupId);
+  const groupMenus = new Set(group?.menus || []);
+  const groupTools = new Set(group?.tools || []);
+  const groupActions = new Set(group?.actions || []);
+  const menus = new Set(member.menus);
+  const tools = new Set(member.tools);
+  const actions = new Set(member.actions || []);
+  for (const id of menuIds) {
+    if (groupMenus.has(id)) continue;
+    if (on) menus.add(id);
+    else menus.delete(id);
+  }
+  for (const id of toolIds) {
+    if (groupTools.has(id)) continue;
+    if (on) tools.add(id);
+    else tools.delete(id);
+  }
+  for (const id of actionIds) {
+    if (groupActions.has(id)) continue;
+    if (on) actions.add(id);
+    else actions.delete(id);
+  }
+  member.menus = [...menus];
+  member.tools = [...tools];
+  member.actions = [...actions];
+  savePermissions(store);
 }
 
 function esc(value) {
@@ -927,27 +1123,7 @@ export function renderPermissionsPage(focus) {
   const names = new Map(roster.map((person) => [person.email, person.name]));
   const memberGroup = new Map(store.members.map((member) => [member.email, member.groupId]));
   const groupName = new Map(store.groups.map((group) => [group.id, group.name]));
-  const pickedUser = state.pick === "user" ? state.userEmail : null;
-  const pickedGroup = state.pick === "group" ? state.groupId : null;
-  const groupsShown =
-    state.pick === "user" ? store.groups.filter((group) => group.id === state.groupId) : store.groups;
-  const usersShown =
-    state.pick === "group" && state.groupId
-      ? roster.filter((person) => memberGroup.get(person.email) === state.groupId)
-      : roster;
-  const groupRows = groupsShown
-    .map((group) => {
-      const count = store.members.filter((member) => member.groupId === group.id).length;
-      const on = group.id === state.groupId && (state.pick === "group" || state.pick === "user");
-      return `
-        <tr class="${on ? "is-on" : ""}" data-perm-pick-group="${esc(group.id)}">
-          <td class="perm-label" title="${esc(group.name)}">${esc(group.name)}</td>
-          <td>${count}</td>
-          <td class="perm-row-actions"><button type="button" data-perm-edit-group="${esc(group.id)}">Edit</button></td>
-        </tr>`;
-    })
-    .join("");
-  const userRows = usersShown
+  const userRows = roster
     .map((person) => {
       const groupId = memberGroup.get(person.email) || "";
       const label = groupId ? groupName.get(groupId) || "Unknown group" : "Full access";
@@ -955,9 +1131,8 @@ export function renderPermissionsPage(focus) {
       const fromMail = nameFromEmail(person.email);
       const first = named.first || fromMail.first;
       const last = named.last || (named.first ? "" : fromMail.last);
-      const on = person.email === pickedUser;
       return `
-        <tr class="${on ? "is-on" : ""}" data-perm-pick-user="${esc(person.email)}">
+        <tr data-perm-edit-user="${esc(person.email)}">
           <td class="perm-who">${esc(first)}</td>
           <td class="perm-who">${esc(last)}</td>
           <td class="perm-who perm-mail" title="${esc(person.email)}">${esc(person.email)}</td>
@@ -966,77 +1141,85 @@ export function renderPermissionsPage(focus) {
         </tr>`;
     })
     .join("");
-  const groupHint =
-    state.pick === "user" && !state.groupId
-      ? "This person is not in a group."
-      : state.pick === "user"
-        ? "Click the person again to show every group."
-        : "Click a group to list its people.";
-  const userHint =
-    state.pick === "group" && pickedGroup
-      ? `People in ${groupName.get(pickedGroup) || "this group"}. Click the group again to show everyone.`
-      : directoryStatusLine();
-  const groupBody =
-    groupRows ||
-    `<tr class="perm-empty-row"><td colspan="3">${state.pick === "user" ? "Full access. Not in a group." : "No groups yet."}</td></tr>`;
   const userBody =
-    userRows ||
-    `<tr class="perm-empty-row"><td colspan="5">${state.pick === "group" ? "No one is in this group." : "No one to show yet."}</td></tr>`;
+    userRows || `<tr class="perm-empty-row"><td colspan="5">No one to show yet.</td></tr>`;
+  const groupsOpen = state.pick === "group" && state.editor?.kind !== "group";
   return `
     <div class="page-canvas perm-page">
       <header class="hero">
         <h1>Permissions</h1>
-        <p>Click a group to list its people. Click a person to show their group. Edit opens the settings.</p>
+        <p>Edit a person to choose their group, then the pages and functions they can open.</p>
         <p class="perm-hint" id="perm-remote-note"${remoteNote ? "" : " hidden"}>${esc(remoteNote)}</p>
       </header>
-      <div class="perm-split">
-        <section class="perm-card${state.editor?.kind === "group" ? " is-editing" : ""}" aria-label="Groups">
-          <div class="perm-card-rest"${state.editor?.kind === "group" ? " inert" : ""}>
-            <div class="perm-board-head">
-              <div>
-                <h2>Groups</h2>
-                <p class="perm-hint">${esc(groupHint)}</p>
-              </div>
-              <button type="button" class="perm-plus" data-perm-new aria-label="Add group" title="Add group">+</button>
-            </div>
-            <div class="perm-add">
-              <input class="perm-find" type="search" data-perm-find-group placeholder="Find a group" value="${esc(groupsQuery)}" autocomplete="off" />
-            </div>
-            <div class="perm-board-scroll">
-              <table class="perm-table perm-board">
-                <thead><tr><th>Group</th><th>People</th><th></th></tr></thead>
-                <tbody>
-                  ${groupBody}
-                  <tr class="perm-empty-row" data-perm-none-groups hidden><td colspan="3">No groups match.</td></tr>
-                </tbody>
-              </table>
-            </div>
+      <section class="perm-card" aria-label="Users">
+        <div class="perm-board-head">
+          <div>
+            <h2>Users</h2>
+            <p class="perm-hint">${esc(directoryStatusLine())}</p>
           </div>
-          ${state.editor?.kind === "group" ? renderGroupPanel(store, state) : ""}
-        </section>
-        <section class="perm-card" aria-label="Users">
-          <div class="perm-board-head">
-            <div>
-              <h2>Users</h2>
-              <p class="perm-hint">${esc(userHint)}</p>
-            </div>
+          <div class="perm-toolbar">
             ${directoryButton()}
+            <button type="button" data-perm-groups>Groups</button>
           </div>
-          <div class="perm-add">
-            <input class="perm-find" type="search" data-perm-find placeholder="Find a person" value="${esc(peopleQuery)}" autocomplete="off" />
-          </div>
-          <div class="perm-board-scroll perm-roster-scroll">
-            <table class="perm-table perm-board perm-users">
-              <thead><tr><th>First name</th><th>Last name</th><th>Email</th><th>Group</th><th></th></tr></thead>
-              <tbody>
-                ${userBody}
-                <tr class="perm-empty-row" data-perm-none hidden><td colspan="5">No one matches.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
+        </div>
+        <div class="perm-add">
+          <input class="perm-find" type="search" data-perm-find placeholder="Find a person" value="${esc(peopleQuery)}" autocomplete="off" />
+        </div>
+        <div class="perm-board-scroll perm-roster-scroll">
+          <table class="perm-table perm-board perm-users">
+            <thead><tr><th>First name</th><th>Last name</th><th>Email</th><th>Group</th><th></th></tr></thead>
+            <tbody>
+              ${userBody}
+              <tr class="perm-empty-row" data-perm-none hidden><td colspan="5">No one matches.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      ${groupsOpen ? renderGroupsModal(store) : ""}
+      ${state.editor?.kind === "group" ? renderGroupPanel(store, state) : ""}
       ${state.editor?.kind === "user" ? renderUserEditor(store, state, names) : ""}
+    </div>`;
+}
+
+/**
+ * @param {PermStore} store
+ */
+function renderGroupsModal(store) {
+  const rows = store.groups
+    .map((group) => {
+      const count = store.members.filter((member) => member.groupId === group.id).length;
+      const noun = count === 1 ? "person" : "people";
+      return `
+        <tr data-perm-pick-group="${esc(group.id)}">
+          <td class="perm-label" title="${esc(group.name)}">${esc(group.name)}</td>
+          <td>${count} ${noun}</td>
+          <td class="perm-row-actions"><button type="button" data-perm-edit-group="${esc(group.id)}">Edit</button></td>
+        </tr>`;
+    })
+    .join("");
+  return `
+    <div class="perm-modal" data-perm-editor="groups" role="dialog" aria-modal="true" aria-label="Groups">
+      <div class="perm-modal-backdrop" data-perm-close></div>
+      <div class="perm-modal-card">
+        <div class="perm-editor-head">
+          <h2>Groups</h2>
+          <button type="button" data-perm-close>Close</button>
+        </div>
+        <p class="perm-hint">A group is a starting set of pages and functions. People can be given more when you edit them.</p>
+        <div class="perm-board-head">
+          <input class="perm-find" type="search" data-perm-find-group placeholder="Find a group" value="${esc(groupsQuery)}" autocomplete="off" />
+          <button type="button" class="perm-plus" data-perm-new aria-label="Add group" title="Add group">+</button>
+        </div>
+        <div class="perm-board-scroll">
+          <table class="perm-table perm-board">
+            <thead><tr><th>Group</th><th>People</th><th></th></tr></thead>
+            <tbody>
+              ${rows || `<tr class="perm-empty-row"><td colspan="3">No groups yet.</td></tr>`}
+              <tr class="perm-empty-row" data-perm-none-groups hidden><td colspan="3">No groups match.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -1062,15 +1245,19 @@ function renderGroupPanel(store, state) {
       ? "This group stays. People start here."
       : "Delete this group. Its people move to Everything no FTP.";
   return `
-    <div class="perm-tile-editor" data-perm-editor="group:${esc(group.id)}" role="dialog" aria-modal="true" aria-label="${esc(group.name)}">
-      <div class="perm-editor-head">
-        <input class="perm-name" data-perm-name value="${esc(group.name)}" aria-label="Group name" maxlength="60" autocomplete="off" spellcheck="false" />
-        <button type="button" data-perm-close>Close</button>
-      </div>
-      <p class="perm-hint">${hint}</p>
-      <div class="perm-tree-wrap"><ul class="perm-tree">${tree}</ul></div>
-          <div class="perm-user-actions">
-        <button type="button" class="perm-delete" data-perm-delete="${esc(group.id)}" ${isAdmin || isStaff ? "disabled" : ""} title="${deleteTitle}">Delete group</button>
+    <div class="perm-modal" data-perm-editor="group:${esc(group.id)}" role="dialog" aria-modal="true" aria-label="${esc(group.name)}">
+      <div class="perm-modal-backdrop" data-perm-close="groups"></div>
+      <div class="perm-modal-card">
+        <div class="perm-editor-head">
+          <input class="perm-name" data-perm-name value="${esc(group.name)}" aria-label="Group name" maxlength="60" autocomplete="off" spellcheck="false" />
+          <button type="button" data-perm-close="groups">Close</button>
+        </div>
+        <p class="perm-hint">${hint}</p>
+        <h3 class="perm-section">Pages and functions</h3>
+        <div class="perm-tree-wrap"><ul class="perm-tree">${tree}</ul></div>
+        <div class="perm-user-actions">
+          <button type="button" class="perm-delete" data-perm-delete="${esc(group.id)}" ${isAdmin || isStaff ? "disabled" : ""} title="${deleteTitle}">Delete group</button>
+        </div>
       </div>
     </div>`;
 }
@@ -1083,9 +1270,12 @@ function renderGroupPanel(store, state) {
 function renderUserEditor(store, state, names) {
   if (state.editor?.kind !== "user") return "";
   const email = state.editor.email;
-  const personName = names.get(email) || "";
+  const named = splitPersonName(names.get(email) || "");
+  const fromMail = nameFromEmail(email);
+  const personName = [named.first || fromMail.first, named.last || (named.first ? "" : fromMail.last)].filter(Boolean).join(" ");
   const member = store.members.find((item) => item.email === email);
   const locked = email === OWNER_EMAIL;
+  const fullAccess = !member;
   const options = [`<option value=""${!member ? " selected" : ""}>Full access</option>`]
     .concat(
       store.groups.map(
@@ -1094,6 +1284,12 @@ function renderUserEditor(store, state, names) {
       )
     )
     .join("");
+  const tree = permissionTree().map((node) => renderTreeNode(node)).join("");
+  const hint = locked
+    ? "This account can open every page and function."
+    : fullAccess
+      ? "Full access opens every page and function. Choose a group to limit it, then check anything extra."
+      : "Pages and functions from the group stay on. Check more to give them to this person only.";
   return `
     <div class="perm-modal" data-perm-editor="user:${esc(email)}" role="dialog" aria-modal="true" aria-label="${esc(personName || email)}">
       <div class="perm-modal-backdrop" data-perm-close></div>
@@ -1106,7 +1302,9 @@ function renderUserEditor(store, state, names) {
         <label class="perm-field">Group
           <select data-perm-assign="${esc(email)}" aria-label="Group" ${locked ? "disabled" : ""}>${options}</select>
         </label>
-        <p class="perm-hint">${locked ? "This account stays in Admin." : "Full access can still open everything."}</p>
+        <h3 class="perm-section">Pages and functions</h3>
+        <p class="perm-hint">${hint}</p>
+        <div class="perm-tree-wrap"><ul class="perm-tree">${tree}</ul></div>
       </div>
     </div>`;
 }
@@ -1119,8 +1317,8 @@ function renderTreeNode(node) {
   return `
     <li>
       <label class="perm-node">
-        <input type="checkbox" data-perm-box data-menus="${esc(grant.menus.join(","))}" data-tools="${esc(grant.tools.join(","))}" ${lockPermissions ? "data-perm-lock" : ""} />
-        <span>${esc(node.label)}</span>
+        <input type="checkbox" data-perm-box data-menus="${esc(grant.menus.join(","))}" data-tools="${esc(grant.tools.join(","))}" data-actions="${esc(grant.actions.join(","))}" ${lockPermissions ? "data-perm-lock" : ""} />
+        <span${node.label === "Pop ups and buttons" ? ' class="perm-subhead"' : ""}>${esc(node.label)}</span>
       </label>
       ${children ? `<ul>${children}</ul>` : ""}
     </li>`;
@@ -1151,7 +1349,7 @@ function splitPersonName(name) {
 function applyPeopleFilter(root) {
   const needle = peopleQuery.trim().toLowerCase();
   let shown = 0;
-  root.querySelectorAll("[data-perm-pick-user]").forEach((row) => {
+  root.querySelectorAll("tr[data-perm-edit-user]").forEach((row) => {
     const who = [...row.querySelectorAll(".perm-who, .perm-group")].map((cell) => cell.textContent || "").join(" ");
     const hit = !needle || who.toLowerCase().includes(needle);
     if (row instanceof HTMLElement) row.hidden = !hit;
@@ -1168,16 +1366,12 @@ function applyPeopleFilter(root) {
  * @param {string} label
  * @param {string | null} pickedGroupId
  */
-function syncGroupLabel(root, groupId, label, pickedGroupId) {
+function syncGroupLabel(root, groupId, label) {
   const row = root.querySelector(`[data-perm-pick-group="${CSS.escape(groupId)}"]`);
   const cell = row?.querySelector("td");
   if (cell) cell.textContent = label;
   const dialog = editorSurface();
   if (dialog instanceof HTMLElement) dialog.setAttribute("aria-label", label);
-  if (pickedGroupId === groupId) {
-    const hint = root.querySelector('[aria-label="Users"] .perm-hint');
-    if (hint) hint.textContent = `People in ${label}. Click the group again to show everyone.`;
-  }
   applyGroupsFilter(root);
 }
 
@@ -1208,6 +1402,13 @@ export function bindPermissionsPage(root, opts) {
   const focus = focusOf(opts.focus);
   const store = loadPermissions();
   const editing = focus.editor?.kind === "group" ? store.groups.find((group) => group.id === focus.editor.id) : null;
+  const editingMember = focus.editor?.kind === "user"
+    ? store.members.find((member) => member.email === focus.editor.email) || null
+    : null;
+  const editingMemberGroup = editingMember
+    ? store.groups.find((group) => group.id === editingMember.groupId) || null
+    : null;
+  const userUnrestricted = focus.editor?.kind === "user" && (focus.editor.email === OWNER_EMAIL || !editingMember);
   const scroller = root.querySelector(".perm-roster-scroll");
   const go = (/** @type {Partial<PermFocus>} */ next) => {
     const editor = next.editor === undefined ? focus.editor : next.editor;
@@ -1227,13 +1428,47 @@ export function bindPermissionsPage(root, opts) {
   };
 
   root.querySelectorAll("[data-perm-box]").forEach((box) => {
-    if (!(box instanceof HTMLInputElement) || !editing) return;
+    if (!(box instanceof HTMLInputElement)) return;
     const menus = String(box.dataset.menus || "").split(",").filter(Boolean);
     const tools = String(box.dataset.tools || "").split(",").filter(Boolean);
+    const actions = String(box.dataset.actions || "").split(",").filter(Boolean);
+    const total = menus.length + tools.length + actions.length;
+    if (focus.editor?.kind === "user") {
+      if (userUnrestricted) {
+        box.checked = true;
+        box.indeterminate = false;
+        box.disabled = true;
+        return;
+      }
+      const ownedMenus = new Set([...(editingMemberGroup?.menus || []), ...(editingMember?.menus || [])]);
+      const ownedTools = new Set([...(editingMemberGroup?.tools || []), ...(editingMember?.tools || [])]);
+      const ownedActions = new Set([...(editingMemberGroup?.actions || []), ...(editingMember?.actions || [])]);
+      const groupMenus = new Set(editingMemberGroup?.menus || []);
+      const groupTools = new Set(editingMemberGroup?.tools || []);
+      const groupActions = new Set(editingMemberGroup?.actions || []);
+      const on =
+        menus.filter((id) => ownedMenus.has(id)).length +
+        tools.filter((id) => ownedTools.has(id)).length +
+        actions.filter((id) => ownedActions.has(id)).length;
+      const fromGroup =
+        menus.filter((id) => groupMenus.has(id)).length +
+        tools.filter((id) => groupTools.has(id)).length +
+        actions.filter((id) => groupActions.has(id)).length;
+      const locked = total > 0 && fromGroup === total;
+      box.checked = total > 0 && on === total;
+      box.indeterminate = !locked && on > 0 && on < total;
+      box.disabled = locked;
+      box.title = locked ? "Included by the group" : "";
+      return;
+    }
+    if (!editing) return;
     const ownedMenus = new Set(editing.menus);
     const ownedTools = new Set(editing.tools);
-    const on = menus.filter((id) => ownedMenus.has(id)).length + tools.filter((id) => ownedTools.has(id)).length;
-    const total = menus.length + tools.length;
+    const ownedActions = new Set(editing.actions || []);
+    const on =
+      menus.filter((id) => ownedMenus.has(id)).length +
+      tools.filter((id) => ownedTools.has(id)).length +
+      actions.filter((id) => ownedActions.has(id)).length;
     const locked = editing.id === ADMIN_ID && box.hasAttribute("data-perm-lock");
     box.checked = locked || (total > 0 && on === total);
     box.indeterminate = !locked && on > 0 && on < total;
@@ -1251,7 +1486,7 @@ export function bindPermissionsPage(root, opts) {
     const boxKey = modalBoxKey;
     modalBoxKey = "";
     const match = [...root.querySelectorAll("[data-perm-box]")].find(
-      (el) => el instanceof HTMLInputElement && `${el.dataset.menus}|${el.dataset.tools}` === boxKey
+      (el) => el instanceof HTMLInputElement && `${el.dataset.menus}|${el.dataset.tools}|${el.dataset.actions}` === boxKey
     );
     if (match instanceof HTMLElement) match.focus({ preventScroll: true });
     if (card instanceof HTMLElement) card.scrollTop = modalScroll;
@@ -1282,13 +1517,14 @@ export function bindPermissionsPage(root, opts) {
     document.removeEventListener("keydown", permKeyHandler);
     permKeyHandler = null;
   }
-  if (focus.editor) {
+  if (focus.editor || focus.pick === "group") {
     permKeyHandler = (event) => {
       if (event.key !== "Escape") return;
       if (document.querySelector(".app-dialog:not(.hidden)")) return;
       if (!editorSurface()) return;
       event.preventDefault();
-      go({ editor: null });
+      if (focus.editor?.kind === "group") go({ editor: null, pick: "group", groupId: null, userEmail: null });
+      else go({ editor: null, pick: null, groupId: null, userEmail: null });
     };
     document.addEventListener("keydown", permKeyHandler);
   }
@@ -1305,8 +1541,15 @@ export function bindPermissionsPage(root, opts) {
     groupsQuery = findGroup.value;
     applyGroupsFilter(root);
   });
+  root.querySelector("[data-perm-groups]")?.addEventListener("click", () => {
+    go({ groupId: null, userEmail: null, pick: "group", editor: null });
+  });
   root.querySelectorAll("[data-perm-close]").forEach((el) => {
-    el.addEventListener("click", () => go({ editor: null }));
+    el.addEventListener("click", () => {
+      const back = /** @type {HTMLElement} */ (el).dataset.permClose;
+      if (back === "groups") go({ editor: null, pick: "group", groupId: null, userEmail: null });
+      else go({ editor: null, pick: null, groupId: null, userEmail: null });
+    });
   });
   root.querySelector("[data-perm-new]")?.addEventListener("click", () => {
     const group = createGroup("New group");
@@ -1316,19 +1559,7 @@ export function bindPermissionsPage(root, opts) {
     row.addEventListener("click", () => {
       const id = /** @type {HTMLElement} */ (row).dataset.permPickGroup || "";
       if (!id) return;
-      if (focus.pick === "group" && focus.groupId === id) go({ groupId: null, userEmail: null, pick: null, editor: null });
-      else go({ groupId: id, userEmail: null, pick: "group", editor: null });
-    });
-  });
-  root.querySelectorAll("[data-perm-pick-user]").forEach((row) => {
-    row.addEventListener("click", () => {
-      const email = /** @type {HTMLElement} */ (row).dataset.permPickUser || "";
-      if (!email) return;
-      if (focus.pick === "user" && focus.userEmail === email) go({ groupId: null, userEmail: null, pick: null, editor: null });
-      else {
-        const groupId = store.members.find((member) => member.email === email)?.groupId || null;
-        go({ groupId, userEmail: email, pick: "user", editor: null });
-      }
+      go({ groupId: id, userEmail: null, pick: "group", editor: { kind: "group", id } });
     });
   });
   root.querySelectorAll("[data-perm-edit-group]").forEach((btn) => {
@@ -1357,7 +1588,7 @@ export function bindPermissionsPage(root, opts) {
     if (trimmed === editing.name) return;
     renameGroup(editing.id, trimmed);
     editing.name = trimmed;
-    syncGroupLabel(root, editing.id, trimmed, focus.groupId);
+    syncGroupLabel(root, editing.id, trimmed);
   };
   name?.addEventListener("input", () => commitName(false));
   name?.addEventListener("change", () => commitName(true));
@@ -1373,18 +1604,27 @@ export function bindPermissionsPage(root, opts) {
       tone: "danger",
     }).then((yes) => {
       if (!yes || !deleteGroup(groupId)) return;
-      go({ groupId: null, userEmail: null, pick: null, editor: null });
+      go({ groupId: null, userEmail: null, pick: "group", editor: null });
     });
   });
   root.querySelectorAll("[data-perm-box]").forEach((box) => {
     box.addEventListener("change", () => {
-      if (!(box instanceof HTMLInputElement) || box.disabled || !editing) return;
+      if (!(box instanceof HTMLInputElement) || box.disabled) return;
       const menus = String(box.dataset.menus || "").split(",").filter(Boolean);
       const tools = String(box.dataset.tools || "").split(",").filter(Boolean);
-      const menuIds = box.checked ? [...new Set([...menus, ...ancestorMenusFor(menus, tools)])] : menus;
+      const actions = String(box.dataset.actions || "").split(",").filter(Boolean);
+      const menuIds = box.checked ? [...new Set([...menus, ...ancestorMenusFor(menus, tools, actions)])] : menus;
+      modalBoxKey = `${box.dataset.menus}|${box.dataset.tools}|${box.dataset.actions}`;
+      if (focus.editor?.kind === "user") {
+        const email = focus.editor.email;
+        setMemberExtras(email, menuIds, tools, actions, box.checked);
+        go({ editor: { kind: "user", email }, pick: "user", userEmail: email, groupId: focus.groupId });
+        return;
+      }
+      if (!editing) return;
       toggleGroupItems(editing.id, "menus", menuIds, box.checked);
       toggleGroupItems(editing.id, "tools", tools, box.checked);
-      modalBoxKey = `${box.dataset.menus}|${box.dataset.tools}`;
+      toggleGroupItems(editing.id, "actions", actions, box.checked);
       go({ editor: { kind: "group", id: editing.id }, pick: "group", groupId: editing.id, userEmail: null });
     });
   });
@@ -1403,6 +1643,15 @@ export function bindPermissionsPage(root, opts) {
       editor: { kind: "user", email },
     });
   });
+  if (!allowsAction("permissions:add-group")) {
+    root.querySelectorAll("[data-perm-new]").forEach((el) => {
+      if (el instanceof HTMLElement) el.hidden = true;
+    });
+  }
+  if (!allowsAction("permissions:delete-group")) {
+    const del = root.querySelector("[data-perm-delete]");
+    if (del instanceof HTMLElement) del.hidden = true;
+  }
   root.querySelector("[data-perm-directory]")?.addEventListener("click", () => {
     const mode = /** @type {HTMLElement} */ (root.querySelector("[data-perm-directory]")).dataset.permDirectory;
     if (mode === "refresh") invalidateDalkoDirectory();

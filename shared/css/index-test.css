@@ -2877,6 +2877,26 @@ html[data-theme="oceanic-night"] .brand-name {
 .perm-users .perm-mail {
   max-width: 18rem;
 }
+.perm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.perm-subhead {
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.perm-section {
+  margin: 1rem 0 0.25rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.perm-toolbar > button,
 .perm-board-head > button:not(.perm-plus) {
   border: 1px solid var(--border);
   background: transparent;
