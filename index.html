@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="shared/css/theme.css?v=20261119-theme-files" />
+  <link rel="stylesheet" href="shared/css/theme.css?v=20261120-city-lights" />
   <link rel="stylesheet" href="portals/dalko/css/portal.css?v=20261001-focusbold" />
-  <link rel="stylesheet" href="portals/glassbox/css/portal.css?v=20261113-gri4" />
-  <link rel="stylesheet" href="shared/css/index-test.css?v=20261119-theme-files" />
+  <link rel="stylesheet" href="portals/glassbox/css/portal.css?v=20261120-square" />
+  <link rel="stylesheet" href="shared/css/index-test.css?v=20261120-troubleshooting" />
   <script>
     try {
       var themeId = localStorage.getItem("dalko-shell-theme");
@@ -63,7 +63,6 @@
   <div class="app" aria-hidden="true">
     <aside class="sidebar" aria-label="DALKO">
       <div class="brand">
-        <img class="brand-mark" src="shared/images/earth.png" width="32" height="32" alt="" />
         <div class="brand-hello">
           <p class="brand-name" id="brand-hello">Hello!</p>
           <button type="button" class="brand-signout" id="btn-brand-signout">Sign out</button>
@@ -115,7 +114,7 @@
           <span class="nav-ico" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9M10 19V5M16 19v-8M22 19H2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 9c2.2-3 4.4-4 6-4 3 0 3 6 6 6 1.6 0 3.8-1 6-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
           </span>
-          DALKO Insights
+          Data Dump Analyzer
         </button>
 
         <div class="nav-group" data-group="tools">
@@ -150,13 +149,12 @@
             <button type="button" class="nav-sub-item" data-view="integrations">Integrations</button>
             <button type="button" class="nav-sub-item" data-view="permissions">Permissions</button>
             <button type="button" class="nav-sub-item" data-view="themes">Themes</button>
+            <button type="button" class="nav-sub-item" data-view="troubleshooting">Troubleshooting</button>
           </div>
         </div>
       </nav>
 
-      <div class="sidebar-cal-wrap">
-        <button type="button" class="sidebar-console" id="gb-btn-console" aria-pressed="false">Console</button>
-      </div>
+      <div class="sidebar-cal-wrap" id="sidebar-theme-scenes"></div>
     </aside>
 
     <div class="main">
@@ -218,6 +216,6 @@
 
   <script src="shared/vendor/xlsx-js-style.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script type="module" src="shared/js/index-test.js?v=20261119-oceanic-log"></script>
+  <script type="module" src="shared/js/index-test.js?v=20261120-match2"></script>
 </body>
 </html>

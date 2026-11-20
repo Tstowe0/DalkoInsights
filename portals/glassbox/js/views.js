@@ -182,6 +182,7 @@ function fillTileGrid(grid, tools, onTool) {
     btn.className = `gb-tile${tool.disabled ? " disabled" : ""}${tool.skipped ? " gb-tile-skipped" : ""}`;
     btn.disabled = Boolean(tool.disabled);
     btn.dataset.toolId = tool.id;
+    btn.style.setProperty("--tile-neon", randomNeon());
     btn.innerHTML = `
       <span class="gb-tile-title">${escapeHtml(tool.label)}</span>
       <img class="gb-tile-icon" src="${tileIconUrl(tool.label)}" width="56" height="56" alt="" />
@@ -194,6 +195,19 @@ function fillTileGrid(grid, tools, onTool) {
     }
     grid.appendChild(btn);
   }
+}
+
+const TILE_NEONS = ["#ff2d8a", "#2ee6ff", "#c084fc", "#3dffb0", "#ffb15a", "#ff4dff", "#7af4ff", "#ff5a7a"];
+
+/** Last color dealt, so the next tile on the page gets a different one. */
+let lastNeon = "";
+
+/** A new neon each time the board is built. */
+function randomNeon() {
+  const pool = TILE_NEONS.filter((color) => color !== lastNeon);
+  const choices = pool.length ? pool : TILE_NEONS;
+  lastNeon = choices[Math.floor(Math.random() * choices.length)];
+  return lastNeon;
 }
 
 /** @param {string} value */

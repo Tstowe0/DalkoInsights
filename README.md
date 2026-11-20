@@ -20,12 +20,14 @@ Sign-in is its own Entra app registration named **DALKO Insights** (not MyCRM). 
 
 Redirect URIs (Single-page application platform):
 
+- `https://insights.shipdalko.com/`
+- `https://insights.shipdalko.com/index.html`
 - `http://localhost:8080/`
 - `http://localhost:8080/index.html`
 - `https://tstowe0.github.io/DalkoInsights/`
 - `https://tstowe0.github.io/DalkoInsights/index.html`
 
-Paste the Application (client) ID into `shared/js/auth-config.js` as `AUTH_CLIENT_ID`. Tenant ID stays the Dalko directory. Front-door URL is [https://tstowe0.github.io/DalkoInsights/](https://tstowe0.github.io/DalkoInsights/).
+Paste the Application (client) ID into `shared/js/auth-config.js` as `AUTH_CLIENT_ID`. Tenant ID stays the Dalko directory. Front-door URL is [https://insights.shipdalko.com/](https://insights.shipdalko.com/).
 
 ## Project layout
 
@@ -76,11 +78,15 @@ Each palette has a stylesheet in `shared/css/themes/`. Add its import to `shared
 
 Hallowed Night, Yule Night, and Oceanic Night keep their sidebar scene markup in matching modules under `shared/js/themes/`. Those modules also own any JavaScript effects for the scene. Their theme stylesheets contain the artwork and CSS animations.
 
-## Deploy to GitHub Pages
+## Public site
 
-1. Push the contents of `HTML Version/` to a repo (or a `/docs` folder).
-2. In GitHub → Settings → Pages, set source to that branch/folder.
-3. Share the `github.io` link with your team.
+The site stays on GitHub Pages: [https://tstowe0.github.io/DalkoInsights/](https://tstowe0.github.io/DalkoInsights/). `insights.shipdalko.com` is a GoDaddy name in front of that same site.
+
+1. In GoDaddy DNS for `shipdalko.com`, add a CNAME record named `insights` pointing at `tstowe0.github.io`.
+2. In the GitHub repo, Settings → Pages → Custom domain, enter `insights.shipdalko.com`.
+3. In the DALKO Insights Entra app, add these single-page redirect URIs: `https://insights.shipdalko.com/` and `https://insights.shipdalko.com/index.html`.
+
+GitHub provides the certificate for that name. The office certificate on Delta stays limited to `mycrm.shipdalko.com` and `delta.shipdalko.com`.
 
 ## Usage
 

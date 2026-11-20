@@ -3,6 +3,8 @@
  * Paste AUTH_CLIENT_ID from Azure after you create the "DALKO Insights" app.
  *
  * Azure: Authentication → Single-page application redirect URIs:
+ *   https://insights.shipdalko.com/
+ *   https://insights.shipdalko.com/index.html
  *   http://localhost:8080/
  *   http://localhost:8080/index.html
  *   https://tstowe0.github.io/DalkoInsights/

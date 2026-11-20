@@ -729,38 +729,26 @@ button.gb-cal-day:hover:not(.is-empty) {
 }
 
 /*
- * Fluid tile grid: fills the workspace width, caps column count so cards
- * don't get tiny on ultrawide, and drops columns as the viewport narrows.
+ * Square tiles at a fixed size. Extra tiles wrap instead of stretching wide.
  */
 .gb-tile-grid {
-  --gb-tile-max-cols: 5;
-  --gb-tile-gap: 0.5rem;
+  --gb-tile-size: 13rem;
+  --gb-tile-gap: 0.65rem;
   display: grid;
-  grid-template-columns: repeat(var(--gb-tile-max-cols), minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--gb-tile-size)), var(--gb-tile-size)));
+  justify-content: start;
   gap: var(--gb-tile-gap);
   width: 100%;
   align-items: stretch;
-}
-
-@media (max-width: 900px) {
-  .gb-tile-grid {
-    --gb-tile-max-cols: 3;
-  }
-}
-
-@media (max-width: 640px) {
-  .gb-tile-grid {
-    --gb-tile-max-cols: 2;
-  }
 }
 
 .gb-tile {
   display: grid;
   grid-template-rows: 2.6em 56px auto;
   justify-items: center;
-  align-content: start;
+  align-content: center;
   gap: 0.45rem;
-  min-height: 8.5rem;
+  aspect-ratio: 1;
   width: 100%;
   min-width: 0;
   padding: 0.85rem 0.7rem 0.8rem;

@@ -117,32 +117,30 @@
 }
 
 html[data-theme="oceanic-night"] :is(.brand-name, .gb-tile-title) {
-  color: #ffd9ee;
   font-family: Caveat, "Segoe Print", cursive;
   font-weight: 600;
   letter-spacing: 0;
-  text-shadow: 0 0 2px #ff81bd99, 0 0 7px #f34c9d8c, 0 0 14px #e73b894d;
 }
 
 html[data-theme="oceanic-night"] .brand-name {
   padding: 0.08rem 0.2rem 0.1rem;
+  color: #ffd9ee;
   font-size: 1.5rem;
   line-height: 1;
+  text-shadow: 0 0 2px #ff81bd99, 0 0 7px #f34c9d8c, 0 0 14px #e73b894d;
 }
 
 .shore-scene {
   --shore-cycle: 1800s;
   display: none;
-  position: relative;
-  height: 6.75rem;
-  margin: 0 0 0.45rem;
-  border-radius: 14px;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   overflow: hidden;
   pointer-events: none;
   background:
     radial-gradient(ellipse at 82% 94%, #ffd29a 0%, transparent 55%),
     linear-gradient(180deg, #485982 0%, #7777a8 27%, #bd79a8 47%, #eb8fa6 65%, #ffad8d 86%, #e890a0 100%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .shore-day,
@@ -162,11 +160,22 @@ html[data-theme="oceanic-night"] .brand-name {
     radial-gradient(circle at 73% 26%, #f3ecff 0 2px, transparent 2.8px),
     radial-gradient(circle at 86% 15%, #a7a4df 0 0.7px, transparent 1.3px),
     radial-gradient(circle at 54% 32%, #a7a4df 0 0.7px, transparent 1.3px),
-    linear-gradient(180deg, #111633 10%, #252452 60%, #663b74);
+    linear-gradient(to top, #755995, #363258 9rem, #111633 22rem);
+}
+
+.shore-palms > path {
+  fill: #29223f;
+  opacity: 1;
 }
 
 .shore-city-lights {
   opacity: 0;
+}
+
+.shore-city-lights [stroke-dasharray] {
+  stroke: #ffe1a3;
+  stroke-width: 1.65;
+  stroke-dasharray: 1.25 2.75;
 }
 
 .shore-neon-pink { filter: drop-shadow(0 0 2px #ff3ab2); }
@@ -185,30 +194,44 @@ html[data-theme="oceanic-night"] .brand-name {
 
 @keyframes shore-night {
   0%, 60%, 100% { opacity: 0; }
-  73.333%, 90% { opacity: 0.78; }
+  73.333%, 90% { opacity: 1; }
 }
 
 @keyframes shore-city-lights {
   0%, 66.667%, 100% { opacity: 0; }
-  76.667%, 90% { opacity: 0.85; }
+  76.667%, 90% { opacity: 1; }
 }
 
 html[data-theme="oceanic-night"] .shore-scene {
   display: block;
 }
 
-html[data-theme="oceanic-night"] .sidebar-console {
-  margin-top: 0;
+html[data-theme="oceanic-night"] .app > .sidebar {
+  --shore-horizon-height: clamp(4rem, 15vh, 7.6rem);
 }
 
-.shore-scene::after {
+html[data-theme="oceanic-night"] #sidebar-theme-scenes {
+  height: var(--shore-horizon-height);
+}
+
+html[data-theme="oceanic-night"] .sidebar .nav-item.is-active,
+html[data-theme="oceanic-night"] .sidebar .nav-sub-item.is-active {
+  background: #1c3047;
+  color: var(--nav-fg-strong);
+}
+
+.shore-scene::before {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 0.18rem;
-  background: #3a355b;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    transparent,
+    #180d29a6 var(--shore-horizon-height),
+    #150b24ed calc(var(--shore-horizon-height) + 8rem),
+    #100b20e8
+  );
 }
 
 .shore-palms {
@@ -216,8 +239,9 @@ html[data-theme="oceanic-night"] .sidebar-console {
   position: absolute;
   left: 0;
   bottom: 0;
+  z-index: 1;
   width: 100%;
-  height: 100%;
+  height: var(--shore-horizon-height);
   color: #323553;
 }
 
@@ -247,7 +271,7 @@ html[data-theme="oceanic-night"] .sidebar-console {
 .shore-bird {
   position: absolute;
   left: 0;
-  top: 0;
+  bottom: var(--shore-horizon-height);
   z-index: 2;
   width: 22px;
   height: 13px;
@@ -306,6 +330,42 @@ html[data-theme="oceanic-night"] .app > .main > .topbar {
 
 html[data-theme="oceanic-night"] .gb-tile {
   grid-template-rows: minmax(2.6rem, auto) 56px auto;
+  border-color: var(--tile-neon, #2ee6ff);
+  box-shadow:
+    0 0 0 1px var(--tile-neon, #2ee6ff),
+    0 0 10px color-mix(in srgb, var(--tile-neon, #2ee6ff) 80%, transparent),
+    0 0 22px color-mix(in srgb, var(--tile-neon, #2ee6ff) 38%, transparent);
+}
+
+html[data-theme="oceanic-night"] .gb-tile:hover:not(:disabled),
+html[data-theme="oceanic-night"] .tools-host .gb-tile:hover:not(:disabled) {
+  border-color: var(--tile-neon, #2ee6ff);
+  box-shadow:
+    0 0 0 1px var(--tile-neon, #2ee6ff),
+    0 0 14px var(--tile-neon, #2ee6ff),
+    0 0 30px color-mix(in srgb, var(--tile-neon, #2ee6ff) 55%, transparent);
+}
+
+html[data-theme="oceanic-night"] .gb-tile:focus-visible,
+html[data-theme="oceanic-night"] .tools-host .gb-tile:focus-visible {
+  outline-color: var(--tile-neon, #2ee6ff);
+}
+
+html[data-theme="oceanic-night"] .gb-tile-skipped,
+html[data-theme="oceanic-night"] .gb-tile-skipped:hover:not(:disabled),
+html[data-theme="oceanic-night"] .tools-host .gb-tile-skipped:hover:not(:disabled) {
+  border-color: var(--tile-neon, #ff4d6a) !important;
+  box-shadow:
+    0 0 0 1px var(--tile-neon, #ff4d6a),
+    0 0 12px color-mix(in srgb, var(--tile-neon, #ff4d6a) 70%, transparent);
+}
+
+html[data-theme="oceanic-night"] .gb-tile-title,
+html[data-theme="oceanic-night"] .gb-tile-sub {
+  color: var(--tile-neon, #ffd9ee);
+  text-shadow:
+    0 0 2px color-mix(in srgb, var(--tile-neon, #ffd9ee) 75%, transparent),
+    0 0 8px color-mix(in srgb, var(--tile-neon, #ffd9ee) 55%, transparent);
 }
 
 html[data-theme="oceanic-night"] .gb-tile-title {
@@ -314,7 +374,8 @@ html[data-theme="oceanic-night"] .gb-tile-title {
   overflow-wrap: anywhere;
 }
 
-html[data-theme="oceanic-night"] .gb-tile-skipped .gb-tile-title {
-  color: var(--danger);
-  text-shadow: 0 0 7px color-mix(in srgb, var(--danger) 55%, transparent);
+html[data-theme="oceanic-night"] .gb-tile-skipped .gb-tile-title,
+html[data-theme="oceanic-night"] .gb-tile-skipped .gb-tile-sub {
+  color: var(--tile-neon, var(--danger));
+  text-shadow: 0 0 7px color-mix(in srgb, var(--tile-neon, var(--danger)) 55%, transparent);
 }

@@ -588,6 +588,7 @@ export function mountFileTool(parent, opts) {
       });
       drop.addEventListener("drop", (event) => {
         event.preventDefault();
+        event.stopPropagation();
         drop.classList.remove("is-over");
         const picked = [...(event.dataTransfer?.files || [])];
         if (!picked.length) return;

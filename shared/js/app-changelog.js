@@ -12,6 +12,17 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Report and tool tiles are square. They wrap onto the next line instead of stretching wide.",
+      "Oceanic Night draws a neon trim around each report and tool tile, and the title uses that same color. Opening the board again picks new colors.",
+      "The left navigation item for the dump analyzer is named Data Dump Analyzer.",
+      "Dropping a file on a report stays on that report. The page no longer also opens the file in DALKO Insights, which was showing a missing-columns error.",
+    ],
+  },
+  {
+    product: "Dashboard",
+    productId: "shell",
+    version: "",
+    items: [
       "Oceanic Night is a new dynamic theme. Above the console, the shore runs a day and night cycle: daylight gives way to a dark sky and city lights. Palms stand on the skyline, and a bird soars past now and then.",
     ],
   },

@@ -12,7 +12,7 @@
 @import url("./themes/slate-coral.css");
 @import url("./themes/hallowed-night.css");
 @import url("./themes/yule-night.css");
-@import url("./themes/oceanic-night.css");
+@import url("./themes/oceanic-night.css?v=20261120-city-lights");
 
 /* ================================================================== */
 /* UI kit — use these classes for new chrome; themes restyle them all  */

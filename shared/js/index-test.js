@@ -17,14 +17,14 @@ import { hallowedNightScene } from "./themes/hallowed-night.js";
 import { oceanicNightScene } from "./themes/oceanic-night.js";
 import { yuleNightScene } from "./themes/yule-night.js";
 import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261119-theme-files";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261119-oceanic-log";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261120-match";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
 import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
 import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20260819-fxsweep";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261119-theme-files";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261120-match2";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261023-ttx";
 import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261023-ttx";
 import {
@@ -52,7 +52,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261023-ttx";
+} from "./permissions.js?v=20261120-troubleshooting";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -97,6 +97,7 @@ GROUP_FOR["integrations-crm"] = "settings";
 GROUP_FOR["integrations-ftp"] = "settings";
 GROUP_FOR.themes = "settings";
 GROUP_FOR.permissions = "settings";
+GROUP_FOR.troubleshooting = "settings";
 
 const TITLES = {
   home: "Today",
@@ -115,6 +116,7 @@ const TITLES = {
   "integrations-ftp": "File transfer",
   themes: "Themes",
   permissions: "Permissions",
+  troubleshooting: "Troubleshooting",
 };
 for (const item of INSIGHT_NAV) {
   if (item.id === "home" || item.id === "changelog") continue;
@@ -1566,6 +1568,17 @@ function hideDisallowedTools(root) {
 }
 
 function renderSettingsHtml() {
+  if (shellView === "troubleshooting") {
+    return `
+      <div class="page-canvas">
+        <header class="hero"><h1>Troubleshooting</h1></header>
+        <div class="settings-list">
+          <button type="button" class="settings-item" id="gb-btn-console" aria-pressed="${isConsoleOpen()}" aria-controls="gb-console">
+            <span><strong>Console</strong><small>View diagnostic messages from reports and tools.</small></span>
+          </button>
+        </div>
+      </div>`;
+  }
   if (shellView === "integrations-dat") return renderDatNutsHtml();
   if (shellView === "integrations-entra") return renderEntraHtml();
   if (shellView === "integrations-currency") return renderCurrencyHtml();
@@ -1778,6 +1791,9 @@ function paintSettings() {
     return;
   }
   host.innerHTML = renderSettingsHtml();
+  document.getElementById("gb-btn-console")?.addEventListener("click", () => {
+    setConsoleOpen(!isConsoleOpen());
+  });
   host.querySelectorAll("[data-integ]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = /** @type {HTMLElement} */ (btn).dataset.integ;
@@ -1812,6 +1828,16 @@ function paintSettings() {
     paintDatSecretsGate();
     paintDatSample();
   }
+}
+
+function isConsoleOpen() {
+  const panel = document.getElementById("gb-console");
+  return Boolean(panel && !panel.classList.contains("hidden"));
+}
+
+function setConsoleOpen(open) {
+  document.getElementById("gb-console")?.classList.toggle("hidden", !open);
+  document.getElementById("gb-btn-console")?.setAttribute("aria-pressed", String(open));
 }
 
 function appendConsole(line) {
@@ -1914,6 +1940,7 @@ function showLayer(layer) {
 function isSettingsView(id) {
   return (
     id === "changelog" ||
+    id === "troubleshooting" ||
     id === "integrations" ||
     id === "integrations-dat" ||
     id === "integrations-entra" ||
@@ -2027,8 +2054,8 @@ function closeMenus() {
 
 function init() {
   globalThis.__DALKO_XLSX_STYLE__ = true;
-  document.getElementById("gb-btn-console")?.insertAdjacentHTML(
-    "beforebegin",
+  document.getElementById("sidebar-theme-scenes")?.insertAdjacentHTML(
+    "beforeend",
     hallowedNightScene + yuleNightScene + oceanicNightScene
   );
   initTheme();
@@ -2072,18 +2099,9 @@ function init() {
     });
   });
 
-  const consoleEl = document.getElementById("gb-console");
-  const consoleBtn = document.getElementById("gb-btn-console");
-  const setConsoleOpen = (open) => {
-    consoleEl?.classList.toggle("hidden", !open);
-    consoleBtn?.classList.toggle("is-on", open);
-    consoleBtn?.setAttribute("aria-pressed", open ? "true" : "false");
-  };
-  consoleBtn?.addEventListener("click", () => {
-    setConsoleOpen(consoleEl?.classList.contains("hidden") ?? true);
-  });
   document.getElementById("gb-console-close")?.addEventListener("click", () => {
     setConsoleOpen(false);
+    if (shellView === "troubleshooting") document.getElementById("gb-btn-console")?.focus();
   });
 
   document.addEventListener("click", () => closeMenus());
@@ -2094,6 +2112,14 @@ function init() {
     if (e.dataTransfer?.types.includes("Files")) e.preventDefault();
   });
   document.addEventListener("drop", (e) => {
+    // A report or tool drop zone already accepted this file. Do not also
+    // parse it as a TMS dump — that check reports missing columns and
+    // pulls the page over to Insights.
+    if (e.defaultPrevented) return;
+    const target = e.target instanceof Element ? e.target : null;
+    if (target?.closest("[data-drop], [data-base-well], [data-carrier-well], [data-tool-drop], .gb-board-drop")) {
+      return;
+    }
     const file = e.dataTransfer?.files?.[0];
     if (!file) return;
     e.preventDefault();

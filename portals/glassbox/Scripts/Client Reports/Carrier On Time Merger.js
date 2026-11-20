@@ -180,6 +180,7 @@ export async function loadGui(parent, ctx) {
     });
     zone.addEventListener("drop", (event) => {
       event.preventDefault();
+      event.stopPropagation();
       zone.classList.remove("is-over");
       const file = event.dataTransfer?.files?.[0];
       if (!file) return;

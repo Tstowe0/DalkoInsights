@@ -56,7 +56,7 @@ function permissionTree() {
       })),
     },
     {
-      label: "DALKO Insights",
+      label: "Data Dump Analyzer",
       menus: ["insights"],
       children: INSIGHT_NAV.filter((item) => item.id !== "changelog").map((item) => ({
         label: item.label,
@@ -87,7 +87,10 @@ function permissionTree() {
         {
           label: "Integrations",
           menus: ["integrations"],
-          children: [{ label: "File transfer", menus: [FTP_MENU] }],
+          children: [
+            { label: "File transfer", menus: [FTP_MENU] },
+            { label: "CRM switch", tools: ["crm-switch"] },
+          ],
         },
         { label: "Permissions", menus: ["permissions"] },
         { label: "Themes", menus: ["themes"] },
@@ -179,7 +182,12 @@ function ensureStaff(store) {
   let staff = store.groups.find((group) => group.id === STAFF_ID);
   if (!staff) {
     const grants = collectGrants(new Set([FTP_MENU]));
-    staff = { id: STAFF_ID, name: "Everything no FTP", menus: grants.menus, tools: grants.tools };
+    staff = {
+      id: STAFF_ID,
+      name: "Everything no FTP",
+      menus: grants.menus,
+      tools: grants.tools.filter((tool) => tool !== "crm-switch"),
+    };
     changed = true;
   }
   const admin = store.groups.find((group) => group.id === ADMIN_ID);
@@ -784,6 +792,7 @@ function restrictedGroup() {
 
 /** @param {string} view */
 export function allowsMenu(view) {
+  if (view === "troubleshooting") return true;
   const group = restrictedGroup();
   if (!group) return true;
   if (view === FTP_MENU || String(view).startsWith("integrations-ftp")) return group.menus.includes(FTP_MENU);

@@ -61,7 +61,7 @@ export async function initShell() {
         : code === "Configuration" || !isAuthConfigured()
           ? "Sign-in is not configured. Create the Dalko app in Entra ID and paste its client ID into auth-config.js."
           : raw && /50011|redirect uri/i.test(raw)
-            ? "Redirect URI mismatch. Sign in from http://localhost:8080/ or the GitHub Pages URL registered in Entra."
+            ? "Redirect URI mismatch. Sign in from https://insights.shipdalko.com/ or http://localhost:8080/, and add that address to the DALKO Insights app in Entra."
             : raw
               ? `Sign-in failed. ${raw}`
               : "Sign-in failed. Try again.";
