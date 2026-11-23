@@ -784,6 +784,7 @@ export function mountSidebarTodo(host, opts = {}) {
   async function loadBoards() {
     try {
       const payload = await rackJson("/api/todos", { signal: opts.signal });
+      if (opts.signal?.aborted) return;
       boards = Array.isArray(payload.boards) ? payload.boards : [];
       opened = true;
       const saved = sessionStorage.getItem(BOARD_KEY) || "";
@@ -795,6 +796,7 @@ export function mountSidebarTodo(host, opts = {}) {
       paint();
       if (boardId) void follow(boardId);
     } catch (error) {
+      if (opts.signal?.aborted) return;
       boards = [];
       opened = true;
       boardId = "";

@@ -27,7 +27,7 @@ import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog
 import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-permnote";
 import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261123-slate-linen";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261123-builtin";
-import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-reports-owner";
+import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-todo-auth";
 import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-permnote";
 import {
   canRevealDatSecrets,
@@ -951,6 +951,11 @@ async function toggleDatSecret(kind) {
 }
 
 function lockApp() {
+  if (homeTodoAbort) {
+    homeTodoAbort.abort();
+    homeTodoAbort = null;
+    document.getElementById("home-todo")?.replaceChildren();
+  }
   document.body.classList.remove("is-authed");
   document.getElementById("splash")?.classList.remove("hidden");
   document.querySelector(".app")?.setAttribute("aria-hidden", "true");
@@ -960,6 +965,7 @@ function revealApp() {
   document.body.classList.add("is-authed");
   document.getElementById("splash")?.classList.add("hidden");
   document.querySelector(".app")?.removeAttribute("aria-hidden");
+  if (shellView === "home") mountHomeTodo();
 }
 
 /**
@@ -1693,10 +1699,9 @@ window.addEventListener("glassbox:open-tool", (e) => {
 let homeTodoAbort = null;
 
 function mountHomeTodo() {
-  homeTodoAbort?.abort();
-  homeTodoAbort = new AbortController();
   const host = document.getElementById("home-todo");
-  if (!host) return;
+  if (!host || !getAccount() || homeTodoAbort) return;
+  homeTodoAbort = new AbortController();
   mountSidebarTodo(host, { signal: homeTodoAbort.signal });
   if (!selectedTodoDay) return;
   window.dispatchEvent(
@@ -1733,7 +1738,7 @@ function paintHome() {
   else mountHomeCalendar();
   const slot = document.getElementById("home-todo");
   if (existingTodo && slot) slot.replaceWith(existingTodo);
-  else mountHomeTodo();
+  mountHomeTodo();
   loadLocalWeather(() => {
     if (shellView === "home") paintHome();
   });
