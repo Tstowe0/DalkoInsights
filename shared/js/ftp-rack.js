@@ -1,4 +1,4 @@
-import { getAccessToken, getAccount, getRackToken } from "./auth.js?v=20261023-id";
+import { getAccessToken, getAccount, getRackToken } from "./auth.js?v=20261123-outlook-mail";
 
 /**
  * Bridge to the FTP rack on DELTA at https://delta.shipdalko.com.

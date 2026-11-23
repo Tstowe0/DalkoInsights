@@ -810,6 +810,17 @@ button.cp-renewal:hover {
   padding-top: 8px;
 }
 
+.cp-file-attach {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.cp-file-attach[hidden] {
+  display: none;
+}
+
 .cp-files h3,
 .cp-comments h3 {
   margin: 0;

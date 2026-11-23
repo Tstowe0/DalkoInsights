@@ -11,7 +11,7 @@ import {
   SCHEDULED_REPORTS,
 } from "./report-schedule.js?v=20261123-builtin";
 import { confirmDialog } from "../../../shared/js/dialog.js?v=20261006-nobrand";
-import { RACK_ORIGIN, rackAuthHeaders } from "../../../shared/js/ftp-rack.js?v=20261123-todos";
+import { RACK_ORIGIN, rackAuthHeaders } from "../../../shared/js/ftp-rack.js?v=20261123-outlook-mail";
 
 const SCHEDULED_DONE_KEY = "glassbox.todo.scheduled.v1";
 const DAILY_DONE_KEY = "glassbox.todo.daily.v1";

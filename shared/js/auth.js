@@ -213,17 +213,18 @@ export function getRackToken() {
 export async function getAccessToken(opts = {}) {
   if (!pca || !activeAccount) return null;
   const interactive = opts.interactive !== false;
+  const keep = opts.remember !== false;
   const scopes = Array.isArray(opts.scopes) && opts.scopes.length ? opts.scopes : AUTH_SCOPES;
   const request = { scopes, account: activeAccount };
   try {
     const silent = await pca.acquireTokenSilent(request);
-    remember(silent);
+    if (keep) remember(silent);
     return silent?.accessToken ?? null;
   } catch {
     if (!interactive) return null;
     try {
       const popup = await pca.acquireTokenPopup(request);
-      remember(popup);
+      if (keep) remember(popup);
       if (popup?.account) {
         pca.setActiveAccount(popup.account);
         activeAccount = popup.account;

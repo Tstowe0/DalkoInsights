@@ -2,7 +2,7 @@ import { mountDumpFilterReport } from "../_shared/client-reports.js?v=20261027-t
 import { workbookToObjects, workbookBlob } from "../_shared/excel.js?v=20261005-dats";
 import { rowsToSheetWorkbook, applyClientReportStyle } from "../_shared/report-format.js";
 import { pickVal, pickCol, fmtMDY } from "../_shared/report-helpers.js";
-import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261023-rack";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261123-outlook-mail";
 import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 
 export const meta = {

@@ -1,6 +1,6 @@
 import { mountFileTool } from "../_shared/file-ui.js?v=20261027-titlebar";
 import { downloadBlob, stampName } from "../_shared/excel.js";
-import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261023-rack";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261123-outlook-mail";
 import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 
 export const meta = {

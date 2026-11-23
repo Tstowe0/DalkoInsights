@@ -7,9 +7,9 @@
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CLIENT_REPORT_BANDS, SECTIONS } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
 import { AUTH_ALLOWED_DOMAIN } from "./auth-config.js?v=20260915-app3";
-import { getAccessToken, getAccount, getEmail, getRackToken } from "./auth.js?v=20261023-id";
+import { getAccessToken, getAccount, getEmail, getRackToken } from "./auth.js?v=20261123-outlook-mail";
 import { confirmDialog } from "./dialog.js?v=20261006-nobrand";
-import { RACK_ORIGIN } from "./ftp-rack.js?v=20261023-id";
+import { RACK_ORIGIN } from "./ftp-rack.js?v=20261123-outlook-mail";
 
 const STORAGE_KEY = "dalko.permissions.v1";
 const KNOWN_KEY = "dalko.permissions.known";

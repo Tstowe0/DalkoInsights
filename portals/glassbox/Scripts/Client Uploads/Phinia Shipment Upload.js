@@ -6,7 +6,7 @@ import {
   downloadWorkbook,
   downloadBlob,
 } from "../_shared/excel.js";
-import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261023-rack";
+import { sendToRack } from "../../../../shared/js/ftp-rack.js?v=20261123-outlook-mail";
 import { confirmDialog } from "../../../../shared/js/dialog.js?v=20261006-nobrand";
 import {
   OUTPUT_COLUMNS,

@@ -3,9 +3,9 @@
  * The rack on DELTA is the only reader. The page never sees the database.
  */
 
-import { getAccount } from "../../../shared/js/auth.js?v=20261023-id";
-import { allowsAction, allowsMenu } from "../../../shared/js/permissions.js?v=20261123-carrier-access";
-import { RACK_ORIGIN, rackAuthHeaders } from "../../../shared/js/ftp-rack.js?v=20261023-id";
+import { getAccount } from "../../../shared/js/auth.js?v=20261123-outlook-mail";
+import { allowsAction, allowsMenu } from "../../../shared/js/permissions.js?v=20261123-outlook-mail";
+import { RACK_ORIGIN, rackAuthHeaders } from "../../../shared/js/ftp-rack.js?v=20261123-outlook-mail";
 
 const TYPES = ["New Carrier", "New Pricing Account", "Pricing Update", "Cancellation"];
 const CATEGORIES = [
@@ -274,10 +274,13 @@ export function mountCarrierPricing(host, onAccessDenied) {
                   <section class="cp-files" aria-labelledby="cp-files-title">
                     <h3 id="cp-files-title">Agreement Files</h3>
                     <ul id="cp-file-list"></ul>
-                    <label class="cp-field" id="cp-file-attach">Attach files
-                      <span class="cp-fine">PDF, Office, CSV, text, or images · up to 15 MB each</span>
-                      <input id="cp-file-input" name="files" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.tif,.tiff" />
-                    </label>
+                    <div class="cp-file-attach" id="cp-file-attach">
+                      <label class="cp-field" for="cp-file-input">Attach files
+                        <span class="cp-fine">PDF, Office, CSV, text, or images · up to 15 MB each</span>
+                        <input id="cp-file-input" name="files" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.tif,.tiff" />
+                      </label>
+                      <button type="button" class="cp-secondary" id="cp-upload-file">Upload</button>
+                    </div>
                   </section>
                   <section class="cp-history" id="cp-history" hidden aria-labelledby="cp-history-title">
                     <h3 id="cp-history-title">Account Activity</h3>
@@ -594,6 +597,8 @@ export function mountCarrierPricing(host, onAccessDenied) {
   let actionBusy = false;
   /** @type {string[]} */
   let pendingComments = [];
+  /** @type {File[]} */
+  let pendingFiles = [];
 
   function showDetailError(message) {
     const error = byId("cp-detail-error");
@@ -735,6 +740,8 @@ export function mountCarrierPricing(host, onAccessDenied) {
     if (compose instanceof HTMLElement) compose.hidden = showView;
     const attach = byId("cp-file-attach");
     if (attach instanceof HTMLElement) attach.hidden = showView;
+    const upload = byId("cp-upload-file");
+    if (upload instanceof HTMLButtonElement) upload.disabled = detailBusy;
     const form = byId("cp-detail-form");
     if (form instanceof HTMLElement) form.classList.toggle("cp-is-view", showView);
   }
@@ -778,14 +785,15 @@ export function mountCarrierPricing(host, onAccessDenied) {
     const files = Array.isArray(row?.files) ? row.files : [];
     const fileList = byId("cp-file-list");
     if (fileList) {
-      fileList.innerHTML = files.length
-        ? files
-            .map(
-              (file) =>
-                `<li><button type="button" class="cp-row-link" data-file="${esc(file.id)}">${esc(file.name)}</button></li>`
-            )
-            .join("")
-        : `<li class="cp-fine">No files yet.</li>`;
+      const waiting = pendingFiles.map(
+        (file) => `<li><span>${esc(file.name)}</span> <span class="cp-fine">Pending save</span></li>`
+      );
+      const saved = files.map(
+        (file) =>
+          `<li><button type="button" class="cp-row-link" data-file="${esc(file.id)}">${esc(file.name)}</button></li>`
+      );
+      const items = waiting.concat(saved);
+      fileList.innerHTML = items.length ? items.join("") : `<li class="cp-fine">No files yet.</li>`;
     }
     const comments = Array.isArray(row?.comments) ? row.comments : [];
     const saved = comments.map((comment) => {
@@ -839,6 +847,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
     const type = detailControl("type");
     if (type instanceof HTMLSelectElement) type.disabled = Boolean(row.type);
     pendingComments = [];
+    pendingFiles = [];
     const draft = byId("cp-comment-draft");
     if (draft instanceof HTMLTextAreaElement) draft.value = "";
     const input = byId("cp-file-input");
@@ -885,6 +894,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
         if (options.startType) type.value = options.startType;
       }
       pendingComments = [];
+      pendingFiles = [];
       const draft = byId("cp-comment-draft");
       if (draft instanceof HTMLTextAreaElement) draft.value = "";
       const input = byId("cp-file-input");
@@ -923,6 +933,35 @@ export function mountCarrierPricing(host, onAccessDenied) {
     showDetailError("");
     renderDetailLists(currentDetail());
     draft.focus();
+  }
+
+  function chosenFiles() {
+    const input = byId("cp-file-input");
+    return input instanceof HTMLInputElement ? [...input.files] : [];
+  }
+
+  function stageFiles() {
+    if (detailBusy || (viewing && currentDetail())) return;
+    const input = byId("cp-file-input");
+    if (!(input instanceof HTMLInputElement)) return;
+    const picked = [...input.files];
+    if (!picked.length) {
+      showDetailError("Choose a file, then Upload.");
+      return;
+    }
+    if (picked.some((file) => !file.size || file.size > MAX_FILE || !FILE_EXT.test(file.name))) {
+      input.value = "";
+      showDetailError("Select supported files of 15 MB or less.");
+      return;
+    }
+    if (pendingFiles.length + picked.length > 20) {
+      showDetailError("Upload up to 20 files before saving.");
+      return;
+    }
+    pendingFiles = picked.concat(pendingFiles);
+    input.value = "";
+    showDetailError("");
+    renderDetailLists(currentDetail());
   }
 
   function remember(record) {
@@ -964,12 +1003,11 @@ export function mountCarrierPricing(host, onAccessDenied) {
       showDetailError("Save up to 50 new comments at a time.");
       return;
     }
-    const input = byId("cp-file-input");
-    const files = input instanceof HTMLInputElement ? [...input.files] : [];
-    if (files.some((file) => !file.size || file.size > MAX_FILE || !FILE_EXT.test(file.name))) {
-      showDetailError("Select supported files of 15 MB or less.");
+    if (chosenFiles().length) {
+      showDetailError("Click Upload to add the selected files before saving.");
       return;
     }
+    const files = [...pendingFiles];
     const id = existing ? existing.id : crypto.randomUUID();
     const draftRow = {
       id,
@@ -1050,9 +1088,12 @@ export function mountCarrierPricing(host, onAccessDenied) {
         });
         const stored = await uploaded.json().catch(() => ({}));
         if (!uploaded.ok || !stored.file) {
+          const leftover = files.slice(completed);
           remember(savedRecord);
           detailId = savedRecord.id;
           fillDetail(savedRecord);
+          pendingFiles = leftover;
+          renderDetailLists(savedRecord);
           showDetailError(
             `Record saved. ${completed} of ${files.length} selected files uploaded. ${rackMessage(uploaded.status, stored, "The rack needs a restart before this file can be uploaded.", "The file did not upload.")}`
           );
@@ -1063,6 +1104,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
         completed += 1;
       }
       remember(savedRecord);
+      pendingFiles = [];
       const index = filterRows().findIndex((item) => item.id === savedRecord.id);
       if (index >= 0) page = Math.floor(index / PAGE_SIZE) + 1;
       detailBusy = false;
@@ -1070,9 +1112,12 @@ export function mountCarrierPricing(host, onAccessDenied) {
       render();
     } catch (error) {
       if (savedRecord) {
+        const leftover = files.slice(completed);
         remember(savedRecord);
         detailId = savedRecord.id;
         fillDetail(savedRecord);
+        pendingFiles = leftover;
+        renderDetailLists(savedRecord);
         render();
         showDetailError(
           `Record saved. ${completed} of ${files.length} selected files uploaded. ${
@@ -1242,11 +1287,6 @@ export function mountCarrierPricing(host, onAccessDenied) {
     if (dialog instanceof HTMLElement) dialog.hidden = false;
   }
 
-  function fileNames(row) {
-    const files = Array.isArray(row.files) ? row.files : [];
-    return files.length ? `<ul>${files.map((file) => `<li>${esc(file.name)}</li>`).join("")}</ul>` : "";
-  }
-
   async function downloadEmail(row) {
     const button = byId("cp-action-confirm");
     const progress = byId("cp-email-progress");
@@ -1267,13 +1307,8 @@ export function mountCarrierPricing(host, onAccessDenied) {
         files.push({ name: file.name, data: await res.arrayBuffer() });
       }
       const { subject, body } = emailDetails(row);
-      const url = URL.createObjectURL(emlFile(subject, body, files));
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "Carrier_Pricing_Email.eml";
-      link.click();
-      if (progress) progress.textContent = "Open the downloaded email draft in your mail app.";
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      handToOutlook(emlFile(subject, body, files), "Carrier Pricing.eml");
+      if (progress) progress.textContent = "Open the message file. Outlook on this computer opens it.";
     } catch (error) {
       if (progress) progress.textContent = "The email draft could not be downloaded.";
       showActionError(error instanceof Error ? error.message : "The email draft could not be downloaded.");
@@ -1282,6 +1317,54 @@ export function mountCarrierPricing(host, onAccessDenied) {
       actionBusy = false;
       button.disabled = false;
     }
+  }
+
+  async function loadAgreementFiles(row) {
+    const files = [];
+    for (const file of row.files || []) {
+      const headers = await rackAuthHeaders();
+      const res = await fetch(`${RACK_ORIGIN}/api/carrier-pricing/files/${encodeURIComponent(file.id)}`, {
+        cache: "no-store",
+        headers,
+      });
+      if (!res.ok) throw new Error(`Could not load ${file.name}. Try again before emailing the record.`);
+      files.push({
+        name: String(file.name || "agreement").replace(/[\u0000-\u001f\u007f/\\]/g, "_").slice(0, 200),
+        data: await res.arrayBuffer(),
+      });
+    }
+    return files;
+  }
+
+  function showEmailError(message) {
+    openAction(
+      "email",
+      "Email record",
+      `<p id="cp-action-error" class="cp-form-error" role="alert">${esc(message)}</p>`,
+      "",
+      false
+    );
+  }
+
+  function handToOutlook(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+
+  async function openDesktopEmail(row) {
+    const files = await loadAgreementFiles(row);
+    files.forEach((file, index) => {
+      window.setTimeout(() => handToOutlook(new Blob([file.data]), file.name || "agreement"), index * 400);
+    });
+    const { subject, body } = emailDetails(row);
+    const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/\r?\n/g, "\r\n"))}`;
+    window.setTimeout(() => {
+      location.href = mailto;
+    }, files.length * 400);
   }
 
   function openEmail(id) {
@@ -1295,13 +1378,22 @@ export function mountCarrierPricing(host, onAccessDenied) {
       location.href = mailto;
       return;
     }
+    if (files.length) {
+      actionBusy = true;
+      void openDesktopEmail(row)
+        .catch((error) => {
+          showEmailError(error instanceof Error ? error.message : "Outlook did not open the message.");
+        })
+        .finally(() => {
+          actionBusy = false;
+        });
+      return;
+    }
     actionId = id;
     openAction(
       "email",
       "Email record",
-      `<p id="cp-email-progress" role="status">Preparing your email draft…</p>${
-        files.length ? `<p class="cp-fine">Agreement files included in the draft</p>${fileNames(row)}` : ""
-      }<p id="cp-action-error" class="cp-form-error" role="alert" hidden></p>`,
+      `<p id="cp-email-progress" role="status">Preparing your email draft…</p><p id="cp-action-error" class="cp-form-error" role="alert" hidden></p>`,
       "Download again",
       false
     );
@@ -1421,6 +1513,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
     if (target.dataset.record) openAgreement({ id: target.dataset.record });
     if (target.dataset.file) void downloadFile(target.dataset.file);
     if (target.id === "cp-add-comment") addComment();
+    if (target.id === "cp-upload-file") stageFiles();
     if (target.id === "cp-edit") beginEdit();
     if (target.dataset.cpDetailClose != null) closeDetail();
     if (target.dataset.cpActionClose != null) closeAction();

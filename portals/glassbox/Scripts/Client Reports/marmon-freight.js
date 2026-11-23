@@ -840,7 +840,7 @@ function datFatal(err) {
 async function postDatLookup(requests) {
   let res;
   try {
-    const { RACK_ORIGIN, rackAuthHeaders } = await import("../../../../shared/js/ftp-rack.js?v=20261023-rack");
+    const { RACK_ORIGIN, rackAuthHeaders } = await import("../../../../shared/js/ftp-rack.js?v=20261123-outlook-mail");
     res = await fetch(`${RACK_ORIGIN}/api/dat/test`, {
       method: "POST",
       cache: "no-store",
