@@ -1,8 +1,11 @@
 /**
  * Local weather for the home page.
- * The browser location is the computer. If that is declined, the network
- * location is used instead. Open-Meteo needs no key.
+ * The browser location is the computer. If that is declined, zip 16150 is used.
+ * A timeout or a missing location still uses the network location.
+ * Open-Meteo needs no key.
  */
+
+const HOME_ZIP = "16150";
 
 const EMPTY = { status: "loading", place: "", temp: "", summary: "", days: [] };
 
@@ -147,6 +150,19 @@ function deviceLocation() {
   });
 }
 
+async function zipLocation(zip) {
+  const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
+  if (!res.ok) throw new Error("zip");
+  const data = await res.json();
+  const place = data.places?.[0];
+  const lat = Number(place?.latitude);
+  const lon = Number(place?.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error("zip");
+  const city = String(place["place name"] || "").trim();
+  const state = String(place["state abbreviation"] || "").trim();
+  return { lat, lon, place: [city, state].filter(Boolean).join(", ") || zip };
+}
+
 async function networkLocation() {
   const res = await fetch("https://get.geojs.io/v1/ip/geo.json");
   if (!res.ok) throw new Error("network");
@@ -163,7 +179,8 @@ async function locate() {
     const here = await deviceLocation();
     const place = await placeName(here.lat, here.lon).catch(() => "");
     return { ...here, place };
-  } catch {
+  } catch (err) {
+    if (Number(err?.code) === 1) return zipLocation(HOME_ZIP);
     return networkLocation();
   }
 }

@@ -2,7 +2,7 @@
  * Resolves and loads a tool module from Scripts/ (mirrors Python _launch_tool).
  */
 
-import { gateToolButtons } from "../../../shared/js/permissions.js?v=20261123-view-as";
+import { gateToolButtons } from "../../../shared/js/permissions.js?v=20261123-carrier-access";
 
 /**
  * @typedef {object} ToolContext

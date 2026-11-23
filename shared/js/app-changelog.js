@@ -12,6 +12,7 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
+      "Local weather uses this computer. If that location is declined, the forecast is for 16150.",
       "Permissions holds a change until Save. Close and Save sit at the bottom of the person and group popup. Closing drops checks that were not saved.",
       "The Permissions instruction sits in the page banner with the title.",
       "Saving a Carrier Pricing grant keeps the page and its buttons together: Add record, Edit record, Export CSV, Email record, and Delete record.",

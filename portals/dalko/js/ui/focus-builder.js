@@ -1,4 +1,4 @@
-import { allowsAction } from "../../../../shared/js/permissions.js?v=20261123-view-as";
+import { allowsAction } from "../../../../shared/js/permissions.js?v=20261123-carrier-access";
 
 /** @typedef {{ id: string, label: string, column: string, equipmentMode?: "ltl" | "truckload" }} FocusLayer */
 /** @typedef {{ id: string, label: string, icon: string, layers: FocusLayer[] }} FocusCategory */

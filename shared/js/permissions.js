@@ -559,6 +559,7 @@ export async function pullPermissions() {
       if (localStoreIsCustom(local)) memory = local;
     }
     loadPermissions();
+    restoreViewAs();
   } catch {
     hydrated = false;
     remoteNote = "The browser could not reach DELTA. Changes on this page are not saved.";
@@ -569,7 +570,7 @@ export function resetPermissions() {
   memory = null;
   hydrated = false;
   remoteNote = "";
-  viewAsEmail = "";
+  leaveViewAs();
   pushGen += 1;
 }
 
@@ -1031,6 +1032,19 @@ function placeUnassigned(emails) {
 
 /** Email of the person an admin is previewing. Empty means the signed-in account. */
 let viewAsEmail = "";
+const VIEW_AS_KEY = "dalko.permissions.view-as";
+
+function restoreViewAs() {
+  viewAsEmail = "";
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(VIEW_AS_KEY) || "null");
+    if (saved?.viewer === dalkoEmail(getEmail()) && realCanPreview()) {
+      viewAsEmail = dalkoEmail(saved.email);
+    }
+  } catch {
+    // Preview still works in memory when session storage is unavailable.
+  }
+}
 
 /**
  * The group is the starting set. Extra sections on the person are added on top.
@@ -1082,18 +1096,33 @@ function realCanPreview() {
 /** @param {string} email @returns {boolean} */
 export function beginViewAs(email) {
   const clean = dalkoEmail(email);
-  if (!clean || !realCanPreview()) return false;
+  if (!clean || !hydrated || !realCanPreview()) return false;
   viewAsEmail = clean;
+  try {
+    sessionStorage.setItem(VIEW_AS_KEY, JSON.stringify({ viewer: dalkoEmail(getEmail()), email: clean }));
+  } catch {
+    // Keep this preview active until the page reloads.
+  }
   return true;
 }
 
 export function leaveViewAs() {
   viewAsEmail = "";
+  try {
+    sessionStorage.removeItem(VIEW_AS_KEY);
+  } catch {
+    // There is no stored preview to clear.
+  }
+}
+
+export function permissionsVerified() {
+  return hydrated;
 }
 
 /** @param {string} view */
 export function allowsMenu(view) {
   if (view === "troubleshooting") return true;
+  if (view === "carrier-pricing" && !permissionsVerified()) return false;
   const grants = restrictedGrants();
   if (!grants) return true;
   if (view === FTP_MENU || String(view).startsWith("integrations-ftp")) return grants.menus.has(FTP_MENU);

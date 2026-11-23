@@ -4,7 +4,7 @@
  */
 
 import { getAccount } from "../../../shared/js/auth.js?v=20261023-id";
-import { allowsAction } from "../../../shared/js/permissions.js?v=20261123-view-as";
+import { allowsAction, allowsMenu } from "../../../shared/js/permissions.js?v=20261123-carrier-access";
 import { RACK_ORIGIN, rackAuthHeaders } from "../../../shared/js/ftp-rack.js?v=20261023-id";
 
 const TYPES = ["New Carrier", "New Pricing Account", "Pricing Update", "Cancellation"];
@@ -145,8 +145,15 @@ export function reloadCarrierPricing() {
   if (loadCurrent && getAccount()) void loadCurrent();
 }
 
-/** @param {HTMLElement} host */
-export function mountCarrierPricing(host) {
+/**
+ * @param {HTMLElement} host
+ * @param {(status: number) => void} onAccessDenied
+ */
+export function mountCarrierPricing(host, onAccessDenied) {
+  if (!allowsMenu("carrier-pricing")) {
+    onAccessDenied(403);
+    return;
+  }
   if (host.dataset.ready === "1") {
     paintAccess(host);
     return;
@@ -481,6 +488,10 @@ export function mountCarrierPricing(host) {
   }
 
   async function loadRecords() {
+    if (!allowsMenu("carrier-pricing")) {
+      onAccessDenied(403);
+      return;
+    }
     loaded = false;
     host.dataset.loaded = "";
     showMessage("Loading agreements…", false);
@@ -488,6 +499,12 @@ export function mountCarrierPricing(host) {
       const headers = await rackAuthHeaders();
       const res = await fetch(`${RACK_ORIGIN}/api/carrier-pricing`, { cache: "no-store", headers });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403 || !allowsMenu("carrier-pricing")) {
+        records = [];
+        delete host.dataset.ready;
+        onAccessDenied(res.status === 401 ? 401 : 403);
+        return;
+      }
       if (res.status === 404) {
         showMessage("The rack needs a restart before Carrier Pricing can load.", true);
         return;

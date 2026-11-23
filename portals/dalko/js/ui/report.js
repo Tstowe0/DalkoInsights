@@ -6,7 +6,7 @@ import {
   destroyChart,
 } from "./charts.js?v=20260922-corp2";
 import { hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
-import { allowsAction } from "../../../../shared/js/permissions.js?v=20261123-view-as";
+import { allowsAction } from "../../../../shared/js/permissions.js?v=20261123-carrier-access";
 
 /** Name, revenue, cost, profit, margin, loads */
 const COL_PNL = [0, 1, 2, 3, 4, 5];

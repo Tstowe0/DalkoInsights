@@ -10,7 +10,7 @@ import {
   initDalkoPortal,
   setInsightsView,
   setEmbeddedInsightHide,
-} from "../../portals/dalko/js/app.js?v=20261123-view-as";
+} from "../../portals/dalko/js/app.js?v=20261123-carrier-access";
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20261112-fit";
 import { hallowedNightScene } from "./themes/hallowed-night.js?v=20261121-seasonal";
@@ -18,17 +18,17 @@ import { oceanicNightScene } from "./themes/oceanic-night.js";
 import { rainyDriveScene } from "./themes/rainy-drive.js?v=20261123-follow-truck";
 import { yuleNightScene } from "./themes/yule-night.js?v=20261120-hourly-sleigh";
 import { initTheme } from "./theme.js?v=20261123-slate-linen";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261123-dump-activity";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261123-zip-16150";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
 import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
-import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-view-as";
+import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-carrier-access";
 import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261123-header-note";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261123-builtin";
 import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-todo-owner-delete";
-import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-view-as";
+import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-carrier-access";
 import {
   canRevealDatSecrets,
   getAccessToken,
@@ -45,7 +45,7 @@ import {
 } from "./auth.js?v=20261023-id";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
 import { fetchRack, rackAuthHeaders, recordActivity, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261123-activity";
-import { loadLocalWeather, weatherCardHtml } from "./weather.js?v=20261123-weather-full-art";
+import { loadLocalWeather, weatherCardHtml } from "./weather.js?v=20261123-zip-16150";
 import {
   allowsAction,
   allowsInsightPage,
@@ -56,12 +56,13 @@ import {
   hiddenInsightPages,
   leaveViewAs,
   loadDalkoDirectory,
+  permissionsVerified,
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
   viewAsFirstName,
   viewingAs,
-} from "./permissions.js?v=20261123-view-as";
+} from "./permissions.js?v=20261123-carrier-access";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -1026,6 +1027,7 @@ async function bootAuth() {
   paintUserChrome();
   const authed = Boolean(getAccount());
   if (authed) await pullPermissions();
+  paintUserChrome();
   paintNav();
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
@@ -1051,6 +1053,7 @@ async function signInFromSplash() {
   paintUserChrome();
   if (getAccount()) await pullPermissions();
   else resetPermissions();
+  paintUserChrome();
   paintNav();
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
@@ -1075,7 +1078,7 @@ async function onAuthAction() {
   if (getAccount() && viewingAs()) {
     leaveViewAs();
     paintUserChrome();
-    setShellView(allowsMenu(shellView) ? shellView : "home");
+    setShellView(new URLSearchParams(location.search).get("view") || "home");
     return;
   }
   try {
@@ -1094,6 +1097,7 @@ async function onAuthAction() {
   paintUserChrome();
   if (getAccount()) await pullPermissions();
   else resetPermissions();
+  paintUserChrome();
   paintNav();
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
@@ -1978,12 +1982,12 @@ function showLayer(layer) {
   document.getElementById("permission-denied")?.classList.toggle("hidden", layer !== "denied");
 }
 
-function showPermissionDenied(label) {
+function showPermissionDenied(label, reason = "") {
   shellView = "permission-denied";
   setPageHeader("Permission Denied");
   document.title = "Permission Denied · DALKO Insights";
   const message = document.getElementById("permission-denied-message");
-  if (message) message.textContent = `You don’t have access to ${label}. Contact your Insights administrator if you need access.`;
+  if (message) message.textContent = reason || `You don’t have access to ${label}. Contact your Insights administrator if you need access.`;
   const home = document.getElementById("permission-denied-home");
   if (home instanceof HTMLButtonElement) home.hidden = !allowsMenu("home");
   showLayer("denied");
@@ -2085,7 +2089,10 @@ function setShellView(id) {
   history.replaceState(null, "", next);
 
   if (!allowsMenu(view) || (target !== view && !allowsInsightPage(target))) {
-    showPermissionDenied(TITLES[target] || TITLES[view] || "this page");
+    const reason = view === "carrier-pricing" && !permissionsVerified()
+      ? "Insights couldn’t verify your Carrier Pricing access. Sign out and sign back in to try again."
+      : "";
+    showPermissionDenied(TITLES[target] || TITLES[view] || "this page", reason);
     return;
   }
   shellView = view;
@@ -2103,7 +2110,11 @@ function setShellView(id) {
   } else if (view === "carrier-pricing") {
     showLayer("carrier");
     const host = els.carrier();
-    if (host) mountCarrierPricing(host);
+    if (host) mountCarrierPricing(host, (status) => {
+      if (shellView !== "carrier-pricing") return;
+      const reason = status === 401 ? "Sign out and sign back in to open Carrier Pricing." : "";
+      showPermissionDenied("Carrier Pricing", reason);
+    });
   } else if (LOOKUP_TOOLS[view] && view !== "carrier-search") {
     showLayer("tools");
     const tool = findTool(LOOKUP_TOOLS[view]);
