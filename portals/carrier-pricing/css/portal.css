@@ -714,10 +714,18 @@
 .cp-form-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 8px;
   padding: 9px 18px;
   border-top: 1px solid var(--border);
   background: var(--card);
+}
+
+.cp-save-note {
+  margin: 0;
+  color: #9a241c;
+  font-size: 0.88rem;
+  text-align: right;
 }
 
 @media (max-width: 720px) {

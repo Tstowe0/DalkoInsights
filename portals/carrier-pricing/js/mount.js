@@ -305,6 +305,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
               <div class="cp-form-actions">
                 <button type="button" class="cp-secondary" data-cp-detail-close>Close</button>
                 <button type="button" class="cp-gold" id="cp-edit" hidden>Edit record</button>
+                <p id="cp-save-note" class="cp-save-note" role="alert" hidden></p>
                 <button class="cp-gold" type="submit" id="cp-save">Save record</button>
               </div>
             </form>
@@ -607,6 +608,13 @@ export function mountCarrierPricing(host, onAccessDenied) {
     error.hidden = !message;
   }
 
+  function showSaveNote(message) {
+    const note = byId("cp-save-note");
+    if (!(note instanceof HTMLElement)) return;
+    note.textContent = message;
+    note.hidden = !message;
+  }
+
   function currentDetail() {
     return records.find((row) => row.id === detailId) || null;
   }
@@ -852,6 +860,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
     if (draft instanceof HTMLTextAreaElement) draft.value = "";
     const input = byId("cp-file-input");
     if (input instanceof HTMLInputElement) input.value = "";
+    showSaveNote("");
     renderDetailLists(row);
     syncDetailForm();
   }
@@ -863,6 +872,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
     detailId = "";
     linkedAccount = "";
     viewing = false;
+    showSaveNote("");
   }
 
   function fillFromAccount(id) {
@@ -882,6 +892,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
     linkedAccount = row ? "" : options.accountId || "";
     viewing = Boolean(row);
     showDetailError("");
+    showSaveNote("");
     const title = byId("cp-detail-title");
     if (title) title.textContent = row ? "Agreement record" : "Add agreement record";
     if (row) fillDetail(row);
@@ -961,6 +972,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
     pendingFiles = picked.concat(pendingFiles);
     input.value = "";
     showDetailError("");
+    showSaveNote("");
     renderDetailLists(currentDetail());
   }
 
@@ -1004,9 +1016,10 @@ export function mountCarrierPricing(host, onAccessDenied) {
       return;
     }
     if (chosenFiles().length) {
-      showDetailError("Click Upload to add the selected files before saving.");
+      showSaveNote("Click Upload to add the selected files before saving.");
       return;
     }
+    showSaveNote("");
     const files = [...pendingFiles];
     const id = existing ? existing.id : crypto.randomUUID();
     const draftRow = {
@@ -1538,7 +1551,11 @@ export function mountCarrierPricing(host, onAccessDenied) {
       const picked = [...(target.files || [])];
       if (picked.some((file) => !file.size || file.size > MAX_FILE || !FILE_EXT.test(file.name))) {
         target.value = "";
+        showSaveNote("");
         showDetailError("Select supported files of 15 MB or less.");
+      } else if (!picked.length) {
+        showSaveNote("");
+        showDetailError("");
       } else {
         showDetailError("");
       }

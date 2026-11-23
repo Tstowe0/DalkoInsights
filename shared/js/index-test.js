@@ -28,7 +28,7 @@ import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-
 import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261123-header-note";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261123-builtin";
 import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-outlook-mail";
-import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-outlook-message";
+import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-save-note";
 import {
   canRevealDatSecrets,
   getAccessToken,
