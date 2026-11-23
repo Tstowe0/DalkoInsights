@@ -18,7 +18,7 @@ import { oceanicNightScene } from "./themes/oceanic-night.js";
 import { rainyDriveScene } from "./themes/rainy-drive.js?v=20261123-follow-truck";
 import { yuleNightScene } from "./themes/yule-night.js?v=20261120-hourly-sleigh";
 import { initTheme } from "./theme.js?v=20261123-slate-linen";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261123-outlook-attach";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261123-outlook-message";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
@@ -28,7 +28,7 @@ import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-
 import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261123-header-note";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261123-builtin";
 import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-outlook-mail";
-import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-outlook-attach";
+import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-outlook-message";
 import {
   canRevealDatSecrets,
   getAccessToken,

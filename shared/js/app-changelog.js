@@ -12,7 +12,7 @@ export const SHELL_RELEASES = [
     productId: "shell",
     version: "",
     items: [
-      "Email on an agreement with files downloads those files, then opens a new Outlook message. Attach the downloaded files before sending.",
+      "Email on an agreement with files opens an Outlook message that already has those files attached.",
       "On an agreement, choose a file and click Upload. The file appears under Agreement Files immediately. Save record stores it.",
       "Local weather uses this computer. If that location is declined, the forecast is for 16150.",
       "Permissions holds a change until Save. Close and Save sit at the bottom of the person and group popup. Closing drops checks that were not saved.",

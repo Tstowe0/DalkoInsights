@@ -1202,6 +1202,54 @@ export function mountCarrierPricing(host, onAccessDenied) {
     };
   }
 
+  function emailHtml(row) {
+    const dates = (value) => (value ? displayDate(value) : "");
+    const fields = [
+      ["Carrier Name", row.carrier],
+      ["SCAC", row.scac],
+      ["Activity", row.type],
+      ["Pricing Category", row.category],
+      ["Client", clientName(row)],
+      ["Pricing Account No. / Reference", row.account],
+      ["Agreement Received Date", dates(row.received)],
+      ["Effective Date", dates(row.effective)],
+      ["Cancellation Date", dates(row.cancelled)],
+      ["Renewal Date", dates(row.renewal)],
+      ["Agreement Sent By", row.sender],
+      ["Cancellation Notice Given By", row.notice],
+      ["Cancellation Notice Received Date", dates(row.noticeReceived || workbookNoticeDate(row.notes))],
+      ["Needs Review", row.review ? "Yes" : "No"],
+      ["Source Task", row.sourceTitle],
+      ["Last Updated By", row.updatedBy],
+      ["Last Updated", row.updatedAt ? new Date(row.updatedAt).toLocaleString() : ""],
+    ];
+    const rows = fields
+      .filter(([, value]) => value)
+      .map(
+        ([label, value]) =>
+          `<tr><td style="padding:2px 18px 2px 0;color:#666666;vertical-align:top;">${esc(label)}</td><td style="padding:2px 0;vertical-align:top;">${esc(value)}</td></tr>`
+      )
+      .join("");
+    const files = Array.isArray(row.files) ? row.files : [];
+    const attached = files.length
+      ? `<p style="margin:0 0 14px;">The agreement ${files.length === 1 ? "file is" : "files are"} attached to this message.</p>`
+      : "";
+    const bill = row.billToAddress
+      ? `<p style="margin:16px 0 4px;"><strong>Bill To Address</strong></p><p style="margin:0;white-space:pre-wrap;">${esc(row.billToAddress)}</p>`
+      : "";
+    const notes = `<p style="margin:16px 0 4px;"><strong>Notes</strong></p><p style="margin:0;white-space:pre-wrap;">${esc(row.notes || "None")}</p>`;
+    const comments = Array.isArray(row.comments) ? row.comments : [];
+    const commentHtml = comments.length
+      ? comments
+          .map((comment) => {
+            const when = comment.at ? new Date(comment.at).toLocaleString() : "";
+            return `<p style="margin:8px 0 0;"><strong>${esc(comment.author || "")}</strong> ${esc(when)}</p><p style="margin:0;white-space:pre-wrap;">${esc(comment.text || "")}</p>`;
+          })
+          .join("")
+      : `<p style="margin:8px 0 0;">None</p>`;
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:Aptos,Calibri,sans-serif;font-size:11pt;color:#212121;margin:0;">${attached}<table style="border-collapse:collapse;font-family:Aptos,Calibri,sans-serif;font-size:11pt;">${rows}</table>${bill}${notes}<p style="margin:16px 0 4px;"><strong>Comments</strong></p>${commentHtml}</body></html>`;
+  }
+
   function base64Lines(bytes) {
     const parts = [];
     for (let offset = 0; offset < bytes.length; offset += 57 * 256) {
@@ -1211,7 +1259,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
     return parts;
   }
 
-  function emlFile(subject, body, attachments) {
+  function emlFile(subject, plain, html, attachments) {
     const encode = (value) => new TextEncoder().encode(value);
     const subjectWords = [];
     let chunk = "";
@@ -1224,34 +1272,46 @@ export function mountCarrierPricing(host, onAccessDenied) {
     }
     if (chunk) subjectWords.push(chunk);
     const subjectHeader = subjectWords.map((word) => `=?UTF-8?B?${base64Lines(encode(word)).join("")}?=`).join("\r\n ");
-    const boundary = `carrier-pricing-${Array.from(crypto.getRandomValues(new Uint8Array(18)), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(12)), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    const mixed = `mix-${token}`;
+    const alt = `alt-${token}`;
     const lines = [
       "X-Unsent: 1",
       `Subject: ${subjectHeader}`,
       "MIME-Version: 1.0",
-      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      `Content-Type: multipart/mixed; boundary="${mixed}"`,
       "",
-      `--${boundary}`,
+      `--${mixed}`,
+      `Content-Type: multipart/alternative; boundary="${alt}"`,
+      "",
+      `--${alt}`,
       "Content-Type: text/plain; charset=UTF-8",
       "Content-Transfer-Encoding: base64",
       "",
-      ...base64Lines(encode(body.replace(/\r?\n/g, "\r\n"))),
+      ...base64Lines(encode(String(plain || "").replace(/\r?\n/g, "\r\n"))),
+      "",
+      `--${alt}`,
+      "Content-Type: text/html; charset=UTF-8",
+      "Content-Transfer-Encoding: base64",
+      "",
+      ...base64Lines(encode(html)),
+      "",
+      `--${alt}--`,
     ];
     for (const file of attachments) {
       const name = String(file.name || "agreement").replace(/[\u0000-\u001f\u007f/\\]/g, "_");
       const fallback = name.replace(/[^\x20-\x7e]|[";]/g, "_");
-      const extended = encodeURIComponent(name).replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16)}`);
       lines.push(
-        `--${boundary}`,
-        "Content-Type: application/octet-stream",
-        `Content-Disposition: attachment; filename*=UTF-8''${extended};`,
-        ` filename="${fallback}"`,
+        "",
+        `--${mixed}`,
+        `Content-Type: application/octet-stream; name="${fallback}"`,
         "Content-Transfer-Encoding: base64",
+        `Content-Disposition: attachment; filename="${fallback}"`,
         "",
         ...base64Lines(new Uint8Array(file.data))
       );
     }
-    lines.push(`--${boundary}--`, "");
+    lines.push("", `--${mixed}--`, "");
     return new Blob([lines.join("\r\n")], { type: "message/rfc822" });
   }
 
@@ -1307,7 +1367,7 @@ export function mountCarrierPricing(host, onAccessDenied) {
         files.push({ name: file.name, data: await res.arrayBuffer() });
       }
       const { subject, body } = emailDetails(row);
-      handToOutlook(emlFile(subject, body, files), "Carrier Pricing.eml");
+      handToOutlook(emlFile(subject, body, emailHtml(row), files), "Carrier Pricing.eml");
       if (progress) progress.textContent = "Open the message file. Outlook on this computer opens it.";
     } catch (error) {
       if (progress) progress.textContent = "The email draft could not be downloaded.";
@@ -1357,14 +1417,9 @@ export function mountCarrierPricing(host, onAccessDenied) {
 
   async function openDesktopEmail(row) {
     const files = await loadAgreementFiles(row);
-    files.forEach((file, index) => {
-      window.setTimeout(() => handToOutlook(new Blob([file.data]), file.name || "agreement"), index * 400);
-    });
     const { subject, body } = emailDetails(row);
-    const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/\r?\n/g, "\r\n"))}`;
-    window.setTimeout(() => {
-      location.href = mailto;
-    }, files.length * 400);
+    const carrier = String(row.carrier || "Carrier").replace(/[^\w .()-]+/g, "").trim().slice(0, 60);
+    handToOutlook(emlFile(subject, body, emailHtml(row), files), `${carrier || "Carrier"} Pricing.eml`);
   }
 
   function openEmail(id) {
