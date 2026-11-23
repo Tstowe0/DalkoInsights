@@ -4,7 +4,7 @@
  */
 
 import { getAccount } from "../../../shared/js/auth.js?v=20261023-id";
-import { allowsAction } from "../../../shared/js/permissions.js?v=20261123-permnote";
+import { allowsAction } from "../../../shared/js/permissions.js?v=20261123-permissions-filter";
 import { RACK_ORIGIN, rackAuthHeaders } from "../../../shared/js/ftp-rack.js?v=20261023-id";
 
 const TYPES = ["New Carrier", "New Pricing Account", "Pricing Update", "Cancellation"];

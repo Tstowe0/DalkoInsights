@@ -1,4 +1,4 @@
-﻿import { allowsAction } from "../../../../shared/js/permissions.js?v=20261123-permnote";
+import { allowsAction } from "../../../../shared/js/permissions.js?v=20261123-permissions-filter";
 
 /** @typedef {{ id: string, label: string, column: string, equipmentMode?: "ltl" | "truckload" }} FocusLayer */
 /** @typedef {{ id: string, label: string, icon: string, layers: FocusLayer[] }} FocusCategory */

@@ -2878,6 +2878,23 @@ html[data-theme="oceanic-night"] .brand-name {
   gap: 1rem;
   align-items: start;
 }
+.permission-denied {
+  max-width: 40rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+}
+
+.permission-denied p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.permission-denied button {
+  margin-top: 1rem;
+}
+
 .perm-card {
   position: relative;
   border: 1px solid var(--border);
@@ -3146,6 +3163,107 @@ html[data-theme="oceanic-night"] .brand-name {
   flex-wrap: wrap;
   gap: 0.4rem;
   align-items: center;
+}
+
+.perm-access-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.perm-access-nav > button {
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.83rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.perm-access-nav > button:hover {
+  background: var(--card-hover);
+}
+
+.perm-access-nav > button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+}
+
+.perm-users .perm-who strong,
+.perm-users .perm-who small,
+.perm-users .perm-group .perm-source {
+  display: block;
+}
+
+.perm-users .perm-who small {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.perm-users .perm-group {
+  width: auto;
+  background: transparent;
+  border-radius: 0;
+}
+
+.perm-source {
+  width: fit-content;
+  padding: 0.14rem 0.42rem;
+  border-radius: 999px;
+  background: var(--card-hover);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.perm-source.is-extra {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+.perm-users .perm-source {
+  margin-top: 0.25rem;
+}
+
+.perm-impact,
+.perm-person-access {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-bg-quiet, var(--card));
+}
+
+.perm-impact {
+  margin: 0.65rem 0;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.perm-person-access {
+  margin: 0.75rem 0;
+}
+
+.perm-person-access .perm-section {
+  margin: 0 0 0.55rem;
+}
+
+.perm-effective-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.perm-effective-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
 }
 .perm-subhead {
   font-size: 0.78rem;
@@ -3453,6 +3571,10 @@ html[data-theme="oceanic-night"] .brand-name {
   gap: 0.5rem;
   padding: 0.28rem 0;
   font-size: 0.86rem;
+}
+
+.perm-node .perm-source {
+  margin-left: auto;
 }
 
 .perm-tree > li > .perm-node {
@@ -4812,7 +4934,7 @@ html[data-theme="oceanic-night"] .brand-name {
 }
 
 .tools-host .gb-workspace {
-  padding: 1.25rem clamp(1.5rem, 3vw, 2.25rem) 1.75rem;
+  padding: 1.25rem 1.5rem 1.75rem;
 }
 
 .tools-host .cs-bar input[data-query],

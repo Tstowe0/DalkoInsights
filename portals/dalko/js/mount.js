@@ -1,5 +1,5 @@
 import { loadPortalCss } from "../../../shared/js/router.js";
-import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20261123-permnote";
+import { initDalkoPortal, destroyDalkoPortal } from "./app.js?v=20261123-permissions-filter";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../../../shared/images/earth.png", import.meta.url).href;

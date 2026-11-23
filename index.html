@@ -10,9 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="shared/css/theme.css?v=20261123-slate-linen" />
   <link rel="stylesheet" href="portals/dalko/css/portal.css?v=20261001-focusbold" />
-  <link rel="stylesheet" href="portals/glassbox/css/portal.css?v=20261123-edit-todo-list" />
+  <link rel="stylesheet" href="portals/glassbox/css/portal.css?v=20261123-align" />
   <link rel="stylesheet" href="portals/carrier-pricing/css/portal.css?v=20261123-view" />
-  <link rel="stylesheet" href="shared/css/index-test.css?v=20261123-todo-one-row" />
+  <link rel="stylesheet" href="shared/css/index-test.css?v=20261123-permission-denied" />
   <script>
     try {
       var themeId = localStorage.getItem("dalko-shell-theme");
@@ -208,6 +208,10 @@
         </div>
         <div class="home-root settings-root hidden" id="settings-root"></div>
         <div class="carrier-pricing-host hidden" id="carrier-pricing-host"></div>
+        <section class="permission-denied hidden" id="permission-denied" aria-labelledby="shell-page-title">
+          <p id="permission-denied-message" tabindex="-1"></p>
+          <button type="button" id="permission-denied-home">Go to Home</button>
+        </section>
         <section class="gb-console hidden" id="gb-console" aria-label="Console">
           <header class="gb-console-bar">
             <span>Console</span>
@@ -235,6 +239,6 @@
 
   <script src="shared/vendor/xlsx-js-style.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script type="module" src="shared/js/index-test.js?v=20261123-todo-auth"></script>
+  <script type="module" src="shared/js/index-test.js?v=20261123-permission-denied"></script>
 </body>
 </html>

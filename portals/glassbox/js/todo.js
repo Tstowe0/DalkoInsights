@@ -370,18 +370,18 @@ async function rackJson(path, options = {}) {
   return payload;
 }
 
-function taskActions(title, toolId) {
+function taskActions(title, toolId, canDelete) {
   return `<div class="gb-todo-task-actions">
     ${toolId ? `<button type="button" class="gb-todo-goto" data-todo-goto="${escapeAttr(toolId)}">Open</button>` : ""}
     <button type="button" class="gb-todo-row-menu" data-todo-more aria-expanded="false" aria-label="More actions for ${escapeAttr(title)}" title="More actions">⋯</button>
     <div class="gb-todo-row-options" popover>
       <button type="button" class="gb-todo-goto" data-todo-edit autofocus>Edit</button>
-      <button type="button" class="gb-todo-goto" data-todo-delete>Delete</button>
+      ${canDelete ? '<button type="button" class="gb-todo-goto" data-todo-delete>Delete</button>' : ""}
     </div>
   </div>`;
 }
 
-function openBoardForm(board, save) {
+function openBoardForm(board, save, remove) {
   const dialog = document.createElement("dialog");
   dialog.className = "gb-todo-board-dialog";
   dialog.setAttribute("aria-labelledby", "todo-board-form-title");
@@ -394,18 +394,63 @@ function openBoardForm(board, save) {
       <label>Members
         <textarea name="members" rows="4" placeholder="name@shipdalko.com" aria-describedby="todo-board-members-hint">${escapeHtml((board.members || []).join("\n"))}</textarea>
       </label>
-      <p class="gb-todo-board-hint" id="todo-board-members-hint">Enter one Dalko email per line. Members can view and edit tasks. Remove an email to revoke access.</p>
+      <p class="gb-todo-board-hint" id="todo-board-members-hint">Enter one Dalko email per line. Members can view and edit tasks. Only the list owner can delete tasks or the list.</p>
+      ${remove ? `<div class="gb-todo-delete-confirm" data-todo-delete-confirm hidden>
+        <p>Delete “${escapeHtml(board.title)}” and all its tasks?</p>
+        <div class="gb-todo-dialog-actions">
+          <button type="button" class="gb-todo-dialog-cancel" data-todo-keep-list>Keep list</button>
+          <button type="button" class="gb-todo-dialog-delete" data-todo-confirm-delete>Delete permanently</button>
+        </div>
+      </div>` : ""}
       <p class="gb-todo-form-error" role="alert" hidden></p>
-      <div class="gb-todo-dialog-actions">
-        <button type="button" class="gb-todo-dialog-cancel">Cancel</button>
+      <div class="gb-todo-dialog-actions" data-todo-board-actions>
+        ${remove ? `<button type="button" class="gb-todo-dialog-delete-link" data-todo-delete-list>Delete list</button>` : ""}
+        <button type="button" class="gb-todo-dialog-cancel" data-todo-cancel-board>Cancel</button>
         <button type="submit" class="gb-todo-dialog-save">Save changes</button>
       </div>
     </form>`;
   const form = /** @type {HTMLFormElement} */ (dialog.querySelector("form"));
-  const cancel = /** @type {HTMLButtonElement} */ (form.querySelector("[type=button]"));
+  const cancel = /** @type {HTMLButtonElement} */ (form.querySelector("[data-todo-cancel-board]"));
   const submit = /** @type {HTMLButtonElement} */ (form.querySelector("[type=submit]"));
   const errorBox = /** @type {HTMLElement} */ (form.querySelector("[role=alert]"));
   let saving = false;
+  if (remove) {
+    const actions = /** @type {HTMLElement} */ (form.querySelector("[data-todo-board-actions]"));
+    const confirmation = /** @type {HTMLElement} */ (form.querySelector("[data-todo-delete-confirm]"));
+    const open = /** @type {HTMLButtonElement} */ (form.querySelector("[data-todo-delete-list]"));
+    const keep = /** @type {HTMLButtonElement} */ (form.querySelector("[data-todo-keep-list]"));
+    const confirm = /** @type {HTMLButtonElement} */ (form.querySelector("[data-todo-confirm-delete]"));
+    open.addEventListener("click", () => {
+      errorBox.hidden = true;
+      actions.hidden = true;
+      confirmation.hidden = false;
+      keep.focus();
+    });
+    keep.addEventListener("click", () => {
+      confirmation.hidden = true;
+      errorBox.hidden = true;
+      actions.hidden = false;
+      open.focus();
+    });
+    confirm.addEventListener("click", async () => {
+      if (saving) return;
+      saving = true;
+      confirm.disabled = keep.disabled = true;
+      errorBox.hidden = true;
+      confirm.textContent = "Deleting…";
+      try {
+        await remove();
+        dialog.close();
+      } catch (error) {
+        errorBox.textContent = error instanceof Error ? error.message : "The list could not be deleted.";
+        errorBox.hidden = false;
+        saving = false;
+        confirm.disabled = keep.disabled = false;
+        confirm.textContent = "Delete permanently";
+        confirm.focus();
+      }
+    });
+  }
   cancel.addEventListener("click", () => dialog.close());
   dialog.addEventListener("cancel", (event) => {
     if (saving) event.preventDefault();
@@ -413,7 +458,7 @@ function openBoardForm(board, save) {
   dialog.addEventListener("close", () => dialog.remove(), { once: true });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (saving) return;
+    if (saving || form.querySelector("[data-todo-delete-confirm]:not([hidden])")) return;
     const data = new FormData(form);
     const title = String(data.get("title") || "").trim();
     const members = String(data.get("members") || "").split(/[\n,;]+/).map((value) => value.trim()).filter(Boolean);
@@ -473,9 +518,6 @@ export function mountSidebarTodo(host, opts = {}) {
         <button type="button" class="gb-todo-add hidden" data-todo-open><span aria-hidden="true">+</span> New task</button>
         <button type="button" class="gb-todo-mini gb-todo-edit-list" data-todo-edit-list hidden>Edit list</button>
       </div>
-      <div class="gb-todo-bar">
-        <button type="button" class="gb-todo-mini" data-todo-drop hidden>Delete board</button>
-      </div>
       <form class="gb-todo-compose hidden" data-todo-make>
         <input class="gb-todo-input" name="title" maxlength="60" placeholder="Board name" aria-label="Board name" />
         <button type="submit" class="gb-todo-mini">Add</button>
@@ -496,7 +538,6 @@ export function mountSidebarTodo(host, opts = {}) {
   const noteEl = /** @type {HTMLElement} */ (host.querySelector("[data-todo-note]"));
   const selectEl = /** @type {HTMLSelectElement} */ (host.querySelector("[data-todo-board]"));
   const editListBtn = /** @type {HTMLButtonElement} */ (host.querySelector("[data-todo-edit-list]"));
-  const dropBtn = /** @type {HTMLButtonElement} */ (host.querySelector("[data-todo-drop]"));
   const makeForm = /** @type {HTMLFormElement} */ (host.querySelector("[data-todo-make]"));
   const openBtn = /** @type {HTMLButtonElement} */ (host.querySelector("[data-todo-open]"));
   const progressEl = /** @type {HTMLElement} */ (host.querySelector("[data-todo-progress]"));
@@ -557,7 +598,6 @@ export function mountSidebarTodo(host, opts = {}) {
     const board = currentBoard();
     const editable = Boolean(board) && !making;
     editListBtn.hidden = !editable || !board?.mine;
-    dropBtn.hidden = !(board && board.kind === "custom" && board.mine);
     openBtn.classList.toggle("hidden", !editable);
     makeForm.classList.toggle("hidden", !making);
     noteEl.textContent = note;
@@ -605,7 +645,7 @@ export function mountSidebarTodo(host, opts = {}) {
               ${item.note ? `<span class="gb-todo-meta">${escapeHtml(item.note)}</span>` : ""}
             </span>
           </label>
-          ${taskActions(item.text, item.toolId)}
+          ${taskActions(item.text, item.toolId, currentBoard()?.mine)}
         </div>
       </li>`;
       })
@@ -841,7 +881,7 @@ export function mountSidebarTodo(host, opts = {}) {
         fillBoards();
         showChrome();
       }
-    });
+    }, () => deleteBoard(board));
   });
 
   makeForm.addEventListener("submit", async (event) => {
@@ -907,32 +947,30 @@ export function mountSidebarTodo(host, opts = {}) {
 
   openBtn.addEventListener("click", () => editTask(null));
 
-  dropBtn.addEventListener("click", async () => {
-    const board = currentBoard();
-    if (!board || board.kind !== "custom") return;
-    const ok = await confirmDialog(`Delete the board “${board.title}”?`, {
-      title: "Delete board",
-      okLabel: "Delete",
-      cancelLabel: "Cancel",
-      tone: "danger",
+  async function deleteBoard(board) {
+    await rackJson(`/api/todos/boards?id=${encodeURIComponent(board.id)}`, {
+      method: "DELETE",
+      signal: opts.signal,
     });
-    if (!ok) return;
-    try {
-      await rackJson(`/api/todos/boards?id=${encodeURIComponent(board.id)}`, {
-        method: "DELETE",
-        signal: opts.signal,
-      });
-      boards = boards.filter((item) => item.id !== board.id);
-      boardId = boards.find((item) => item.kind === "personal" && item.mine)?.id || boards[0]?.id || "";
-      fillBoards();
-      note = "";
-      paint();
-      if (boardId) void follow(boardId);
-    } catch (error) {
-      note = error instanceof Error ? error.message : "That board was not deleted.";
-      paint();
+    boards = boards.filter((item) => item.id !== board.id);
+    if (board.kind === "reports") {
+      replaceTodoItems([]);
+      window.dispatchEvent(new CustomEvent("glassbox:todo-updated"));
     }
-  });
+    if (boardId !== board.id) {
+      fillBoards();
+      return;
+    }
+    stopWatch();
+    boardId = boards.find((item) => item.kind === "personal" && item.mine)?.id || boards[0]?.id || "";
+    sharedItems = [];
+    itemsLoaded = false;
+    rev = 0;
+    note = "";
+    fillBoards();
+    paint();
+    if (boardId) void follow(boardId);
+  }
 
   listEl.addEventListener("change", (event) => {
     const target = /** @type {HTMLElement} */ (event.target);
@@ -1047,7 +1085,7 @@ export function mountSidebarTodo(host, opts = {}) {
       return;
     }
     const remove = target.closest("[data-todo-delete]");
-    if (!remove) return;
+    if (!remove || !currentBoard()?.mine) return;
     const row = remove.closest(".gb-todo-item");
     const id = row?.getAttribute("data-id") || "";
     const reportId = row?.getAttribute("data-report") || "";

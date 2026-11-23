@@ -797,6 +797,7 @@ let directory = { status: "idle", people: [], error: "", loadedAt: 0 };
 /** @type {Promise<void> | null} */
 let directoryJob = null;
 let peopleQuery = "";
+let peopleGroup = "";
 let groupsQuery = "";
 let peopleScroll = 0;
 let groupsScroll = 0;
@@ -1349,69 +1350,84 @@ export function renderPermissionsPage(focus) {
   const store = loadPermissions();
   const editingStore = editorStoreFor(state);
   const names = new Map(roster.map((person) => [person.email, person.name]));
-  const memberGroup = new Map(store.members.map((member) => [member.email, member.groupId]));
-  const groupName = new Map(store.groups.map((group) => [group.id, group.name]));
+  const byEmail = new Map(store.members.map((member) => [member.email, member]));
+  const byGroup = new Map(store.groups.map((group) => [group.id, group]));
+  if (peopleGroup && !byGroup.has(peopleGroup)) peopleGroup = "";
   const userRows = roster
     .map((person) => {
-      const groupId = memberGroup.get(person.email) || "";
-      const label = groupId ? groupName.get(groupId) || "Unknown group" : "Full access";
+      const member = byEmail.get(person.email);
+      const group = member ? byGroup.get(member.groupId) : null;
+      const label = person.email === OWNER_EMAIL ? "Owner" : member ? group?.name || "Unknown group" : "Full access";
+      const extras = extraGrantCount(member, group);
       const named = splitPersonName(person.name);
       const fromMail = nameFromEmail(person.email);
       const first = named.first || fromMail.first;
       const last = named.last || (named.first ? "" : fromMail.last);
       return `
-        <tr data-perm-edit-user="${esc(person.email)}">
-          <td class="perm-who">${esc(first)}</td>
-          <td class="perm-who">${esc(last)}</td>
-          <td class="perm-who perm-mail" title="${esc(person.email)}">${esc(person.email)}</td>
-          <td class="perm-group">${esc(label)}</td>
-          <td class="perm-row-actions"><button type="button" data-perm-edit-user="${esc(person.email)}">Edit</button></td>
+        <tr data-perm-edit-user="${esc(person.email)}" data-perm-user-group="${esc(member?.groupId || "")}">
+          <td class="perm-who"><strong>${esc([first, last].filter(Boolean).join(" ") || person.email)}</strong><small title="${esc(person.email)}">${esc(person.email)}</small></td>
+          <td class="perm-group">${esc(label)}${extras ? `<small class="perm-source is-extra">${extras} individual ${extras === 1 ? "grant" : "grants"}</small>` : ""}</td>
+          <td class="perm-row-actions"><button type="button" data-perm-edit-user="${esc(person.email)}">Manage access</button></td>
         </tr>`;
     })
     .join("");
   const userBody =
-    userRows || `<tr class="perm-empty-row"><td colspan="5">No one to show yet.</td></tr>`;
-  const groupsOpen = state.pick === "group" && state.editor?.kind !== "group";
+    userRows || `<tr class="perm-empty-row"><td colspan="3">No one to show yet.</td></tr>`;
+  const groupsOpen = state.pick === "group";
   return `
     <div class="page-canvas perm-page">
       <header class="hero">
         <h1>Permissions</h1>
       </header>
       <p class="perm-hint" id="perm-remote-note"${remoteNote ? "" : " hidden"}>${esc(remoteNote)}</p>
-      <section class="perm-card" aria-label="Users">
+      <nav class="perm-access-nav" aria-label="Permissions views">
+        <button type="button" data-perm-people aria-pressed="${!groupsOpen}">People</button>
+        <button type="button" data-perm-groups aria-pressed="${groupsOpen}">Groups</button>
+      </nav>
+      ${groupsOpen ? renderGroupsPanel(store) : `<section class="perm-card" aria-label="People">
         <div class="perm-board-head">
           <div>
-            <h2>Users</h2>
+            <h2>People</h2>
             <p class="perm-hint">${esc(directoryStatusLine())}</p>
           </div>
           <div class="perm-toolbar">
             ${directoryButton()}
-            <button type="button" data-perm-groups>Groups</button>
           </div>
         </div>
         <div class="perm-add">
           <input class="perm-find" type="search" data-perm-find placeholder="Find a person" value="${esc(peopleQuery)}" autocomplete="off" />
+          <select data-perm-filter-group aria-label="Filter people by group">
+            <option value="">All groups</option>
+            ${store.groups.map((group) => `<option value="${esc(group.id)}"${group.id === peopleGroup ? " selected" : ""}>${esc(group.name)}</option>`).join("")}
+          </select>
         </div>
         <div class="perm-board-scroll perm-roster-scroll">
           <table class="perm-table perm-board perm-users">
-            <thead><tr><th>First name</th><th>Last name</th><th>Email</th><th>Group</th><th></th></tr></thead>
+            <thead><tr><th>Person</th><th>Access</th><th></th></tr></thead>
             <tbody>
               ${userBody}
-              <tr class="perm-empty-row" data-perm-none hidden><td colspan="5">No one matches.</td></tr>
+              <tr class="perm-empty-row" data-perm-none hidden><td colspan="3">No one matches.</td></tr>
             </tbody>
           </table>
         </div>
-      </section>
-      ${groupsOpen ? renderGroupsModal(store) : ""}
+      </section>`}
       ${state.editor?.kind === "group" ? renderGroupPanel(editingStore, state) : ""}
       ${state.editor?.kind === "user" ? renderUserEditor(editingStore, state, names) : ""}
     </div>`;
 }
 
+function extraGrantCount(member, group) {
+  if (!member) return 0;
+  return ["menus", "tools", "actions"].reduce(
+    (count, key) => count + (member[key] || []).filter((id) => !(group?.[key] || []).includes(id)).length,
+    0
+  );
+}
+
 /**
  * @param {PermStore} store
  */
-function renderGroupsModal(store) {
+function renderGroupsPanel(store) {
   const rows = store.groups
     .map((group) => {
       const count = store.members.filter((member) => member.groupId === group.id).length;
@@ -1420,23 +1436,24 @@ function renderGroupsModal(store) {
         <tr data-perm-pick-group="${esc(group.id)}">
           <td class="perm-label" title="${esc(group.name)}">${esc(group.name)}</td>
           <td>${count} ${noun}</td>
-          <td class="perm-row-actions"><button type="button" data-perm-edit-group="${esc(group.id)}">Edit</button></td>
+          <td class="perm-row-actions"><button type="button" data-perm-edit-group="${esc(group.id)}">Edit group</button></td>
         </tr>`;
     })
     .join("");
   return `
-    <div class="perm-modal" data-perm-editor="groups" role="dialog" aria-modal="true" aria-label="Groups">
-      <div class="perm-modal-backdrop" data-perm-close></div>
-      <div class="perm-modal-card">
-        <div class="perm-modal-body">
-          <div class="perm-editor-head">
+    <section class="perm-card" aria-label="Groups">
+        <div class="perm-board-head">
+          <div>
             <h2>Groups</h2>
+            <p class="perm-hint">Group access applies to everyone assigned to that group.</p>
           </div>
-          <p class="perm-hint">A group is a starting set of pages and functions. People can be given more when you edit them.</p>
-          <div class="perm-board-head">
-            <input class="perm-find" type="search" data-perm-find-group placeholder="Find a group" value="${esc(groupsQuery)}" autocomplete="off" />
-            <button type="button" class="perm-plus" data-perm-new aria-label="Add group" title="Add group">+</button>
+          <div class="perm-toolbar">
+            <button type="button" data-perm-new>New group</button>
           </div>
+        </div>
+        <div class="perm-add">
+          <input class="perm-find" type="search" data-perm-find-group placeholder="Find a group" value="${esc(groupsQuery)}" autocomplete="off" />
+        </div>
           <div class="perm-board-scroll">
             <table class="perm-table perm-board">
               <thead><tr><th>Group</th><th>People</th><th></th></tr></thead>
@@ -1446,14 +1463,7 @@ function renderGroupsModal(store) {
               </tbody>
             </table>
           </div>
-        </div>
-        <div class="perm-modal-foot">
-          <div class="perm-modal-foot-actions">
-            <button type="button" data-perm-close>Close</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
+    </section>`;
 }
 
 /**
@@ -1466,6 +1476,7 @@ function renderGroupPanel(store, state) {
   if (!group) return "";
   const isAdmin = group.id === ADMIN_ID;
   const isStaff = group.id === STAFF_ID;
+  const count = store.members.filter((member) => member.groupId === group.id).length;
   const tree = permissionTree().map((node) => renderTreeNode(node)).join("");
   const hint = isAdmin
     ? "Admin can always open Permissions."
@@ -1486,6 +1497,7 @@ function renderGroupPanel(store, state) {
             <input class="perm-name" data-perm-name value="${esc(group.name)}" aria-label="Group name" maxlength="60" autocomplete="off" spellcheck="false" />
           </div>
           <p class="perm-hint">${hint}</p>
+          <p class="perm-impact">Saving changes applies to ${count} ${count === 1 ? "person" : "people"}.</p>
           <h3 class="perm-section">Pages and functions</h3>
           <div class="perm-tree-wrap"><ul class="perm-tree">${tree}</ul></div>
         </div>
@@ -1514,20 +1526,12 @@ function renderUserEditor(store, state, names) {
   const member = store.members.find((item) => item.email === email);
   const locked = email === OWNER_EMAIL;
   const fullAccess = !member;
-  const options = [`<option value=""${!member ? " selected" : ""}>Full access</option>`]
-    .concat(
-      store.groups.map(
-        (group) =>
-          `<option value="${esc(group.id)}"${group.id === member?.groupId ? " selected" : ""}>${esc(group.name)}</option>`
-      )
-    )
+  const options = store.groups
+    .map((group) => `<option value="${esc(group.id)}"${group.id === member?.groupId ? " selected" : ""}>${esc(group.name)}</option>`)
     .join("");
-  const tree = permissionTree().map((node) => renderTreeNode(node)).join("");
-  const hint = locked
-    ? "This account can open every page and function."
-    : fullAccess
-      ? "Full access opens every page and function. Choose a group to limit it, then check anything extra."
-      : "Pages and functions from the group stay on. Check more to give them to this person only.";
+  const group = member ? store.groups.find((item) => item.id === member.groupId) : null;
+  const extras = extraGrantCount(member, group);
+  const tree = locked || fullAccess ? "" : permissionTree().map((node) => renderTreeNode(node, true)).join("");
   return `
     <div class="perm-modal" data-perm-editor="user:${esc(email)}" role="dialog" aria-modal="true" aria-label="${esc(personName || email)}">
       <div class="perm-modal-backdrop" data-perm-close></div>
@@ -1537,12 +1541,25 @@ function renderUserEditor(store, state, names) {
             <h2>${esc(personName || email)}</h2>
           </div>
           ${personName ? `<p class="perm-hint">${esc(email)}</p>` : ""}
-          <label class="perm-field">Group
-            <select data-perm-assign="${esc(email)}" aria-label="Group" ${locked ? "disabled" : ""}>${options}</select>
-          </label>
-          <h3 class="perm-section">Pages and functions</h3>
-          <p class="perm-hint">${hint}</p>
-          <div class="perm-tree-wrap"><ul class="perm-tree">${tree}</ul></div>
+          ${locked ? `<p class="perm-impact">Owner · Full access</p>` : `
+            <section class="perm-person-access" aria-label="Access assignment">
+              <h3 class="perm-section">Access mode</h3>
+              <div class="perm-access-nav" role="group" aria-label="Access mode">
+                <button type="button" data-perm-mode="group" aria-pressed="${!fullAccess}">Group access</button>
+                <button type="button" data-perm-mode="full" aria-pressed="${fullAccess}">Full access</button>
+              </div>
+              ${fullAccess ? `<p class="perm-hint">This person can open every page and function in Insights.</p>` : `
+                <label class="perm-field">Assigned group
+                  <select data-perm-assign="${esc(email)}">${options}</select>
+                </label>`}
+            </section>`}
+          ${tree ? `
+            <div class="perm-effective-head">
+              <h3>Effective access</h3>
+              <span class="perm-source is-extra">${extras} individual ${extras === 1 ? "grant" : "grants"}</span>
+            </div>
+            <p class="perm-hint">Checked items show what this person can use. Check an additional item to grant it to this person only. To change inherited access, edit the group.</p>
+            <div class="perm-tree-wrap"><ul class="perm-tree">${tree}</ul></div>` : ""}
         </div>
         <div class="perm-modal-foot">
           <div class="perm-modal-foot-actions">
@@ -1555,15 +1572,16 @@ function renderUserEditor(store, state, names) {
 }
 
 /** @param {PermNode} node */
-function renderTreeNode(node) {
+function renderTreeNode(node, showSource = false) {
   const grant = grantsOf(node);
-  const children = (node.children || []).map((child) => renderTreeNode(child)).join("");
+  const children = (node.children || []).map((child) => renderTreeNode(child, showSource)).join("");
   const lockPermissions = grant.menus.length === 1 && grant.menus[0] === "permissions" && grant.tools.length === 0;
   return `
     <li>
       <label class="perm-node">
         <input type="checkbox" data-perm-box data-menus="${esc(grant.menus.join(","))}" data-tools="${esc(grant.tools.join(","))}" data-actions="${esc(grant.actions.join(","))}" ${lockPermissions ? "data-perm-lock" : ""} />
         <span${node.label === "Pop ups and buttons" ? ' class="perm-subhead"' : ""}>${esc(node.label)}</span>
+        ${showSource ? `<small class="perm-source" data-perm-source hidden></small>` : ""}
       </label>
       ${children ? `<ul>${children}</ul>` : ""}
     </li>`;
@@ -1596,12 +1614,13 @@ function applyPeopleFilter(root) {
   let shown = 0;
   root.querySelectorAll("tr[data-perm-edit-user]").forEach((row) => {
     const who = [...row.querySelectorAll(".perm-who, .perm-group")].map((cell) => cell.textContent || "").join(" ");
-    const hit = !needle || who.toLowerCase().includes(needle);
+    const inGroup = !peopleGroup || row.getAttribute("data-perm-user-group") === peopleGroup;
+    const hit = inGroup && (!needle || who.toLowerCase().includes(needle));
     if (row instanceof HTMLElement) row.hidden = !hit;
     if (hit) shown += 1;
   });
   const empty = root.querySelector("[data-perm-none]");
-  if (empty instanceof HTMLElement) empty.hidden = !needle || shown > 0;
+  if (empty instanceof HTMLElement) empty.hidden = (!needle && !peopleGroup) || shown > 0;
 }
 
 /**
@@ -1705,6 +1724,12 @@ export function bindPermissionsPage(root, opts) {
       box.indeterminate = !locked && on > 0 && on < total;
       box.disabled = locked;
       box.title = locked ? "Included by the group" : "";
+      const source = box.parentElement?.querySelector("[data-perm-source]");
+      if (source instanceof HTMLElement) {
+        source.hidden = on === 0;
+        source.textContent = fromGroup ? on > fromGroup ? "Group + individual" : "From group" : "Individual";
+        source.classList.toggle("is-extra", on > fromGroup);
+      }
       return;
     }
     if (!editing) return;
@@ -1763,7 +1788,7 @@ export function bindPermissionsPage(root, opts) {
     document.removeEventListener("keydown", permKeyHandler);
     permKeyHandler = null;
   }
-  if (focus.editor || focus.pick === "group") {
+  if (focus.editor) {
     permKeyHandler = (event) => {
       if (event.key !== "Escape") return;
       if (document.querySelector(".app-dialog:not(.hidden)")) return;
@@ -1781,6 +1806,13 @@ export function bindPermissionsPage(root, opts) {
     peopleQuery = find.value;
     applyPeopleFilter(root);
   });
+  const groupFilter = root.querySelector("[data-perm-filter-group]");
+  if (groupFilter instanceof HTMLSelectElement) {
+    groupFilter.addEventListener("change", () => {
+      peopleGroup = groupFilter.value;
+      applyPeopleFilter(root);
+    });
+  }
   const findGroup = root.querySelector("[data-perm-find-group]");
   findGroup?.addEventListener("input", () => {
     if (!(findGroup instanceof HTMLInputElement)) return;
@@ -1789,6 +1821,9 @@ export function bindPermissionsPage(root, opts) {
   });
   root.querySelector("[data-perm-groups]")?.addEventListener("click", () => {
     go({ groupId: null, userEmail: null, pick: "group", editor: null });
+  });
+  root.querySelector("[data-perm-people]")?.addEventListener("click", () => {
+    go({ groupId: null, userEmail: null, pick: "user", editor: null });
   });
   const askClose = (/** @type {string} */ back) => {
     const leave = () => {
@@ -1916,13 +1951,31 @@ export function bindPermissionsPage(root, opts) {
     const groupId = select.value;
     if (scroller instanceof HTMLElement) peopleScroll = scroller.scrollTop;
     if (!editorDraft) return;
-    if (groupId) applyAssign(editorDraft, email, groupId);
-    else applyRemove(editorDraft, email);
+    if (!groupId) return;
+    applyAssign(editorDraft, email, groupId);
     go({
       groupId: groupId || null,
       userEmail: email,
       pick: "user",
       editor: { kind: "user", email },
+    });
+  });
+  root.querySelectorAll("[data-perm-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (focus.editor?.kind !== "user" || !editorDraft || button.getAttribute("aria-pressed") === "true") return;
+      const { email } = focus.editor;
+      const mode = button.getAttribute("data-perm-mode");
+      let groupId = null;
+      if (mode === "full") {
+        applyRemove(editorDraft, email);
+      } else {
+        const original = cloneStore(loadPermissions()).members.find((member) => member.email === email);
+        groupId = original?.groupId || STAFF_ID;
+        applyAssign(editorDraft, email, groupId);
+        const member = editorDraft.members.find((item) => item.email === email);
+        if (original && member) Object.assign(member, original);
+      }
+      go({ groupId, userEmail: email, pick: "user", editor: focus.editor });
     });
   });
   if (!allowsAction("permissions:add-group")) {

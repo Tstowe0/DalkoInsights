@@ -10,7 +10,7 @@ import {
   initDalkoPortal,
   setInsightsView,
   setEmbeddedInsightHide,
-} from "../../portals/dalko/js/app.js?v=20261123-permnote";
+} from "../../portals/dalko/js/app.js?v=20261123-permissions-filter";
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20261112-fit";
 import { hallowedNightScene } from "./themes/hallowed-night.js?v=20261121-seasonal";
@@ -24,11 +24,11 @@ import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=202609
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
 import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
-import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-permnote";
+import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-permissions-filter";
 import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261123-slate-linen";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261123-builtin";
-import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-todo-auth";
-import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-permnote";
+import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-todo-owner-delete";
+import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-permissions-filter";
 import {
   canRevealDatSecrets,
   getAccessToken,
@@ -48,6 +48,7 @@ import { fetchRack, rackAuthHeaders, recordActivity, testRackConnection, RACK_OR
 import { loadLocalWeather, weatherCardHtml } from "./weather.js?v=20261123-weather-full-art";
 import {
   allowsAction,
+  allowsInsightPage,
   allowsMenu,
   allowsTool,
   bindPermissionsPage,
@@ -56,7 +57,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261123-permnote";
+} from "./permissions.js?v=20261123-permissions-filter";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -1018,7 +1019,7 @@ async function bootAuth() {
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
   if (authed) {
-    if (shellView === "carrier-pricing") reloadCarrierPricing();
+    setShellView(new URLSearchParams(location.search).get("view") || "home");
     revealApp();
     notePage();
   } else lockApp();
@@ -1044,7 +1045,9 @@ async function signInFromSplash() {
   if (shellView === "permissions") paintSettings();
   if (getAccount()) {
     paintSplashError(null);
-    if (shellView === "carrier-pricing") reloadCarrierPricing();
+    const carrierWasMounted = els.carrier()?.dataset.ready === "1";
+    setShellView(new URLSearchParams(location.search).get("view") || "home");
+    if (carrierWasMounted && shellView === "carrier-pricing") reloadCarrierPricing();
     revealApp();
     recordActivity("on");
     lastNoted = "";
@@ -1078,7 +1081,9 @@ async function onAuthAction() {
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
   if (getAccount()) {
-    if (shellView === "carrier-pricing") reloadCarrierPricing();
+    const carrierWasMounted = els.carrier()?.dataset.ready === "1";
+    setShellView(new URLSearchParams(location.search).get("view") || "home");
+    if (carrierWasMounted && shellView === "carrier-pricing") reloadCarrierPricing();
     revealApp();
     recordActivity("on");
     lastNoted = "";
@@ -1836,7 +1841,11 @@ function appendConsole(line) {
 }
 
 function openTool(tool) {
-  if (!allowsTool(tool?.id)) return;
+  if (!tool) return;
+  if (!allowsTool(tool.id)) {
+    showPermissionDenied(tool.label || tool.id);
+    return;
+  }
   const workspace = els.workspace();
   if (!workspace) return;
   const fromNav = GB_NAV.find((n) => n.id === shellView);
@@ -1851,6 +1860,10 @@ function openTool(tool) {
 }
 
 function openScheduledReport(toolId) {
+  if (!allowsMenu("client-reports")) {
+    showPermissionDenied("Reports");
+    return;
+  }
   const tool = findTool(toolId);
   shellView = "client-reports";
   setPageHeader("Reports");
@@ -1927,6 +1940,21 @@ function showLayer(layer) {
   els.tools()?.classList.toggle("hidden", layer !== "tools");
   els.settings()?.classList.toggle("hidden", layer !== "settings");
   els.carrier()?.classList.toggle("hidden", layer !== "carrier");
+  document.getElementById("permission-denied")?.classList.toggle("hidden", layer !== "denied");
+}
+
+function showPermissionDenied(label) {
+  shellView = "permission-denied";
+  setPageHeader("Permission Denied");
+  document.title = "Permission Denied · DALKO Insights";
+  const message = document.getElementById("permission-denied-message");
+  if (message) message.textContent = `You don’t have access to ${label}. Contact your Insights administrator if you need access.`;
+  const home = document.getElementById("permission-denied-home");
+  if (home instanceof HTMLButtonElement) home.hidden = !allowsMenu("home");
+  showLayer("denied");
+  paintNav();
+  paintChrome();
+  message?.focus();
 }
 
 function setPageHeader(title, note = "") {
@@ -1967,10 +1995,7 @@ function normalizeView(id) {
   return TITLES[id] ? id : "home";
 }
 
-function openInsightsSpace(page) {
-  if (page) insightsPage = page;
-  else if (!snap().fileName) insightsPage = "home";
-  else insightsPage = snap().activeView || insightsPage || "home";
+function openInsightsSpace() {
   showLayer("insights");
   setInsightsView(insightsPage);
   updateInsightsHeader();
@@ -2003,37 +2028,19 @@ function notePage(name = pageName()) {
 function setShellView(id) {
   if (id === "insights") insightsPage = snap().fileName ? snap().activeView || "home" : "home";
   const view = normalizeView(id);
-  if (!allowsMenu(view)) {
-    const fallback = [
-      "home",
-      "client-reports",
-      "carrier-search",
-      "zip-calculator",
-      "currency-converter",
-      "insights",
-      "accounting",
-      "tracking",
-      "ops",
-      "data-tools",
-      "client-uploads",
-      "carrier-pricing",
-      "changelog",
-      "integrations",
-      "permissions",
-      "themes",
-    ].find((item) => item !== view && allowsMenu(item));
-    if (fallback) {
-      setShellView(fallback);
-      return;
-    }
+  const target = view === "insights" && insightsPage !== "home" ? insightsPage : view;
+  const next = new URL(location.href);
+  if (view === "home") next.searchParams.delete("view");
+  else next.searchParams.set("view", target);
+  history.replaceState(null, "", next);
+
+  if (!allowsMenu(view) || (target !== view && !allowsInsightPage(target))) {
+    showPermissionDenied(TITLES[target] || TITLES[view] || "this page");
+    return;
   }
   shellView = view;
   if (view !== "home") setPageHeader(TITLES[view] || "File transfer");
   document.title = view === "home" || TITLES[view] === "DALKO Insights" ? "DALKO Insights" : `${TITLES[view] ?? "DALKO Insights"} · DALKO Insights`;
-  const next = new URL(location.href);
-  if (view === "home") next.searchParams.delete("view");
-  else next.searchParams.set("view", view);
-  history.replaceState(null, "", next);
 
   if (view === "home") {
     showLayer("home");
@@ -2195,18 +2202,8 @@ function init() {
     void signInFromSplash();
   });
 
+  document.getElementById("permission-denied-home")?.addEventListener("click", () => setShellView("home"));
   authBoot = bootAuth();
-
-  const requested = new URLSearchParams(location.search).get("view");
-  shellView = requested ? normalizeView(requested) : "home";
-  paintNav();
-  if (shellView === "home") {
-    document.title = "DALKO Insights";
-    showLayer("home");
-    paintHome();
-  } else {
-    setShellView(shellView);
-  }
 
   void loadNews();
   void loadGbChangelog();
