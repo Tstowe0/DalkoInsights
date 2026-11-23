@@ -136,7 +136,6 @@ export function renderThemes(workspace, { settings = false } = {}) {
     ? `<div class="page-canvas">
         <header class="ui-page-header">
           <h1>Themes</h1>
-          <p>These palettes restyle this dashboard — sidebar, canvas, cards, charts, and tools.</p>
         </header>
         ${groups}
       </div>`

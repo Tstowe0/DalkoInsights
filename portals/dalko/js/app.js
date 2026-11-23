@@ -12,12 +12,12 @@ import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=2026100
 import { runAnalysis } from "./analytics/engine.js?v=20261112-export";
 import { nextJobId, workerJob } from "./workers/client.js";
 import { navTitle, renderNav } from "./ui/nav.js?v=20260923-desk";
-import { renderView } from "./ui/render.js?v=20261123-permissions-filter";
+import { renderView } from "./ui/render.js?v=20261123-view-as";
 import { RAIL_VIEWS, renderViewRail, teardownAllRails } from "./ui/page-rails.js?v=20260922-corp2";
 import { alertDialog, confirmDialog } from "./ui/dialog.js";
-import { runReport, teardownExecReport } from "./ui/report.js?v=20261123-permissions-filter";
+import { runReport, teardownExecReport } from "./ui/report.js?v=20261123-view-as";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
-import { allowsAction } from "../../../shared/js/permissions.js?v=20261123-permissions-filter";
+import { allowsAction } from "../../../shared/js/permissions.js?v=20261123-view-as";
 
 /** @type {import("./data/filters.js").FilterState} */
 let filters = createDefaultFilters();
@@ -46,6 +46,9 @@ let homeHandler = null;
 
 /** @type {(() => void) | null} */
 let refreshHandler = null;
+
+/** @type {((name: string) => void) | null} */
+let activityHandler = null;
 
 /** When true, skip portal chrome (nav / auto-jump to dashboard). */
 let embedMode = false;
@@ -626,6 +629,9 @@ async function handleFile(file) {
       `${rows.length.toLocaleString()} rows · keeping the UI responsive`
     );
     await runAnalyzeAsync(generation);
+    if (generation === workGeneration && state.results) {
+      activityHandler?.(`Data Dump Analysis - ${file.name}`);
+    }
   } catch (err) {
     if (generation !== workGeneration) return;
     console.error(err);
@@ -768,6 +774,7 @@ async function handleRunReport(reportId) {
         end: filters.dateFilterEnd,
       },
     });
+    activityHandler?.(`Data Dump Report - ${state.fileName || "TMS file"}`);
   } catch (err) {
     await alertDialog(
       err instanceof Error
@@ -816,11 +823,12 @@ function bindUploadButton(button, input, signal) {
 }
 
 /**
- * @param {{ onHome?: () => void, onRefresh?: () => void, embedMode?: boolean }} [opts]
+ * @param {{ onHome?: () => void, onRefresh?: () => void, onActivity?: (name: string) => void, embedMode?: boolean }} [opts]
  */
 export function initDalkoPortal(opts = {}) {
   homeHandler = opts.onHome ?? null;
   refreshHandler = opts.onRefresh ?? null;
+  activityHandler = opts.onActivity ?? null;
   embedMode = Boolean(opts.embedMode);
   portalAbort?.abort();
   portalAbort = new AbortController();
@@ -864,6 +872,7 @@ export function destroyDalkoPortal() {
   portalAbort = null;
   homeHandler = null;
   refreshHandler = null;
+  activityHandler = null;
   embedMode = false;
   parseWorker?.terminate();
   analyzeWorker?.terminate();

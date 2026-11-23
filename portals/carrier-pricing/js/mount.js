@@ -4,7 +4,7 @@
  */
 
 import { getAccount } from "../../../shared/js/auth.js?v=20261023-id";
-import { allowsAction } from "../../../shared/js/permissions.js?v=20261123-permissions-filter";
+import { allowsAction } from "../../../shared/js/permissions.js?v=20261123-view-as";
 import { RACK_ORIGIN, rackAuthHeaders } from "../../../shared/js/ftp-rack.js?v=20261023-id";
 
 const TYPES = ["New Carrier", "New Pricing Account", "Pricing Update", "Cancellation"];
@@ -154,10 +154,6 @@ export function mountCarrierPricing(host) {
   host.dataset.ready = "1";
   host.innerHTML = `
       <div class="cp-shell">
-        <header class="ui-page-header">
-          <h1>Carrier Pricing Dashboard</h1>
-          <p>Track carrier agreements, pricing changes, and upcoming renewals.</p>
-        </header>
         <div class="cp-layout">
           <section class="cp-panel cp-register" aria-label="Agreement records">
             <div class="cp-filters">

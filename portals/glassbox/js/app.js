@@ -1,5 +1,5 @@
 import { NAV_ITEMS, findTool } from "./catalog.js?v=20261023-ttx";
-import { launchTool } from "./tool-loader.js?v=20261123-permissions-filter";
+import { launchTool } from "./tool-loader.js?v=20261123-view-as";
 import { mountSidebarCalendar } from "./calendar.js?v=20261123-builtin";
 import { mountSidebarTodo } from "./todo.js?v=20261123-todo-owner-delete";
 import {

@@ -569,6 +569,7 @@ export function resetPermissions() {
   memory = null;
   hydrated = false;
   remoteNote = "";
+  viewAsEmail = "";
   pushGen += 1;
 }
 
@@ -1028,17 +1029,20 @@ function placeUnassigned(emails) {
   if (changed) savePermissions(store);
 }
 
+/** Email of the person an admin is previewing. Empty means the signed-in account. */
+let viewAsEmail = "";
+
 /**
  * The group is the starting set. Extra sections on the person are added on top.
  * The owner, and anyone left on Full access, can open every section.
+ * @param {string} email
  * @returns {{ menus: Set<string>, tools: Set<string>, actions: Set<string> } | null}
  */
-function restrictedGrants() {
-  if (getEmail() === OWNER_EMAIL) return null;
-  const email = getEmail();
-  if (!email) return null;
+function grantsFor(email) {
+  const clean = String(email || "").trim().toLowerCase();
+  if (!clean || clean === OWNER_EMAIL) return null;
   const store = loadPermissions();
-  const member = store.members.find((item) => item.email === email);
+  const member = store.members.find((item) => item.email === clean);
   if (!member) return null;
   const group = store.groups.find((item) => item.id === member.groupId);
   if (!group) return null;
@@ -1047,6 +1051,44 @@ function restrictedGrants() {
     tools: new Set([...group.tools, ...member.tools]),
     actions: new Set([...(group.actions || []), ...(member.actions || [])]),
   };
+}
+
+function restrictedGrants() {
+  return grantsFor(viewAsEmail || getEmail());
+}
+
+/** The person currently being previewed, or empty. */
+export function viewingAs() {
+  return viewAsEmail;
+}
+
+/** First name for the preview banner. */
+export function viewAsFirstName() {
+  if (!viewAsEmail) return "";
+  const person = directory.people.find((item) => dalkoEmail(item.email) === viewAsEmail);
+  const named = splitPersonName(person?.name || "");
+  return named.first || nameFromEmail(viewAsEmail).first || "there";
+}
+
+/** Permissions admins can preview another person's pages. Uses the signed-in account, not the preview. */
+function realCanPreview() {
+  const email = String(getEmail() || "").trim().toLowerCase();
+  if (!email) return false;
+  const grants = grantsFor(email);
+  if (!grants) return true;
+  return grants.menus.has("permissions");
+}
+
+/** @param {string} email @returns {boolean} */
+export function beginViewAs(email) {
+  const clean = dalkoEmail(email);
+  if (!clean || !realCanPreview()) return false;
+  viewAsEmail = clean;
+  return true;
+}
+
+export function leaveViewAs() {
+  viewAsEmail = "";
 }
 
 /** @param {string} view */
@@ -1367,7 +1409,7 @@ export function renderPermissionsPage(focus) {
         <tr data-perm-edit-user="${esc(person.email)}" data-perm-user-group="${esc(member?.groupId || "")}">
           <td class="perm-who"><strong>${esc([first, last].filter(Boolean).join(" ") || person.email)}</strong><small title="${esc(person.email)}">${esc(person.email)}</small></td>
           <td class="perm-group">${esc(label)}${extras ? `<small class="perm-source is-extra">${extras} individual ${extras === 1 ? "grant" : "grants"}</small>` : ""}</td>
-          <td class="perm-row-actions"><button type="button" data-perm-edit-user="${esc(person.email)}">Manage access</button></td>
+          <td class="perm-row-actions"><button type="button" data-perm-view-as="${esc(person.email)}">View site as</button><button type="button" data-perm-edit-user="${esc(person.email)}">Manage access</button></td>
         </tr>`;
     })
     .join("");
@@ -1660,7 +1702,7 @@ let modalBoxKey = "";
 
 /**
  * @param {HTMLElement} root
- * @param {{ focus: PermFocus, onFocus: (focus: PermFocus) => void }} opts
+ * @param {{ focus: PermFocus, onFocus: (focus: PermFocus) => void, onViewAs?: (email: string) => void }} opts
  */
 export function bindPermissionsPage(root, opts) {
   const focus = focusOf(opts.focus);
@@ -1881,6 +1923,14 @@ export function bindPermissionsPage(root, opts) {
       const id = /** @type {HTMLElement} */ (btn).dataset.permEditGroup || "";
       if (!id) return;
       go({ groupId: id, userEmail: null, pick: "group", editor: { kind: "group", id } });
+    });
+  });
+  root.querySelectorAll("[data-perm-view-as]").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const email = /** @type {HTMLElement} */ (btn).dataset.permViewAs || "";
+      if (!email) return;
+      opts.onViewAs?.(email);
     });
   });
   root.querySelectorAll("[data-perm-edit-user]").forEach((btn) => {

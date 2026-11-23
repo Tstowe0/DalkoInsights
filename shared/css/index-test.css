@@ -3405,6 +3405,9 @@ html[data-theme="oceanic-night"] .brand-name {
   text-align: right;
   white-space: nowrap;
 }
+.perm-users .perm-row-actions button + button {
+  margin-left: 0.35rem;
+}
 .perm-row-actions button,
 .perm-card-head button,
 .perm-editor-head button,

@@ -10,7 +10,7 @@ import {
   initDalkoPortal,
   setInsightsView,
   setEmbeddedInsightHide,
-} from "../../portals/dalko/js/app.js?v=20261123-permissions-filter";
+} from "../../portals/dalko/js/app.js?v=20261123-view-as";
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20261112-fit";
 import { hallowedNightScene } from "./themes/hallowed-night.js?v=20261121-seasonal";
@@ -18,17 +18,17 @@ import { oceanicNightScene } from "./themes/oceanic-night.js";
 import { rainyDriveScene } from "./themes/rainy-drive.js?v=20261123-follow-truck";
 import { yuleNightScene } from "./themes/yule-night.js?v=20261120-hourly-sleigh";
 import { initTheme } from "./theme.js?v=20261123-slate-linen";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261123-log";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261123-dump-activity";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
 import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
-import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-permissions-filter";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261123-slate-linen";
+import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-view-as";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261123-header-note";
 import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261123-builtin";
 import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-todo-owner-delete";
-import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-permissions-filter";
+import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-view-as";
 import {
   canRevealDatSecrets,
   getAccessToken,
@@ -51,13 +51,17 @@ import {
   allowsInsightPage,
   allowsMenu,
   allowsTool,
+  beginViewAs,
   bindPermissionsPage,
   hiddenInsightPages,
+  leaveViewAs,
   loadDalkoDirectory,
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261123-permissions-filter";
+  viewAsFirstName,
+  viewingAs,
+} from "./permissions.js?v=20261123-view-as";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -123,6 +127,13 @@ const TITLES = {
   permissions: "Permissions",
   troubleshooting: "Troubleshooting",
   "carrier-pricing": "Carrier Pricing",
+};
+
+/** Page lines that belong in the shell banner, not under it. */
+const PAGE_NOTES = {
+  themes: "These palettes restyle this dashboard — sidebar, canvas, cards, charts, and tools.",
+  permissions: "Edit a person to choose their group, then the pages and functions they can open.",
+  "carrier-pricing": "Track carrier agreements, pricing changes, and upcoming renewals.",
 };
 for (const item of INSIGHT_NAV) {
   if (item.id === "home" || item.id === "changelog") continue;
@@ -884,7 +895,7 @@ function paintDatSecretsGate() {
   const userEye = document.getElementById("dat-eye-user");
   const passEye = document.getElementById("dat-eye-pass");
   if (!note || !userEye || !passEye) return;
-  const allowed = Boolean(getAccount() && canRevealDatSecrets());
+  const allowed = Boolean(getAccount() && canRevealDatSecrets() && !viewingAs());
   userEye.hidden = !allowed;
   passEye.hidden = !allowed;
   if (!getAccount()) {
@@ -938,7 +949,7 @@ async function ensureDatSecrets() {
 }
 
 async function toggleDatSecret(kind) {
-  if (!canRevealDatSecrets()) {
+  if (!canRevealDatSecrets() || viewingAs()) {
     paintDatSecretsGate();
     return;
   }
@@ -1061,6 +1072,12 @@ async function signInFromSplash() {
 }
 
 async function onAuthAction() {
+  if (getAccount() && viewingAs()) {
+    leaveViewAs();
+    paintUserChrome();
+    setShellView(allowsMenu(shellView) ? shellView : "home");
+    return;
+  }
   try {
     if (getAccount()) {
       await recordActivity("off");
@@ -1114,9 +1131,16 @@ function paintUserChrome() {
     emailEl.textContent = account ? getEmail() : "Sign in to manage API credentials.";
     emailEl.hidden = false;
   }
-  if (action) action.textContent = account ? "Sign out" : "Sign in";
-  if (hello) hello.textContent = account ? `Hello, ${getGreetingName()}!` : "Hello!";
-  if (brandSignOut) brandSignOut.textContent = account ? "Sign out" : "Sign in";
+  const preview = account ? viewingAs() : "";
+  const signedOutLabel = account ? (preview ? "Leave view" : "Sign out") : "Sign in";
+  if (action) action.textContent = signedOutLabel;
+  if (hello) {
+    hello.textContent = !account ? "Hello!" : preview ? `Viewing as ${viewAsFirstName()}` : `Hello, ${getGreetingName()}!`;
+    hello.classList.toggle("is-viewing-as", Boolean(preview));
+    if (preview) hello.title = `Viewing the site as ${preview}`;
+    else hello.removeAttribute("title");
+  }
+  if (brandSignOut) brandSignOut.textContent = signedOutLabel;
 }
 
 function usd(value) {
@@ -1755,19 +1779,26 @@ function paintSettings() {
   if (shellView !== "integrations-dat") datSecrets = null;
   if (shellView === "themes") {
     renderThemes(host, { settings: true });
+    setPageHeader(TITLES.themes, PAGE_NOTES.themes);
+    liftHeaderSubtitle(host);
     return;
   }
   if (shellView === "permissions") {
     const directoryJob = loadDalkoDirectory(false);
     host.innerHTML = renderPermissionsPage(permFocus);
     host.querySelector(".perm-page > header")?.classList.replace("hero", "ui-page-header");
-    setPageHeader(TITLES.permissions, "Edit a person to choose their group, then the pages and functions they can open.");
+    setPageHeader(TITLES.permissions, PAGE_NOTES.permissions);
     bindPermissionsPage(host, {
       focus: permFocus,
       onFocus: (next) => {
         permFocus = next;
         paintSettings();
         paintNav();
+      },
+      onViewAs: (email) => {
+        if (!beginViewAs(email)) return;
+        setShellView("home");
+        paintUserChrome();
       },
     });
     if (directoryJob) {
@@ -1780,7 +1811,8 @@ function paintSettings() {
   }
   host.innerHTML = renderSettingsHtml();
   const title = host.querySelector(".ui-page-header h1")?.textContent;
-  if (title) setPageHeader(title);
+  if (title) setPageHeader(title, PAGE_NOTES[shellView] || "");
+  liftHeaderSubtitle(host);
   document.getElementById("gb-btn-console")?.addEventListener("click", () => {
     setConsoleOpen(!isConsoleOpen());
   });
@@ -1856,6 +1888,9 @@ function openTool(tool) {
   void launchTool(tool.script, workspace, {
     onBack: () => showToolSection(toolReturn),
     log: appendConsole,
+  }).then(() => {
+    if (els.tools()?.classList.contains("hidden")) return;
+    liftHeaderSubtitle(workspace);
   });
 }
 
@@ -1966,6 +2001,21 @@ function setPageHeader(title, note = "") {
   sub.hidden = !note;
 }
 
+/** Move a leftover page subtitle into the shell banner and drop it from the page. */
+function liftHeaderSubtitle(root) {
+  const note = document.getElementById("shell-page-note");
+  if (!(note instanceof HTMLElement) || !(root instanceof HTMLElement)) return;
+  const local = root.querySelector(".ui-page-header p");
+  if (!(local instanceof HTMLElement)) return;
+  const text = (local.textContent || "").replace(/\s+/g, " ").trim();
+  if (!text) return;
+  note.textContent = text;
+  note.hidden = false;
+  const header = local.closest(".ui-page-header");
+  local.remove();
+  if (header instanceof HTMLElement && !header.querySelector("button, a")) header.hidden = true;
+}
+
 function isSettingsView(id) {
   return (
     id === "changelog" ||
@@ -2039,7 +2089,7 @@ function setShellView(id) {
     return;
   }
   shellView = view;
-  if (view !== "home") setPageHeader(TITLES[view] || "File transfer");
+  if (view !== "home") setPageHeader(TITLES[view] || "File transfer", PAGE_NOTES[view] || "");
   document.title = view === "home" || TITLES[view] === "DALKO Insights" ? "DALKO Insights" : `${TITLES[view] ?? "DALKO Insights"} · DALKO Insights`;
 
   if (view === "home") {
@@ -2108,6 +2158,7 @@ function init() {
     embedMode: true,
     onHome: () => setShellView("home"),
     onRefresh: onInsightsRefresh,
+    onActivity: (name) => recordActivity("run", name),
   });
 
   document.querySelectorAll("[data-toggle]").forEach((btn) => {

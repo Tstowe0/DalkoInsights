@@ -3,11 +3,11 @@ import { attachTableSort, setSortValue } from "./table-sort.js";
 import { CHANGELOG_TEXT } from "../changelog.js?v=20261112-fit";
 import { renderConceptDashboard, teardownDashboardCharts } from "./dashboard-view.js?v=20260922-corp2";
 import { navTitle } from "./nav.js?v=20260923-reports";
-import { renderReportsView, teardownExecReport } from "./report.js?v=20261123-permissions-filter";
+import { renderReportsView, teardownExecReport } from "./report.js?v=20261123-view-as";
 import { aggregateMonthRows } from "../analytics/accessorials.js?v=20261005-opcarrier";
 import { hasFocuses } from "../data/filters.js?v=20260916-bugsweep";
-import { renderFocusBuilder } from "./focus-builder.js?v=20261123-permissions-filter";
-import { allowsAction } from "../../../../shared/js/permissions.js?v=20261123-permissions-filter";
+import { renderFocusBuilder } from "./focus-builder.js?v=20261123-view-as";
+import { allowsAction } from "../../../../shared/js/permissions.js?v=20261123-view-as";
 
 /** @param {string | undefined} tone */
 function toneClass(tone) {
