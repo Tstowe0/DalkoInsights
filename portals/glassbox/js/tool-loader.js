@@ -2,7 +2,7 @@
  * Resolves and loads a tool module from Scripts/ (mirrors Python _launch_tool).
  */
 
-import { gateToolButtons } from "../../../shared/js/permissions.js?v=20261120-actions";
+import { gateToolButtons } from "../../../shared/js/permissions.js?v=20261123-permnote";
 
 /**
  * @typedef {object} ToolContext
@@ -34,6 +34,9 @@ export async function launchTool(scriptPath, parent, ctx) {
     }
     parent.innerHTML = "";
     await mod.loadGui(parent, ctx);
+    if (scriptPath.startsWith("Client Reports/")) {
+      parent.querySelector("header:is(.gb-board-head, .gb-stage-bar, .gb-tool-header)")?.classList.add("ui-page-header");
+    }
     gateToolButtons(parent, scriptPath);
     ctx.log(`${scriptPath} loaded successfully.`);
   } catch (err) {

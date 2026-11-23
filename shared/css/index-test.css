@@ -534,6 +534,17 @@ html[data-theme="oceanic-night"] .brand-name {
   color: var(--text);
 }
 
+.main > .shell-page-header {
+  flex: 0 0 auto;
+  margin: 0.75rem 1.5rem 0.55rem;
+  padding: clamp(0.625rem, 2vh, 1.125rem) clamp(0.875rem, 2.5vw, 1.7rem);
+}
+
+.shell-page-header h1 {
+  font-size: clamp(1.35rem, 2.8vw, 2.25rem);
+  overflow-wrap: anywhere;
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -947,6 +958,14 @@ html[data-theme="oceanic-night"] .brand-name {
   margin: 0.7rem -1.5rem -1.6rem;
 }
 
+.page:has(> .settings-root:not(.hidden) .theme-group) {
+  padding-bottom: 0;
+}
+
+.page:has(> .settings-root:not(.hidden) .theme-group) > .gb-console {
+  margin-bottom: 0;
+}
+
 .news-list {
   list-style: none;
   margin: 0;
@@ -1005,6 +1024,174 @@ html[data-theme="oceanic-night"] .brand-name {
   min-height: 0;
 }
 
+.card.weather-card {
+  --weather-tone: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+  min-width: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 90% 0%, color-mix(in srgb, var(--weather-tone) 23%, transparent), transparent 65%),
+    linear-gradient(145deg, var(--card-elevated), var(--card));
+}
+
+.weather-card .card-head {
+  margin-bottom: 0;
+}
+
+.weather-card [data-sky="clear"], .weather-card[data-sky="clear"],
+.weather-card [data-sky="partly"], .weather-card[data-sky="partly"] { --weather-tone: #e5a24e; }
+.weather-card [data-sky="cloud"], .weather-card[data-sky="cloud"],
+.weather-card [data-sky="fog"], .weather-card[data-sky="fog"] { --weather-tone: #899bb3; }
+.weather-card [data-sky="rain"], .weather-card[data-sky="rain"] { --weather-tone: #539ad1; }
+.weather-card [data-sky="snow"], .weather-card[data-sky="snow"] { --weather-tone: #76b5c9; }
+.weather-card [data-sky="storm"], .weather-card[data-sky="storm"] { --weather-tone: #a68ae0; }
+
+.weather-status {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.weather-now {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.weather-summary {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.weather-temp {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(2rem, 3.8vw, 3.15rem);
+  font-weight: 700;
+  letter-spacing: -0.07em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.weather-temp span {
+  color: var(--text-muted);
+  font-size: 0.38em;
+  letter-spacing: 0;
+  vertical-align: super;
+}
+
+.weather-ico {
+  display: inline-flex;
+  width: 1.35rem;
+  height: 1.35rem;
+  color: color-mix(in srgb, var(--weather-tone) 48%, var(--text));
+}
+
+.weather-ico svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.weather-art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  container-type: size;
+  pointer-events: none;
+}
+
+.weather-art::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100cqw, 100cqh);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: url("../images/weather-skies.jpg") 100% 0 / 300% 200% no-repeat;
+}
+
+.weather-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #101827cc 0%, #1018279e 46%, #10182718 100%),
+    linear-gradient(0deg, #101827ab, transparent 52%);
+}
+
+.card.weather-card[data-sky] {
+  --text: #ffffff;
+  --text-muted: #eef1f6;
+  --chart-tick: var(--text-muted);
+  position: relative;
+  isolation: isolate;
+  min-height: 14rem;
+  color: var(--text);
+  background: #182333;
+}
+
+.weather-card[data-sky="clear"] .weather-art::before { background-position: 0 0; }
+.weather-card[data-sky="partly"] .weather-art::before { background-position: 50% 0; }
+.weather-card[data-sky="fog"] .weather-art::before { filter: grayscale(0.94) contrast(0.69); }
+.weather-card[data-sky="rain"] .weather-art::before { background-position: 0 100%; }
+.weather-card[data-sky="snow"] .weather-art::before { background-position: 50% 100%; }
+.weather-card[data-sky="storm"] .weather-art::before { background-position: 100% 100%; }
+
+.weather-days {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 0.35rem;
+  margin: auto 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weather-days li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.24rem;
+  min-width: 0;
+  padding: 0.4rem 0.1rem;
+  background: color-mix(in srgb, var(--card) 86%, var(--weather-tone));
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.weather-day-name {
+  font-weight: 600;
+}
+
+.weather-card[data-sky] .weather-days li {
+  background: #101827b8;
+  border-color: #ffffff38;
+}
+
+.weather-days strong {
+  color: var(--text);
+  font-weight: 650;
+  font-size: clamp(0.65rem, 1.1vw, 0.78rem);
+  text-align: center;
+}
+
+.weather-days strong span {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .news-card--band .card-head .eyebrow {
   margin-bottom: 0.2rem;
 }
@@ -1016,12 +1203,15 @@ html[data-theme="oceanic-night"] .brand-name {
 
 .today-news-row {
   display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.8rem;
   align-items: stretch;
 }
 
-.today-news-row > .news-card--band {
+.today-news-row > .news-card--band,
+.today-news-row > .todo-card {
+  display: flex;
+  flex-direction: column;
   flex: none;
   max-height: none;
   height: 0;
@@ -1029,8 +1219,8 @@ html[data-theme="oceanic-night"] .brand-name {
 }
 
 .today-news-row > .today-cal-card {
-  aspect-ratio: 1;
-  width: 100%;
+  aspect-ratio: auto;
+  width: auto;
   height: auto;
   min-width: 0;
   align-self: start;
@@ -1279,73 +1469,147 @@ html[data-theme="oceanic-night"] .brand-name {
   flex-direction: column;
 }
 
-.todo-card .gb-todo-bar {
-  margin: 0 0 0.65rem;
-}
-
 .todo-card .gb-todo-title {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   text-transform: none;
   color: var(--ink);
 }
 
+.todo-card .gb-todo-add {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+  padding: 0.42rem 0.65rem;
+  white-space: nowrap;
+}
+
+.todo-card .gb-todo-add:hover {
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.todo-card :is(.gb-todo-board, .gb-todo-input) {
+  padding: 0.4rem 0.5rem;
+  border-color: var(--input-border);
+  background: var(--input-bg-solid, var(--card-elevated));
+  color: var(--text);
+}
+
+.todo-card .gb-todo-mini {
+  text-transform: none;
+  color: var(--text-muted);
+}
+
+.todo-card .gb-todo-mini:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}
+
+.todo-card .gb-todo-progress {
+  padding: 0.05rem 0 0.4rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.todo-card .gb-todo-list {
+  gap: 0.35rem;
+}
+
 .todo-card .gb-todo-item,
 .todo-card .gb-todo-item.is-scheduled {
-  background: var(--cal-bg);
-  border: 1px solid color-mix(in srgb, var(--cal-fg) 12%, transparent);
+  flex-shrink: 0;
+  color: var(--on-accent, #fff);
+  background: linear-gradient(108deg, var(--accent-deep) 30%, var(--accent));
+  border: 0;
   border-radius: 10px;
-  padding: 0.45rem 0.5rem;
+  padding: 0.48rem 0.55rem;
 }
 
 .todo-card .gb-todo-item:hover {
-  background: color-mix(in srgb, var(--cal-bg) 86%, var(--accent));
-  border-color: color-mix(in srgb, var(--accent) 32%, var(--cal-bg));
+  background: linear-gradient(108deg, var(--accent) 10%, var(--accent-bright, var(--accent)));
+}
+
+.todo-card .gb-todo-item.is-overdue {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--on-accent, #fff) 75%, transparent);
+}
+
+.todo-card .gb-todo-item.is-done {
+  background: linear-gradient(108deg, color-mix(in srgb, var(--accent-deep) 72%, black) 30%, color-mix(in srgb, var(--accent) 72%, black));
 }
 
 .todo-card .gb-todo-text {
-  font-size: 0.8rem;
-  color: var(--cal-fg);
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--on-accent, #fff);
 }
 
 .todo-card .gb-todo-meta {
   font-size: 0.68rem;
-  color: var(--cal-muted);
+  color: color-mix(in srgb, var(--on-accent, #fff) 78%, transparent);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   opacity: 1;
 }
 
 .todo-card .gb-todo-item.is-done .gb-todo-text {
-  color: var(--cal-muted);
+  color: color-mix(in srgb, var(--on-accent, #fff) 70%, transparent);
 }
 
 .todo-card .gb-todo-badge {
-  color: var(--cal-fg);
-  background: color-mix(in srgb, var(--accent) 22%, var(--cal-bg));
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--cal-bg));
+  color: var(--on-accent, #fff);
+  background: color-mix(in srgb, var(--on-accent, #fff) 16%, transparent);
+  border-color: color-mix(in srgb, var(--on-accent, #fff) 32%, transparent);
+  text-transform: none;
+  font-size: 0.63rem;
+}
+
+.todo-card .gb-todo-item.is-overdue .gb-todo-badge {
+  color: var(--on-accent, #fff);
+  background: color-mix(in srgb, var(--on-accent, #fff) 24%, transparent);
 }
 
 .todo-card .gb-todo-goto {
-  margin-left: 1.55rem;
-  border: 1px solid color-mix(in srgb, var(--cal-fg) 18%, transparent);
-  background: color-mix(in srgb, var(--cal-fg) 10%, transparent);
-  color: var(--cal-fg);
-  font-size: 0.68rem;
+  min-height: 1.7rem;
+  border-color: color-mix(in srgb, var(--on-accent, #fff) 34%, transparent);
+  background: color-mix(in srgb, var(--on-accent, #fff) 12%, transparent);
+  color: var(--on-accent, #fff);
+  font-size: 0.7rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
-.todo-card .gb-todo-goto:hover {
-  background: color-mix(in srgb, var(--accent) 28%, var(--cal-bg));
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--cal-bg));
+.todo-card .gb-todo-goto:hover,
+.todo-card .gb-todo-row-menu:hover,
+.todo-card .gb-todo-row-menu[aria-expanded="true"] {
+  background: var(--accent-dim);
+}
+
+.todo-card .gb-todo-row-options .gb-todo-goto {
+  border-color: transparent;
+  background: transparent;
+}
+
+.todo-card .gb-todo-row-options .gb-todo-goto:hover,
+.todo-card .gb-todo-row-options .gb-todo-goto:focus-visible {
+  background: var(--card-hover);
+}
+
+.todo-card .gb-todo-row-options [data-todo-delete] {
+  color: var(--danger-fg, var(--text));
 }
 
 .todo-card .gb-todo-check input {
+  width: 0.95rem;
+  height: 0.95rem;
   accent-color: var(--accent);
 }
 
 .todo-card .gb-todo-empty {
   margin: 0.15rem 0 0;
   font-size: 0.75rem;
-  color: var(--cal-muted);
+  color: var(--text-muted);
   opacity: 1;
 }
 
@@ -2928,14 +3192,64 @@ html[data-theme="oceanic-night"] .brand-name {
 .perm-modal-card {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
   width: min(36rem, 100%);
   max-height: min(40rem, calc(100vh - 2.5rem));
-  overflow: auto;
-  padding: 1rem 1.1rem 1.15rem;
+  overflow: hidden;
+  padding: 1rem 1.1rem 0.9rem;
   border-radius: 16px;
   background: var(--card);
   border: 1px solid var(--border);
   box-shadow: 0 18px 50px rgba(16, 24, 40, 0.18);
+}
+.perm-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.perm-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+.perm-modal-foot-actions {
+  display: flex;
+  gap: 0.45rem;
+  margin-left: auto;
+}
+.perm-modal-foot button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.42rem 0.85rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.perm-modal-foot button.perm-save {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+}
+.perm-modal-foot button.perm-delete {
+  border-color: #c43737;
+  background: #c43737;
+  color: #fff;
+}
+.perm-modal-foot button.perm-delete:hover:not(:disabled) {
+  background: #a82e2e;
+  border-color: #a82e2e;
+}
+.perm-modal-foot button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .perm-field {
   display: grid;
@@ -3261,16 +3575,26 @@ html[data-theme="oceanic-night"] .brand-name {
     grid-template-columns: 1fr;
   }
 
+  .today-news-row > .today-cal-card {
+    width: auto;
+    justify-self: stretch;
+  }
+  .hand-note {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
   .today-news-row {
     grid-template-columns: 1fr;
   }
 
+  .today-news-row > .news-card--band,
+  .today-news-row > .todo-card,
   .today-news-row > .today-cal-card {
-    width: min(16rem, 100%);
-    justify-self: start;
-  }
-  .hand-note {
-    display: none;
+    height: auto;
+    min-height: 16rem;
+    width: 100%;
   }
 }
 
@@ -4004,6 +4328,55 @@ html[data-theme="oceanic-night"] .brand-name {
   min-height: 100%;
 }
 
+.page .gb-section > .ui-page-header,
+.page .insights-host .di-home-title,
+.page :is(.settings-root, .carrier-pricing-host) .ui-page-header h1,
+.page .tools-host :is(.cs-titlebar, .zx-bar) > h1,
+.page .tools-host .gb-tool[data-tool] :is(.gb-board-head, .gb-stage-bar, .gb-tool-header) .gb-tool-title,
+.page .tools-host .gb-tool[data-tool] .gb-tool-header > .gb-tool-heading > h1 {
+  display: none;
+}
+
+.page :is(.settings-root, .carrier-pricing-host) .ui-page-header,
+.page .tools-host .gb-workspace :is(.cs-titlebar, .zx-bar, .gb-board-head, .gb-stage-bar, .gb-tool-header).ui-page-header {
+  padding: 0;
+  color: var(--text);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.page :is(.settings-root, .carrier-pricing-host, .tools-host) .ui-page-header::after {
+  content: none;
+}
+
+.page :is(.settings-root, .carrier-pricing-host, .tools-host) .ui-page-header p {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.page .settings-root .page-canvas > .ui-page-header:not(:has(p, button)) {
+  display: none;
+}
+
+.page .settings-root .page-canvas > .ui-page-header:has(p, button) {
+  flex-shrink: 0;
+  margin-bottom: 0.85rem;
+}
+
+.page .tools-host .gb-workspace :is(.cs-titlebar, .zx-bar, .gb-stage-bar, .gb-tool-header) {
+  justify-content: flex-end;
+}
+
+.page .settings-root :is(.integ-back, .integ-host) {
+  color: var(--text-soft);
+}
+
+.settings-root .page-canvas:has(> .theme-group) {
+  flex-shrink: 0;
+}
+
 .settings-root:has(.log-card-full) {
   overflow: hidden;
 }
@@ -4054,22 +4427,10 @@ html[data-theme="oceanic-night"] .brand-name {
   max-width: none;
 }
 
-.integ-head {
-  padding: 0.1rem 0 1.15rem;
-}
-
 .integ-lead {
   margin: 0 0 0.35rem;
   color: var(--chart-tick);
   font-size: 0.84rem;
-}
-
-.integ-head h1 {
-  margin: 0;
-  font-size: 1.65rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--ink);
 }
 
 .integ-section {
@@ -4221,14 +4582,14 @@ html[data-theme="oceanic-night"] .brand-name {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--type-gold-soft);
+  color: var(--on-accent);
   font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
 }
 
 .integ-back:hover {
-  color: var(--ink);
+  text-decoration: underline;
 }
 
 .integ-bolts {
@@ -4451,11 +4812,7 @@ html[data-theme="oceanic-night"] .brand-name {
 }
 
 .tools-host .gb-workspace {
-  padding: 1.25rem 1.5rem 1.75rem;
-}
-
-.tools-host .gb-workspace.cs-host {
-  padding: 0;
+  padding: 1.25rem clamp(1.5rem, 3vw, 2.25rem) 1.75rem;
 }
 
 .tools-host .cs-bar input[data-query],
@@ -4498,19 +4855,6 @@ html[data-theme="oceanic-night"] .brand-name {
   margin: 0;
 }
 
-.theme-group {
-  margin: 0 0 1.35rem;
-}
-
-.theme-group-label {
-  margin: 0 0 0.65rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
 .settings-root .gb-theme-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
@@ -4540,7 +4884,7 @@ html[data-theme="oceanic-night"] .brand-name {
   margin: 0;
   font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: var(--on-accent);
 }
 
 .integ-units {

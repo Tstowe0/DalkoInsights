@@ -131,7 +131,7 @@ html[data-theme="oceanic-night"] .brand-name {
 }
 
 .shore-scene {
-  --shore-cycle: 1800s;
+  --shore-cycle: 300s;
   display: none;
   position: absolute;
   inset: 0;
@@ -151,7 +151,14 @@ html[data-theme="oceanic-night"] .brand-name {
 
 .shore-day {
   opacity: 0;
-  background: linear-gradient(180deg, #548acc, #99c9e8 58%, #ffdaaf);
+  background: linear-gradient(
+    to top,
+    #c4edff 0,
+    #80cff8 calc(var(--shore-horizon-height) * 0.48),
+    #438ed2 var(--shore-horizon-height),
+    #284d83 calc(var(--shore-horizon-height) + 6rem),
+    #202a50 calc(var(--shore-horizon-height) + 13rem)
+  );
 }
 
 .shore-night {
@@ -188,18 +195,18 @@ html[data-theme="oceanic-night"] .brand-name {
 }
 
 @keyframes shore-day {
-  0%, 56.667%, 100% { opacity: 0.64; }
-  66.667%, 93.333% { opacity: 0; }
+  0%, 40%, 100% { opacity: 1; }
+  50%, 90% { opacity: 0; }
 }
 
 @keyframes shore-night {
-  0%, 60%, 100% { opacity: 0; }
-  73.333%, 90% { opacity: 1; }
+  0%, 40%, 100% { opacity: 0; }
+  50%, 90% { opacity: 1; }
 }
 
 @keyframes shore-city-lights {
-  0%, 66.667%, 100% { opacity: 0; }
-  76.667%, 90% { opacity: 1; }
+  0%, 40%, 100% { opacity: 0; }
+  50%, 90% { opacity: 1; }
 }
 
 html[data-theme="oceanic-night"] .shore-scene {

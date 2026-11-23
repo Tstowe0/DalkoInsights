@@ -1,4 +1,4 @@
-import { mountToolShell } from "../_shared/tool-shell.js";
+import { mountToolShell } from "../_shared/tool-shell.js?v=20261120-tool-headers";
 
 export const meta = {
   id: "Currency Converter",
@@ -140,6 +140,7 @@ function convertLine(amount, apply, markupPct, fuelPct, rate) {
 export async function loadGui(parent, ctx) {
   const shell = mountToolShell(parent, {
     title: meta.title,
+    pageHeader: true,
     category: meta.category,
     instructions: `Enter invoice amounts on the left. Middle settings apply markup, fuel surcharge, and FX. The right column is the converted result.
 

@@ -20,6 +20,7 @@ function escapeHtml(value) {
  * @property {string} title
  * @property {string} [category]
  * @property {string} [instructions]
+ * @property {boolean} [pageHeader]
  * @property {boolean} [underConstruction]
  * @property {() => void} onBack
  * @property {(msg: string) => void} [log]
@@ -35,15 +36,16 @@ export function mountToolShell(parent, opts) {
   const {
     title,
     instructions = "This tool module is ready for web logic to be ported in.",
+    pageHeader = false,
     underConstruction = false,
     log,
   } = opts;
 
   parent.innerHTML = `
     <section class="gb-tool" data-tool="${escapeHtml(title)}">
-      <header class="gb-tool-header">
+      <header class="gb-tool-header${pageHeader ? " ui-page-header" : ""}">
         <div class="gb-tool-heading">
-          <h2 class="gb-tool-title">${escapeHtml(title)}</h2>
+          ${pageHeader ? `<h1>${escapeHtml(title)}</h1>` : `<h2 class="gb-tool-title">${escapeHtml(title)}</h2>`}
         </div>
         <div class="gb-tool-header-actions">
           <div data-about-slot></div>

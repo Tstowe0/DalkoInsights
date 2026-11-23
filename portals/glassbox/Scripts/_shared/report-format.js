@@ -139,12 +139,15 @@ export function applyClientReportStyle(workbook, opts = {}, sheetName) {
           cell.z = "@";
         }
 
-        // Conditional cell highlight (1-based Excel row = R+1)
+        // Conditional cell highlight (1-based Excel row = R+1).
+        // A string is the fill. An object can also set the font color.
         if (cellHighlights && C === cellHighlights.col) {
-          const fillRgb = cellHighlights.rows.get(R + 1);
+          const spec = cellHighlights.rows.get(R + 1);
+          const fillRgb = spec && typeof spec === "object" ? spec.fill : spec;
+          const fontRgb = spec && typeof spec === "object" && spec.color ? spec.color : XL.BLACK;
           if (fillRgb) {
             cell.s.fill = { patternType: "solid", fgColor: { rgb: fillRgb } };
-            cell.s.font = reportFont({ bold: true, color: { rgb: XL.BLACK } });
+            cell.s.font = reportFont({ bold: true, color: { rgb: fontRgb } });
           }
         }
       }

@@ -8,18 +8,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="shared/css/theme.css?v=20261120-four-reindeer" />
+  <link rel="stylesheet" href="shared/css/theme.css?v=20261123-slate-linen" />
   <link rel="stylesheet" href="portals/dalko/css/portal.css?v=20261001-focusbold" />
-  <link rel="stylesheet" href="portals/glassbox/css/portal.css?v=20261120-square" />
-  <link rel="stylesheet" href="shared/css/index-test.css?v=20261120-actions" />
+  <link rel="stylesheet" href="portals/glassbox/css/portal.css?v=20261123-edit-todo-list" />
+  <link rel="stylesheet" href="portals/carrier-pricing/css/portal.css?v=20261123-view" />
+  <link rel="stylesheet" href="shared/css/index-test.css?v=20261123-todo-one-row" />
   <script>
     try {
       var themeId = localStorage.getItem("dalko-shell-theme");
       if (themeId === "gta-6") themeId = "oceanic-night";
+      if (themeId === "rainy-yard") themeId = "rainy-drive";
       if (themeId === "hallowed-night-v2") themeId = "hallowed-night";
       if (themeId === "yule-night-v2") themeId = "yule-night";
       var known = {
         harbor: 1,
+        "slate-linen": 1,
         daybreak: 1,
         "sandy-shore": 1,
         "midnight-gold": 1,
@@ -31,12 +34,13 @@
         "graphite-lime": 1,
         "slate-coral": 1,
         "oceanic-night": 1,
+        "rainy-drive": 1,
         "hallowed-night": 1,
         "yule-night": 1,
       };
       if (themeId && known[themeId]) {
         document.documentElement.dataset.theme = themeId;
-        var light = { harbor: 1, daybreak: 1, "sandy-shore": 1 };
+        var light = { harbor: 1, daybreak: 1, "sandy-shore": 1, "slate-linen": 1 };
         document.documentElement.style.colorScheme = light[themeId] ? "light" : "dark";
       }
     } catch (e) {}
@@ -95,7 +99,7 @@
           <span class="nav-ico" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
           </span>
-          Today
+          Home
         </button>
 
         <button type="button" class="nav-item" data-view="client-reports">
@@ -117,6 +121,13 @@
             <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9M10 19V5M16 19v-8M22 19H2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 9c2.2-3 4.4-4 6-4 3 0 3 6 6 6 1.6 0 3.8-1 6-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
           </span>
           Data Dump Analyzer
+        </button>
+
+        <button type="button" class="nav-item" data-view="carrier-pricing">
+          <span class="nav-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M2.4 8.6h11.6V15H2.4V8.6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 11.2h3.2L20.2 14v1H14v-3.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M17.1 11.4v2.4h3" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="6.2" cy="16.7" r="1.55" stroke="currentColor" stroke-width="1.7"/><circle cx="17.4" cy="16.7" r="1.55" stroke="currentColor" stroke-width="1.7"/></svg>
+          </span>
+          Carrier Pricing
         </button>
 
         <div class="nav-group" data-group="tools">
@@ -141,7 +152,7 @@
         <div class="nav-group" data-group="settings">
           <button type="button" class="nav-group-btn" data-toggle="settings" aria-expanded="false">
             <span class="nav-ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M12 3.5v2.2M12 18.3v2.2M4.9 6.5l1.6 1.6M17.5 15.9l1.6 1.6M3.5 12h2.2M18.3 12h2.2M4.9 17.5l1.6-1.6M17.5 8.1l1.6-1.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M19.4 13.5a7.7 7.7 0 0 0 .1-1.5 7.7 7.7 0 0 0-.1-1.5l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-2.6-1.5L14 2h-4l-.4 2.5a7.4 7.4 0 0 0-2.6 1.5l-2.4-1-2 3.4 2 1.6a7.7 7.7 0 0 0-.1 1.5 7.7 7.7 0 0 0 .1 1.5l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 2.6 1.5L10 22h4l.4-2.5a7.4 7.4 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg>
             </span>
             Settings
             <span class="chevron" aria-hidden="true"></span>
@@ -165,6 +176,11 @@
           <p class="status-text" id="status-text"></p>
           <button type="button" class="chip-btn hidden" id="btn-clear-focus" hidden>Clear focus</button>
         </div>
+      </header>
+
+      <header class="ui-page-header shell-page-header">
+        <h1 id="shell-page-title" aria-live="polite">Home</h1>
+        <p id="shell-page-note" hidden></p>
       </header>
 
       <div class="page" id="page" tabindex="-1">
@@ -191,6 +207,7 @@
           <div class="gb-workspace" id="gb-workspace" tabindex="-1"></div>
         </div>
         <div class="home-root settings-root hidden" id="settings-root"></div>
+        <div class="carrier-pricing-host hidden" id="carrier-pricing-host"></div>
         <section class="gb-console hidden" id="gb-console" aria-label="Console">
           <header class="gb-console-bar">
             <span>Console</span>
@@ -218,6 +235,6 @@
 
   <script src="shared/vendor/xlsx-js-style.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script type="module" src="shared/js/index-test.js?v=20261120-actions"></script>
+  <script type="module" src="shared/js/index-test.js?v=20261123-log"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /* —— Alternate: cool steel / ocean —— */
-[data-theme="ocean-steel"] {
+:is([data-theme="ocean-steel"], [data-theme="rainy-drive"]) {
   --bg: #041018;
   --bg-elevated: #071820;
   --bg-main: #06141c;

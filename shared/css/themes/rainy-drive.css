@@ -1,0 +1,293 @@
+[data-theme="rainy-drive"] {
+  --bg: #100d1a;
+  --bg-main: #151120;
+  --bg-elevated: #191526;
+  --card: #221a31;
+  --card-elevated: #2c2240;
+  --card-hover: #37294d;
+  --card-border: #c7a7ef32;
+  --card-border-strong: #674e83;
+  --card-border-gold: #ff99ca65;
+  --accent: #ff99ca;
+  --accent-bright: #ffc3e1;
+  --accent-deep: #b85b92;
+  --accent-hover: #ffd5eb;
+  --accent-dim: #ff99ca25;
+  --accent-glow: #ff99ca3d;
+  --accent-blue: #7be5ef;
+  --text: #fbf4ff;
+  --text-muted: #c7b8d8;
+  --text-soft: #e6d7ef;
+  --input-bg-solid: var(--card-elevated);
+  --panel-bg: #221a31e6;
+  --panel-bg-quiet: #191526d9;
+  --sidebar-bg: #141020;
+  --nav-fg: #eee4fa;
+  --nav-fg-muted: #c5b6d9;
+  --nav-fg-strong: #fff4fe;
+  --nav-sub-fg: #decfed;
+  --nav-hover-bg: #352447;
+  --nav-active-bg: #482c49;
+  --theme-swatch-1: #100d1a;
+  --theme-swatch-2: #221a31;
+  --theme-swatch-3: #ff99ca;
+  --theme-swatch-4: #7be5ef;
+}
+
+.rainy-drive-scene { display: none; }
+
+html[data-theme="rainy-drive"] .app > .sidebar {
+  --drive-horizon: clamp(8rem, 24vh, 14rem);
+}
+
+html[data-theme="rainy-drive"] #sidebar-theme-scenes {
+  height: var(--drive-horizon);
+}
+
+html[data-theme="rainy-drive"] .rainy-drive-scene {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% calc(100% - var(--drive-horizon) * 0.5), #a8448e, #472655 24%, transparent 52%),
+    linear-gradient(165deg, #21172e, #140e21 54%, #2b183a);
+}
+
+html[data-theme="rainy-drive"] .sidebar :is(.nav-item, .nav-sub-item).is-active {
+  background: var(--nav-active-bg);
+  color: var(--nav-fg-strong);
+  box-shadow: inset 2px 0 var(--accent);
+}
+
+html[data-theme="rainy-drive"] .app > .main {
+  background: radial-gradient(ellipse at top right, #362448, var(--bg-main) 66%);
+}
+
+html[data-theme="rainy-drive"] .app > .main :is(
+  .tools-host, .insights-host, .settings-root, .gb-workspace, .tools-host .gb-main
+) { background: transparent; }
+
+html[data-theme="rainy-drive"] .gb-tile {
+  background: linear-gradient(145deg, var(--card-elevated), var(--card) 78%);
+  border-color: var(--card-border-strong);
+}
+
+html[data-theme="rainy-drive"] .gb-tile:hover:not(:disabled) {
+  background: linear-gradient(145deg, var(--card-hover), var(--card) 78%);
+  border-color: var(--accent);
+}
+
+.rainy-drive-landscape {
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--drive-horizon);
+  overflow: hidden;
+}
+
+.rainy-drive-sun {
+  position: absolute;
+  left: 50%;
+  bottom: 44%;
+  height: 45%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(#fff0b3 6%, #ffad91 42%, #ed6bbd 84%);
+  mask-image: linear-gradient(#000 53%, transparent 53% 58%, #000 58% 67%, transparent 67% 73%,
+    #000 73% 80%, transparent 80% 86%, #000 86% 92%, transparent 92% 97%, #000 97%);
+}
+
+.rainy-drive-ridge {
+  position: absolute;
+  inset: 30% 0 40%;
+  background: linear-gradient(#53356b, #191329);
+  clip-path: polygon(0 12%, 7% 20%, 16% 4%, 23% 32%, 29% 26%, 42% 72%, 49% 77%,
+    57% 68%, 64% 46%, 69% 51%, 83% 9%, 89% 21%, 93% 17%, 100% 34%, 100% 100%, 0 100%);
+}
+
+.rainy-drive-road {
+  position: absolute;
+  inset: 52% 0 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at top, #ab4f9f 0%, transparent 66%),
+    linear-gradient(#271936, #110e20);
+  clip-path: polygon(46% 0, 54% 0, 100% 93%, 100% 100%, 0 100%, 0 93%);
+}
+
+.rainy-drive-road::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #5cdeed, #a7f9ff 10%, transparent 23% 76%, #ffaddc 92%, #ff74c1);
+  clip-path: polygon(46% 0, 47% 0, 1% 100%, 0 100%, 0 93%, 46% 0,
+    54% 0, 100% 93%, 100% 100%, 99% 100%, 53% 0, 54% 0);
+}
+
+.rainy-drive-road::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 43% 4%, #ff8abb72, transparent 48%),
+    repeating-linear-gradient(174deg, transparent 0 7px, #cba9ff18 8px, transparent 10px);
+  pointer-events: none;
+}
+
+.rainy-drive-mark {
+  position: absolute;
+  inset: 0;
+  transform-origin: center top;
+  transform: translateY(var(--mark-position)) scale(var(--mark-scale));
+}
+
+.rainy-drive-mark::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(50% - 2px);
+  width: 4px;
+  height: 20%;
+  background: linear-gradient(#ffe2ef, #fff4d5);
+  box-shadow: 0 0 6px #ff91dcaa;
+  clip-path: polygon(31% 0, 69% 0, 100% 100%, 0 100%);
+}
+
+.rainy-drive-truck {
+  position: absolute;
+  left: 65%;
+  bottom: 13%;
+  width: clamp(22px, calc(var(--drive-horizon) * 0.16), 37px);
+  height: 25%;
+  transform: translateX(-50%);
+  isolation: isolate;
+  background:
+    linear-gradient(#100e1c, #090713) 9% bottom / 20% 28% no-repeat,
+    linear-gradient(#100e1c, #090713) 91% bottom / 20% 28% no-repeat,
+    linear-gradient(#4b3b51, #171323) center 94% / 91% 15% no-repeat;
+}
+
+.rainy-drive-trailer {
+  position: absolute;
+  inset: 0 0 17%;
+  border: 1px solid #b091bb;
+  border-radius: 3px 3px 1px 1px;
+  background:
+    radial-gradient(circle, #ffb0ac 0 1px, #ff426d 1.2px 2px, transparent 3px) left 91% / 8px 7px no-repeat,
+    radial-gradient(circle, #ffb0ac 0 1px, #ff426d 1.2px 2px, transparent 3px) right 91% / 8px 7px no-repeat,
+    linear-gradient(90deg, transparent 48%, #241d35 48% 52%, transparent 52%),
+    linear-gradient(145deg, #82708e, #51415f 55%, #392d4b);
+  box-shadow: inset 0 2px #d4adc650, inset 0 -4px #291c37;
+}
+
+.rainy-drive-trailer::before {
+  content: "";
+  position: absolute;
+  inset: -15% 100% 0 auto;
+  width: 19%;
+  background:
+    linear-gradient(149deg, #b28aab80, transparent 24%),
+    repeating-linear-gradient(90deg, transparent 0 3px, #e0b4da1d 3px 4px),
+    linear-gradient(115deg, #776584, #342842 85%);
+  clip-path: polygon(0 0, 100% 13%, 100% 100%, 0 70%);
+}
+
+.rainy-drive-trailer::after {
+  content: "";
+  position: absolute;
+  inset: -15% 0 100% -19%;
+  background: linear-gradient(#aa8aac, #6f557b);
+  clip-path: polygon(0 0, 66% 0, 100% 100%, 16% 100%);
+}
+
+.rainy-drive-truck::before {
+  content: "";
+  position: absolute;
+  top: 58%;
+  right: 99%;
+  width: 19%;
+  height: 38%;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 23% 40%, #191321 0 23%, transparent 27%),
+    radial-gradient(ellipse at 75% 55%, #110e1a 0 29%, transparent 33%),
+    linear-gradient(16deg, transparent 42%, #241b31 43% 68%, transparent 70%);
+}
+
+.rainy-drive-truck::after {
+  content: "";
+  position: absolute;
+  inset: 88% -9% auto;
+  height: 43%;
+  background:
+    radial-gradient(ellipse at 22% 0, #ff426a8c, transparent 53%),
+    radial-gradient(ellipse at 78% 0, #ff426a8c, transparent 53%);
+  clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.rainy-drive-rain {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(transparent, #000 33%, #000 85%, transparent);
+}
+
+.rainy-drive-drop {
+  position: absolute;
+  inset: var(--drop-y) auto auto var(--drop-x);
+  width: 1px;
+  height: var(--drop-length);
+  background: linear-gradient(transparent, #d8eaff80);
+  transform: rotate(17deg);
+  opacity: 0.42;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rainy-drive-mark {
+    animation:
+      rainy-drive-lanes 2.4s cubic-bezier(0.5, 0, 0.76, 0.43) infinite,
+      rainy-drive-lane-fade 2.4s linear infinite;
+    animation-delay: var(--mark-delay);
+  }
+
+  .rainy-drive-drop {
+    animation: rainy-drive-rain var(--drop-duration) linear var(--drop-delay) infinite;
+  }
+
+  .rainy-drive-truck {
+    animation: rainy-drive-follow 9s ease-in-out infinite;
+  }
+}
+
+@keyframes rainy-drive-follow {
+  0%, 100% { transform: translate(-50%, 0) scale(1); }
+  30% { transform: translate(-55%, -3%) scale(0.977); }
+  65% { transform: translate(-46%, 2%) scale(1.016); }
+}
+
+@keyframes rainy-drive-lanes {
+  from { transform: translateY(-1%) scale(0.08); }
+  to { transform: translateY(103%) scale(1.1); }
+}
+
+@keyframes rainy-drive-lane-fade {
+  0%, 100% { opacity: 0; }
+  24%, 85% { opacity: 1; }
+}
+
+@keyframes rainy-drive-rain {
+  0% {
+    opacity: 0;
+    transform: translate(calc(var(--drive-horizon) * 0.12), calc(var(--drive-horizon) * -0.4)) rotate(17deg);
+  }
+  20%, 72% { opacity: 0.8; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--drive-horizon) * -0.18), calc(var(--drive-horizon) * 0.6)) rotate(17deg);
+  }
+}

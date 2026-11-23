@@ -3,7 +3,7 @@
  * Click a day to preview reports due that date in the To Do list.
  */
 
-import { getDueDaySetForMonth, toDateKey } from "./report-schedule.js?v=20261023-ttx";
+import { getDueDaySetForMonth, toDateKey } from "./report-schedule.js?v=20261123-builtin";
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTHS = [
@@ -43,12 +43,14 @@ export function mountSidebarCalendar(host, opts = {}) {
       </header>
       <div class="gb-cal-weekdays" data-cal-weekdays></div>
       <div class="gb-cal-grid" data-cal-grid role="grid"></div>
+      <p class="gb-cal-foot" data-cal-foot></p>
     </div>
   `;
 
   const titleEl = /** @type {HTMLElement} */ (host.querySelector("[data-cal-title]"));
   const weekdaysEl = /** @type {HTMLElement} */ (host.querySelector("[data-cal-weekdays]"));
   const gridEl = /** @type {HTMLElement} */ (host.querySelector("[data-cal-grid]"));
+  const footEl = /** @type {HTMLElement} */ (host.querySelector("[data-cal-foot]"));
 
   weekdaysEl.innerHTML = WEEKDAYS.map((d) => `<span>${d}</span>`).join("");
 
@@ -115,6 +117,8 @@ export function mountSidebarCalendar(host, opts = {}) {
       cells.push(`<span class="gb-cal-day is-empty" aria-hidden="true"></span>`);
     }
     gridEl.innerHTML = cells.join("");
+    const holiday = usHolidayName(selectedKey, Number(selectedKey.slice(0, 4)) || viewYear);
+    if (footEl) footEl.textContent = holiday;
   };
 
   /** Real-world day change: refresh “today” and optionally follow to the new day. */

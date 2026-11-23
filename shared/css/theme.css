@@ -1,9 +1,11 @@
 /* Theme palettes and shared UI styles. Register new palettes in shared/js/theme.js. */
 @import url("./themes/midnight-gold.css");
-@import url("./themes/harbor.css");
+@import url("./themes/harbor.css?v=20261123-slate-linen");
+@import url("./themes/slate-linen.css");
 @import url("./themes/daybreak.css");
 @import url("./themes/sandy-shore.css");
-@import url("./themes/ocean-steel.css");
+@import url("./themes/ocean-steel.css?v=20261123-rainy-drive");
+@import url("./themes/rainy-drive.css?v=20261123-smooth-lanes");
 @import url("./themes/night-void.css");
 @import url("./themes/signal-green.css");
 @import url("./themes/forest-pine.css");
@@ -12,11 +14,55 @@
 @import url("./themes/slate-coral.css");
 @import url("./themes/hallowed-night.css?v=20261121-seasonal");
 @import url("./themes/yule-night.css?v=20261120-four-reindeer");
-@import url("./themes/oceanic-night.css?v=20261120-city-lights");
+@import url("./themes/oceanic-night.css?v=20261120-even-shore");
 
 /* ================================================================== */
 /* UI kit — use these classes for new chrome; themes restyle them all  */
 /* ================================================================== */
+
+.ui-page-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--on-accent);
+  background: linear-gradient(108deg, var(--accent-deep) 30%, var(--accent));
+  border-radius: 12px;
+  padding: 24px 27px;
+}
+
+.ui-page-header::after {
+  content: "";
+  position: absolute;
+  right: -25px;
+  top: -190px;
+  width: 350px;
+  height: 390px;
+  border: 1px solid color-mix(in srgb, var(--on-accent) 20%, transparent);
+  box-shadow:
+    0 0 0 22px color-mix(in srgb, var(--on-accent) 7%, transparent),
+    0 0 0 48px color-mix(in srgb, var(--on-accent) 5%, transparent);
+  transform: rotate(32deg);
+  border-radius: 42px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.ui-page-header :is(h1, h2) {
+  margin: 0;
+  font-size: clamp(1.55rem, 3.1vw, 2.38rem);
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+  color: var(--on-accent);
+}
+
+.ui-page-header p {
+  margin: 9px 0 0;
+  color: color-mix(in srgb, var(--on-accent) 86%, transparent);
+}
+
+@media (max-width: 800px) {
+  .ui-page-header { padding: 16px; }
+}
 
 .ui-panel {
   position: relative;

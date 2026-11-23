@@ -20,6 +20,32 @@ const FRI = 5;
  * Per-report schedule (mirrors Client Reports bands + monthly subtitles).
  * @type {ScheduledReport[]}
  */
+/** @type {ScheduledReport[]} */
+let activeReports = [];
+
+/**
+ * @param {ScheduledReport[]} list
+ */
+export function replaceScheduledReports(list) {
+  if (!Array.isArray(list)) return;
+  /** @type {ScheduledReport[]} */
+  const next = [];
+  for (const item of list) {
+    if (!item || typeof item.id !== "string" || !item.id || item.id.includes("|")) continue;
+    const schedule = item.schedule;
+    if (schedule !== "daily" && schedule !== "weekday" && schedule !== "monthDay" && schedule !== "nthWeekday") continue;
+    next.push({
+      id: item.id,
+      label: typeof item.label === "string" && item.label.trim() ? item.label.trim() : item.id,
+      schedule,
+      weekday: Number.isInteger(item.weekday) ? item.weekday : undefined,
+      day: Number.isInteger(item.day) ? item.day : undefined,
+      nth: Number.isInteger(item.nth) ? item.nth : undefined,
+    });
+  }
+  activeReports = next;
+}
+
 export const SCHEDULED_REPORTS = [
   { id: "McConway Daily Tracking Report", label: "McConway Daily Tracking Report", schedule: "daily" },
   { id: "Penn Machine Daily Tracking Report", label: "Penn Machine Daily Tracking Report", schedule: "daily" },
@@ -36,6 +62,8 @@ export const SCHEDULED_REPORTS = [
   { id: "TTX Accessorial Report", label: "TTX Accessorial Report", schedule: "nthWeekday", nth: 2, weekday: WED },
   { id: "Carrier On Time Merger", label: "TTX On Time", schedule: "nthWeekday", nth: 2, weekday: WED },
 ];
+
+activeReports = SCHEDULED_REPORTS.map((report) => ({ ...report }));
 
 /** @param {Date} date */
 export function startOfDay(date) {
@@ -153,7 +181,7 @@ export function getReportsDueToday(ref = new Date()) {
   /** @type {DueReport[]} */
   const due = [];
 
-  for (const report of SCHEDULED_REPORTS) {
+  for (const report of activeReports) {
     // Daily reports run Mon–Fri only (weekends are not work days).
     if (report.schedule === "daily") {
       const dow = today.getDay();
@@ -176,7 +204,8 @@ export function getReportsDueToday(ref = new Date()) {
 }
 
 /**
- * Day-of-month numbers in a given month that have at least one scheduled report due.
+ * Day-of-month numbers in a given month that have at least one to-do due.
+ * Before the shared list loads, the built-in report schedule is used.
  * @param {number} year
  * @param {number} month 0-based
  * @returns {Set<number>}
@@ -185,10 +214,57 @@ export function getDueDaySetForMonth(year, month) {
   /** @type {Set<number>} */
   const days = new Set();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  for (let day = 1; day <= daysInMonth; day++) {
-    if (getReportsDueToday(new Date(year, month, day)).length) {
-      days.add(day);
+  if (liveItems) {
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = toDateKey(new Date(year, month, day));
+      if (liveItems.some((item) => occursOnTodo(item, key))) days.add(day);
     }
+    return days;
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    if (getReportsDueToday(new Date(year, month, day)).length) days.add(day);
   }
   return days;
+}
+
+/** @param {string} key */
+function weekdayOfKey(key) {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, month - 1, day).getDay();
+}
+
+/**
+ * @param {{ due?: string, repeat?: string, weekday?: number, nth?: number }} item
+ * @param {string} day
+ */
+export function occursOnTodo(item, day) {
+  const due = item && item.due ? String(item.due) : "";
+  if (!due || day < due) return false;
+  const repeat = item.repeat || "none";
+  if (repeat === "daily") return true;
+  if (repeat === "weekly") return weekdayOfKey(day) === weekdayOfKey(due);
+  if (repeat === "monthly") {
+    const [year, month, date] = day.split("-").map(Number);
+    const last = new Date(year, month, 0).getDate();
+    return date === Math.min(Number(due.slice(8, 10)), last);
+  }
+  if (repeat === "nthweekday") {
+    const [year, month, date] = day.split("-").map(Number);
+    const weekday = Number.isInteger(item.weekday) ? item.weekday : weekdayOfKey(due);
+    const nth = Number.isInteger(item.nth) ? item.nth : 1;
+    const first = new Date(year, month - 1, 1);
+    const delta = (weekday - first.getDay() + 7) % 7;
+    const dom = 1 + delta + (nth - 1) * 7;
+    const last = new Date(year, month, 0).getDate();
+    return dom <= last && date === dom;
+  }
+  return day === due;
+}
+
+/** @type {Array<{ due?: string, repeat?: string, weekday?: number, nth?: number }> | null} */
+let liveItems = null;
+
+/** @param {Array<{ due?: string, repeat?: string, weekday?: number, nth?: number }> | null} items */
+export function replaceTodoItems(items) {
+  liveItems = Array.isArray(items) ? items : null;
 }

@@ -1,6 +1,6 @@
 import { CLIENT_REPORT_BANDS, getSection, NAV_ITEMS } from "./catalog.js?v=20261023-ttx";
 import { menuIconUrl, tileIconUrl } from "./icons.js?v=20261023-ttx";
-import { THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20261120-hourly-sleigh";
+import { THEME_GROUPS, THEMES, getThemeId, setTheme } from "../../../shared/js/theme.js?v=20261123-slate-linen";
 
 /**
  * @param {HTMLElement} container
@@ -53,8 +53,8 @@ export function renderSection(workspace, sectionId, onTool) {
   }
   workspace.innerHTML = `
     <section class="gb-section">
-      <header class="gb-section-header">
-        <h2 class="gb-section-title">${escapeHtml(section.label)}</h2>
+      <header class="ui-page-header">
+        <h1>${escapeHtml(section.label)}</h1>
       </header>
       <div class="gb-tile-grid" id="gb-tile-grid"></div>
     </section>
@@ -69,8 +69,8 @@ export function renderSection(workspace, sectionId, onTool) {
 export function renderClientReports(workspace, onTool) {
   workspace.innerHTML = `
     <section class="gb-section">
-      <header class="gb-section-header">
-        <h2 class="gb-section-title">Client Reports</h2>
+      <header class="ui-page-header">
+        <h1>Reports</h1>
       </header>
       <div class="gb-report-bands" id="gb-report-bands"></div>
     </section>
@@ -111,15 +111,13 @@ export function renderChangelog(workspace, changelogText) {
 /**
  * @param {HTMLElement} workspace
  */
-export function renderThemes(workspace) {
+export function renderThemes(workspace, { settings = false } = {}) {
   const active = getThemeId();
-  workspace.innerHTML = `
-    <section class="gb-section">
-      <header class="gb-section-header">
-        <h2 class="gb-section-title">Themes</h2>
-      </header>
+  const groups = THEME_GROUPS.map(({ id, label }) => `
+    <section class="theme-group">
+      <h2 class="theme-group-label">${label}</h2>
       <div class="gb-theme-grid" role="list">
-        ${THEMES.map((theme) => {
+        ${THEMES.filter((theme) => theme.group === id).map((theme) => {
           const swatches = theme.swatches
             .map((c) => `<span style="background:${c}"></span>`)
             .join("");
@@ -133,14 +131,26 @@ export function renderThemes(workspace) {
         }).join("")}
       </div>
     </section>
-  `;
+  `).join("");
+  workspace.innerHTML = settings
+    ? `<div class="page-canvas">
+        <header class="ui-page-header">
+          <h1>Themes</h1>
+          <p>These palettes restyle this dashboard — sidebar, canvas, cards, charts, and tools.</p>
+        </header>
+        ${groups}
+      </div>`
+    : `<section class="gb-section">
+        <header class="gb-section-header"><h1 class="gb-section-title">Themes</h1></header>
+        ${groups}
+      </section>`;
 
   workspace.querySelectorAll("[data-theme-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = /** @type {HTMLElement} */ (btn).dataset.themeId;
       if (!id) return;
       setTheme(id);
-      renderThemes(workspace);
+      renderThemes(workspace, { settings });
     });
   });
 }

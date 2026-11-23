@@ -88,7 +88,7 @@ export async function loadGui(parent, ctx) {
   parent.classList.add("cs-host");
   parent.innerHTML = `
     <section class="cs" data-cs>
-      <header class="cs-titlebar">
+      <header class="cs-titlebar ui-page-header">
         <h1>Carrier Search</h1>
         <div class="cs-about" data-about-slot></div>
       </header>
@@ -126,8 +126,10 @@ export async function loadGui(parent, ctx) {
               <p class="cs-muted">Search a name, USDOT, or MC number.</p>
             </div>
           </aside>
-          <article class="cs-dossier" aria-label="Carrier" data-detail>
-            <div class="cs-empty"><p>Pick a match to open the snapshot.</p></div>
+          <article class="cs-dossier" aria-label="Carrier">
+            <div class="cs-scroll" data-detail>
+              <div class="cs-empty"><p>Pick a match to open the snapshot.</p></div>
+            </div>
           </article>
         </div>
       </div>

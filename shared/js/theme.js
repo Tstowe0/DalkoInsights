@@ -3,7 +3,7 @@
  * Add styles in shared/css/themes, then list the theme here.
  */
 
-/** @typedef {{ id: string, name: string, description: string, swatches: string[], group?: "day" | "night" | "seasonal" }} ThemeInfo */
+/** @typedef {{ id: string, name: string, description: string, swatches: string[], group: "day" | "night" | "dynamic" | "seasonal" }} ThemeInfo */
 
 import { syncHalloweenGhosts } from "./themes/hallowed-night.js?v=20261121-seasonal";
 import { syncOceanicNight } from "./themes/oceanic-night.js";
@@ -15,7 +15,15 @@ const THEME_ALIASES = new Map([
   ["gta-6", "oceanic-night"],
   ["hallowed-night-v2", "hallowed-night"],
   ["yule-night-v2", "yule-night"],
+  ["rainy-yard", "rainy-drive"],
 ]);
+
+export const THEME_GROUPS = [
+  { id: "day", label: "Light Static (Tradition)" },
+  { id: "night", label: "Dark Static (Tradition)" },
+  { id: "dynamic", label: "Dynamic (Slight Animation)" },
+  { id: "seasonal", label: "Holiday (Slight Animation)" },
+];
 
 /** @type {ThemeInfo[]} */
 export const THEMES = [
@@ -39,6 +47,13 @@ export const THEMES = [
     group: "day",
     description: "Sand canvas, lagoon sidebar, and coral-and-seafoam signals — a bright beach day.",
     swatches: ["#08343a", "#fff4e6", "#0c6b70", "#e07a4c"],
+  },
+  {
+    id: "slate-linen",
+    name: "Slate & Linen",
+    group: "day",
+    description: "Slate-blue navigation, a warm linen canvas, and soft blush accents.",
+    swatches: ["#2e4357", "#f7e8da", "#dbb4ad", "#bd9478"],
   },
   {
     id: "midnight-gold",
@@ -99,9 +114,16 @@ export const THEMES = [
   {
     id: "oceanic-night",
     name: "Oceanic Night",
-    group: "night",
+    group: "dynamic",
     description: "Hot pink and neon cyan on a purple shore after dark.",
     swatches: ["#07040e", "#170c24", "#ff2d8a", "#2ee6ff"],
+  },
+  {
+    id: "rainy-drive",
+    name: "Rainy Drive",
+    group: "dynamic",
+    description: "An endless rain-slick highway under a synthwave sunset, with pink and cyan reflected in the pavement.",
+    swatches: ["#100d1a", "#221a31", "#ff99ca", "#7be5ef"],
   },
   {
     id: "hallowed-night",

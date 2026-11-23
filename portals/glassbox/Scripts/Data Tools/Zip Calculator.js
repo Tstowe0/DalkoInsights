@@ -333,7 +333,7 @@ export async function loadGui(parent, ctx) {
   parent.classList.add("zx-host");
   parent.innerHTML = `
     <section class="zx">
-      <header class="zx-bar">
+      <header class="zx-bar ui-page-header">
         <h1>Zip Calculator</h1>
         <div class="zx-about" data-about-slot></div>
       </header>

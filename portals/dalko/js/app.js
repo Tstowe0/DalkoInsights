@@ -12,12 +12,12 @@ import { rowMatchesAccessorialType } from "./analytics/accessorials.js?v=2026100
 import { runAnalysis } from "./analytics/engine.js?v=20261112-export";
 import { nextJobId, workerJob } from "./workers/client.js";
 import { navTitle, renderNav } from "./ui/nav.js?v=20260923-desk";
-import { renderView } from "./ui/render.js?v=20261120-actions";
+import { renderView } from "./ui/render.js?v=20261123-permnote";
 import { RAIL_VIEWS, renderViewRail, teardownAllRails } from "./ui/page-rails.js?v=20260922-corp2";
 import { alertDialog, confirmDialog } from "./ui/dialog.js";
-import { runReport, teardownExecReport } from "./ui/report.js?v=20261120-actions";
+import { runReport, teardownExecReport } from "./ui/report.js?v=20261123-permnote";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
-import { allowsAction } from "../../../shared/js/permissions.js?v=20261120-actions";
+import { allowsAction } from "../../../shared/js/permissions.js?v=20261123-permnote";
 
 /** @type {import("./data/filters.js").FilterState} */
 let filters = createDefaultFilters();

@@ -73,6 +73,30 @@ async function readBody(res) {
   }
 }
 
+/**
+ * Tell DELTA what this person just did. A missed line does not block the page.
+ * @param {"page"|"tool"|"report"|"run"|"send"|"on"|"off"} kind
+ * @param {string} [name]
+ */
+export function recordActivity(kind, name = "") {
+  const key = String(kind || "").trim();
+  if (!key || !getAccount()) return Promise.resolve();
+  const label = String(name || "").replace(/\s+/g, " ").trim().slice(0, 80);
+  return (async () => {
+    try {
+      const headers = await rackAuthHeaders({ "Content-Type": "application/json" });
+      await fetch(`${RACK_ORIGIN}/api/activity`, {
+        method: "POST",
+        cache: "no-store",
+        headers,
+        body: JSON.stringify({ kind: key, name: label }),
+      });
+    } catch {
+      /* The page still works when the activity line cannot be stored. */
+    }
+  })();
+}
+
 export async function fetchRack() {
   const res = await withRackAuth((headers) =>
     fetch(`${RACK_ORIGIN}/api/rack`, {

@@ -10,23 +10,25 @@ import {
   initDalkoPortal,
   setInsightsView,
   setEmbeddedInsightHide,
-} from "../../portals/dalko/js/app.js?v=20261120-actions";
+} from "../../portals/dalko/js/app.js?v=20261123-permnote";
 import { NAV_ITEMS as INSIGHT_NAV } from "../../portals/dalko/js/ui/nav.js?v=20260923-desk";
 import { CHANGELOG_TEXT } from "../../portals/dalko/js/changelog.js?v=20261112-fit";
 import { hallowedNightScene } from "./themes/hallowed-night.js?v=20261121-seasonal";
 import { oceanicNightScene } from "./themes/oceanic-night.js";
+import { rainyDriveScene } from "./themes/rainy-drive.js?v=20261123-follow-truck";
 import { yuleNightScene } from "./themes/yule-night.js?v=20261120-hourly-sleigh";
-import { THEMES, getThemeId, initTheme, setTheme } from "./theme.js?v=20261120-hourly-sleigh";
-import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261120-actions";
+import { initTheme } from "./theme.js?v=20261123-slate-linen";
+import { filterReleases, mergeChangelogs } from "./app-changelog.js?v=20261123-log";
 import { getValue, parseCellDate, safeFloat } from "../../portals/dalko/js/data/context.js";
 import { getFilteredRows } from "../../portals/dalko/js/data/filters.js?v=20260916-bugsweep";
 import { rowMatchesAccessorialType } from "../../portals/dalko/js/analytics/accessorials.js?v=20261005-opcarrier";
 import { fmtInt, fmtMoney, fmtPct } from "../../portals/dalko/js/ui/format.js";
 import { NAV_ITEMS as GB_NAV, findTool } from "../../portals/glassbox/js/catalog.js?v=20261023-ttx";
-import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261120-actions";
-import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261120-hourly-sleigh";
-import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261023-ttx";
-import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261023-ttx";
+import { launchTool } from "../../portals/glassbox/js/tool-loader.js?v=20261123-permnote";
+import { renderClientReports, renderSection, renderThemes } from "../../portals/glassbox/js/views.js?v=20261123-slate-linen";
+import { mountSidebarCalendar } from "../../portals/glassbox/js/calendar.js?v=20261123-builtin";
+import { mountSidebarTodo } from "../../portals/glassbox/js/todo.js?v=20261123-reports-owner";
+import { mountCarrierPricing, reloadCarrierPricing } from "../../portals/carrier-pricing/js/mount.js?v=20261123-permnote";
 import {
   canRevealDatSecrets,
   getAccessToken,
@@ -42,7 +44,8 @@ import {
   signOut,
 } from "./auth.js?v=20261023-id";
 import { AUTH_ALLOWED_DOMAIN, AUTH_CLIENT_ID, AUTH_TENANT_ID } from "./auth-config.js?v=20260915-app3";
-import { fetchRack, rackAuthHeaders, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261023-id";
+import { fetchRack, rackAuthHeaders, recordActivity, testRackConnection, RACK_ORIGIN } from "./ftp-rack.js?v=20261123-activity";
+import { loadLocalWeather, weatherCardHtml } from "./weather.js?v=20261123-weather-full-art";
 import {
   allowsAction,
   allowsMenu,
@@ -53,7 +56,7 @@ import {
   pullPermissions,
   renderPermissionsPage,
   resetPermissions,
-} from "./permissions.js?v=20261120-actions";
+} from "./permissions.js?v=20261123-permnote";
 
 const DATE_COLS = ["INVOICE DATE", "ACTUAL SHIP DATE", "ACTUAL DELIVERY DATE", "EXPECTED SHIP DATE"];
 const NEWS_FEEDS = [
@@ -101,7 +104,7 @@ GROUP_FOR.permissions = "settings";
 GROUP_FOR.troubleshooting = "settings";
 
 const TITLES = {
-  home: "Today",
+  home: "Home",
   insights: "DALKO Insights",
   reports: "Executive analytics",
   "zip-calculator": "Zip Calculator",
@@ -118,6 +121,7 @@ const TITLES = {
   themes: "Themes",
   permissions: "Permissions",
   troubleshooting: "Troubleshooting",
+  "carrier-pricing": "Carrier Pricing",
 };
 for (const item of INSIGHT_NAV) {
   if (item.id === "home" || item.id === "changelog") continue;
@@ -150,6 +154,7 @@ const els = {
   insights: () => document.getElementById("insights-host"),
   tools: () => document.getElementById("tools-host"),
   settings: () => document.getElementById("settings-root"),
+  carrier: () => document.getElementById("carrier-pricing-host"),
   workspace: () => document.getElementById("gb-workspace"),
 };
 
@@ -289,18 +294,16 @@ async function loadNews() {
   if (shellView === "home") paintHome();
 }
 
-function newsCard(query, dayLabel) {
+function newsCard(query) {
   const rows = (newsItems.length ? newsItems : NEWS_FALLBACK).filter((n) => {
     if (!query) return true;
     return `${n.title} ${n.source}`.toLowerCase().includes(query);
   });
-  const live = newsItems.length > 0 && newsItems[0].date;
   return `
     <section class="card news-card news-card--band">
       <div class="card-head">
         <div>
-          <h2>${esc(dayLabel)}</h2>
-          <p class="card-sub">${live ? "World freight desk — live headlines from shipping, trucking, rail, and trade." : "World freight desk — connect to load live headlines."}</p>
+          <h2>Freight News</h2>
         </div>
         <a class="linkish" href="https://news.google.com/search?q=freight%20logistics%20shipping%20trucking" target="_blank" rel="noopener">More →</a>
       </div>
@@ -335,8 +338,7 @@ function logArticlesHtml(releases) {
       (block) => `
         <article class="log-ver">
           <div class="log-ver-head">
-            <h3>${esc(block.version)}</h3>
-            <span class="log-product log-product-${esc(block.productId)}">${esc(block.product)}</span>
+            <h3>Insights Version: ${esc(block.version)}</h3>
           </div>
           <ul>${block.items.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>
         </article>`
@@ -383,24 +385,20 @@ function deskDay() {
 
 function renderHomeHtml() {
   const q = String(document.getElementById("table-search")?.value ?? "").trim().toLowerCase();
-  const dayLabel = deskDay().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
   return `
     <div class="page-canvas today-desk">
       <div class="today-news-row">
-        ${newsCard(q, dayLabel)}
+        ${newsCard(q)}
         <section class="card today-cal-card" aria-label="Calendar">
           <div class="today-cal" id="today-calendar"></div>
+        </section>
+        <section class="card todo-card" aria-label="To do list">
+          <div class="home-todo" id="home-todo"></div>
         </section>
       </div>
       <div class="today-board">
         ${changelogCard(q)}
-        <section class="card todo-card" aria-label="To do list">
-          <div class="home-todo" id="home-todo"></div>
-        </section>
+        ${weatherCardHtml()}
       </div>
     </div>`;
 }
@@ -408,7 +406,7 @@ function renderHomeHtml() {
 function renderChangelogHtml() {
   return `
     <div class="page-canvas">
-      <header class="hero">
+      <header class="ui-page-header">
         <h1>Change log</h1>
       </header>
       <section class="card log-card log-card-full">
@@ -444,7 +442,7 @@ function integTile(id, title, blurb) {
 function renderIntegrationsHtml() {
   return `
     <div class="page-canvas integ-page">
-      <header class="integ-head">
+      <header class="ui-page-header">
         <h1>Integrations</h1>
       </header>
 
@@ -524,7 +522,7 @@ function integLab(id, subtitle) {
 }
 
 function integHead(title, host, id) {
-  return `<header class="integ-head">
+  return `<header class="ui-page-header">
     <button type="button" class="integ-back" id="integ-back">
       <span aria-hidden="true">←</span> Back
     </button>
@@ -758,7 +756,7 @@ function renderZipHtml() {
 function renderDatNutsHtml() {
   return `
     <div class="page-canvas integ-page">
-      <header class="integ-head">
+      <header class="ui-page-header">
         <button type="button" class="integ-back" id="integ-back">
           <span aria-hidden="true">←</span> Back
         </button>
@@ -1013,8 +1011,11 @@ async function bootAuth() {
   paintNav();
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
-  if (authed) revealApp();
-  else lockApp();
+  if (authed) {
+    if (shellView === "carrier-pricing") reloadCarrierPricing();
+    revealApp();
+    notePage();
+  } else lockApp();
   setSplashReady(!authed);
   return authed;
 }
@@ -1037,7 +1038,11 @@ async function signInFromSplash() {
   if (shellView === "permissions") paintSettings();
   if (getAccount()) {
     paintSplashError(null);
+    if (shellView === "carrier-pricing") reloadCarrierPricing();
     revealApp();
+    recordActivity("on");
+    lastNoted = "";
+    notePage();
     void probeAllIntegrations();
     return;
   }
@@ -1049,6 +1054,7 @@ async function signInFromSplash() {
 async function onAuthAction() {
   try {
     if (getAccount()) {
+      await recordActivity("off");
       datSecrets = null;
       lockApp();
       setSplashReady(false);
@@ -1066,7 +1072,11 @@ async function onAuthAction() {
   if (shellView === "integrations-dat") paintDatSecretsGate();
   if (shellView === "permissions") paintSettings();
   if (getAccount()) {
+    if (shellView === "carrier-pricing") reloadCarrierPricing();
     revealApp();
+    recordActivity("on");
+    lastNoted = "";
+    notePage();
     void probeAllIntegrations();
   } else {
     stopCrmWatch();
@@ -1572,7 +1582,7 @@ function renderSettingsHtml() {
   if (shellView === "troubleshooting") {
     return `
       <div class="page-canvas">
-        <header class="hero"><h1>Troubleshooting</h1></header>
+        <header class="ui-page-header"><h1>Troubleshooting</h1></header>
         <div class="settings-list">
           <button type="button" class="settings-item" id="gb-btn-console" aria-pressed="${isConsoleOpen()}" aria-controls="gb-console">
             <span><strong>Console</strong><small>View diagnostic messages from reports and tools.</small></span>
@@ -1702,6 +1712,11 @@ function mountHomeCalendar() {
 function paintHome() {
   const host = els.home();
   if (!host) return;
+  setPageHeader(deskDay().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }));
   const existingTodo = document.getElementById("home-todo");
   const existingCal = document.getElementById("today-calendar");
   existingTodo?.remove();
@@ -1719,51 +1734,8 @@ function paintHome() {
   const slot = document.getElementById("home-todo");
   if (existingTodo && slot) slot.replaceWith(existingTodo);
   else mountHomeTodo();
-}
-
-function paintThemes(host) {
-  const active = getThemeId();
-  const groups = [
-    { id: "day", label: "Dashboard light" },
-    { id: "night", label: "Night palettes" },
-    { id: "seasonal", label: "Seasonal" },
-  ];
-  const cards = (groupId) =>
-    THEMES.filter((theme) => (theme.group || "night") === groupId)
-      .map((theme) => {
-        const swatches = theme.swatches.map((c) => `<span style="background:${c}"></span>`).join("");
-        return `
-          <button type="button" class="gb-theme-card${theme.id === active ? " is-active" : ""}" data-theme-id="${esc(theme.id)}" role="listitem">
-            <div class="gb-theme-swatches" aria-hidden="true">${swatches}</div>
-            <p class="gb-theme-name">${esc(theme.name)}</p>
-            <p class="gb-theme-desc">${esc(theme.description)}</p>
-            <p class="gb-theme-state">${theme.id === active ? "Active" : "Apply"}</p>
-          </button>`;
-      })
-      .join("");
-  host.innerHTML = `
-    <div class="page-canvas">
-      <header class="hero">
-        <h1>Themes</h1>
-        <p>These palettes restyle this dashboard — sidebar, canvas, cards, charts, and tools.</p>
-      </header>
-      ${groups
-        .map(
-          (group) => `
-        <section class="theme-group">
-          <h2 class="theme-group-label">${group.label}</h2>
-          <div class="gb-theme-grid" role="list">${cards(group.id)}</div>
-        </section>`
-        )
-        .join("")}
-    </div>`;
-  host.querySelectorAll("[data-theme-id]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = /** @type {HTMLElement} */ (btn).dataset.themeId;
-      if (!id) return;
-      setTheme(id);
-      paintThemes(host);
-    });
+  loadLocalWeather(() => {
+    if (shellView === "home") paintHome();
   });
 }
 
@@ -1772,12 +1744,14 @@ function paintSettings() {
   if (!host) return;
   if (shellView !== "integrations-dat") datSecrets = null;
   if (shellView === "themes") {
-    paintThemes(host);
+    renderThemes(host, { settings: true });
     return;
   }
   if (shellView === "permissions") {
     const directoryJob = loadDalkoDirectory(false);
     host.innerHTML = renderPermissionsPage(permFocus);
+    host.querySelector(".perm-page > header")?.classList.replace("hero", "ui-page-header");
+    setPageHeader(TITLES.permissions, "Edit a person to choose their group, then the pages and functions they can open.");
     bindPermissionsPage(host, {
       focus: permFocus,
       onFocus: (next) => {
@@ -1795,6 +1769,8 @@ function paintSettings() {
     return;
   }
   host.innerHTML = renderSettingsHtml();
+  const title = host.querySelector(".ui-page-header h1")?.textContent;
+  if (title) setPageHeader(title);
   document.getElementById("gb-btn-console")?.addEventListener("click", () => {
     setConsoleOpen(!isConsoleOpen());
   });
@@ -1860,6 +1836,9 @@ function openTool(tool) {
   if (!workspace) return;
   const fromNav = GB_NAV.find((n) => n.id === shellView);
   toolReturn = fromNav?.kind === "tool" ? "data-tools" : TOOL_IDS.has(shellView) ? shellView : "client-reports";
+  const label = String(tool?.label || tool?.id || "").trim();
+  if (label) setPageHeader(label);
+  if (label && label !== (TITLES[shellView] || "")) recordActivity("tool", label);
   void launchTool(tool.script, workspace, {
     onBack: () => showToolSection(toolReturn),
     log: appendConsole,
@@ -1869,6 +1848,7 @@ function openTool(tool) {
 function openScheduledReport(toolId) {
   const tool = findTool(toolId);
   shellView = "client-reports";
+  setPageHeader("Reports");
   document.title = `${TITLES["client-reports"] ?? "Client Reports"} · DALKO Insights`;
   const next = new URL(location.href);
   next.searchParams.set("view", "client-reports");
@@ -1889,9 +1869,11 @@ function showToolSection(id) {
   if (!workspace) return;
   const item = GB_NAV.find((n) => n.id === id);
   if (!item || item.kind === "console" || item.kind === "changelog") return;
+  setPageHeader(id === "client-reports" ? "Reports" : item.label);
   if (item.kind === "tool") {
     const tool = findTool(item.toolId || item.label);
     if (!tool || tool.disabled || tool.skipped) {
+      setPageHeader("Data Tools");
       renderSection(workspace, "data-tools", openTool);
       return;
     }
@@ -1939,6 +1921,16 @@ function showLayer(layer) {
   els.insights()?.classList.toggle("hidden", layer !== "insights");
   els.tools()?.classList.toggle("hidden", layer !== "tools");
   els.settings()?.classList.toggle("hidden", layer !== "settings");
+  els.carrier()?.classList.toggle("hidden", layer !== "carrier");
+}
+
+function setPageHeader(title, note = "") {
+  const heading = document.getElementById("shell-page-title");
+  if (heading && heading.textContent !== title) heading.textContent = title;
+  const sub = document.getElementById("shell-page-note");
+  if (!(sub instanceof HTMLElement)) return;
+  sub.textContent = note;
+  sub.hidden = !note;
 }
 
 function isSettingsView(id) {
@@ -1976,6 +1968,31 @@ function openInsightsSpace(page) {
   else insightsPage = snap().activeView || insightsPage || "home";
   showLayer("insights");
   setInsightsView(insightsPage);
+  updateInsightsHeader();
+}
+
+function updateInsightsHeader() {
+  const id = snap().activeView;
+  setPageHeader(id && id !== "home" ? TITLES[id] || "Data Dump Analyzer" : "Data Dump Analyzer");
+}
+
+let lastNoted = "";
+
+function pageName() {
+  if (shellView === "insights") {
+    const id = insightsPage && insightsPage !== "home" ? insightsPage : "insights";
+    return TITLES[id] || id;
+  }
+  return TITLES[shellView] || shellView || "Home";
+}
+
+function notePage(name = pageName()) {
+  const label = String(name || "").trim();
+  if (!label || !getAccount()) return;
+  const key = `page:${label}`;
+  if (lastNoted === key) return;
+  lastNoted = key;
+  recordActivity("page", label);
 }
 
 function setShellView(id) {
@@ -1994,6 +2011,7 @@ function setShellView(id) {
       "ops",
       "data-tools",
       "client-uploads",
+      "carrier-pricing",
       "changelog",
       "integrations",
       "permissions",
@@ -2005,6 +2023,7 @@ function setShellView(id) {
     }
   }
   shellView = view;
+  if (view !== "home") setPageHeader(TITLES[view] || "File transfer");
   document.title = view === "home" || TITLES[view] === "DALKO Insights" ? "DALKO Insights" : `${TITLES[view] ?? "DALKO Insights"} · DALKO Insights`;
   const next = new URL(location.href);
   if (view === "home") next.searchParams.delete("view");
@@ -2019,6 +2038,10 @@ function setShellView(id) {
     paintSettings();
   } else if (view === "insights") {
     openInsightsSpace();
+  } else if (view === "carrier-pricing") {
+    showLayer("carrier");
+    const host = els.carrier();
+    if (host) mountCarrierPricing(host);
   } else if (LOOKUP_TOOLS[view] && view !== "carrier-search") {
     showLayer("tools");
     const tool = findTool(LOOKUP_TOOLS[view]);
@@ -2032,10 +2055,12 @@ function setShellView(id) {
   }
   paintNav();
   paintChrome();
+  notePage();
 }
 
 function onInsightsRefresh() {
   paintChrome();
+  if (shellView === "insights") updateInsightsHeader();
   if (snap().fileName && shellView === "home") setShellView("insights");
 }
 
@@ -2060,7 +2085,7 @@ function init() {
   globalThis.__DALKO_XLSX_STYLE__ = true;
   document.getElementById("sidebar-theme-scenes")?.insertAdjacentHTML(
     "beforeend",
-    hallowedNightScene + yuleNightScene + oceanicNightScene
+    hallowedNightScene + yuleNightScene + oceanicNightScene + rainyDriveScene
   );
   initTheme();
   window.addEventListener("dalko-theme", () => {
@@ -2109,6 +2134,23 @@ function init() {
   });
 
   document.addEventListener("click", () => closeMenus());
+  document.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+    const insight = target.closest("#main-nav .nav-btn");
+    if (insight) {
+      const label = insight.querySelector(".nav-label")?.textContent?.trim();
+      if (label) notePage(label);
+      return;
+    }
+    const button = target.closest("[data-run], [data-send]");
+    if (!(button instanceof HTMLButtonElement) || button.disabled) return;
+    const title = button.closest("section")?.querySelector(".gb-tool-title")?.textContent?.trim();
+    if (!title) return;
+    if (button.hasAttribute("data-send")) recordActivity("send", title);
+    else if (shellView === "client-reports" || /report/i.test(title)) recordActivity("report", title);
+    else recordActivity("run", title);
+  });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeMenus();
   });

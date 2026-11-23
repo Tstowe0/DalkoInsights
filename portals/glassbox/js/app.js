@@ -1,7 +1,7 @@
 import { NAV_ITEMS, findTool } from "./catalog.js?v=20261023-ttx";
-import { launchTool } from "./tool-loader.js?v=20260819-fxsweep";
-import { mountSidebarCalendar } from "./calendar.js?v=20261023-penn";
-import { mountSidebarTodo } from "./todo.js?v=20261023-due";
+import { launchTool } from "./tool-loader.js?v=20261123-permnote";
+import { mountSidebarCalendar } from "./calendar.js?v=20261123-builtin";
+import { mountSidebarTodo } from "./todo.js?v=20261123-reports-owner";
 import {
   renderGlassNav,
   renderHome,
@@ -9,7 +9,7 @@ import {
   renderClientReports,
   renderChangelog,
   renderThemes,
-} from "./views.js?v=20261119-theme-files";
+} from "./views.js?v=20261123-slate-linen";
 import { paintSidebarGreeting } from "../../../shared/js/auth.js?v=20260915-greet";
 
 const LOGO = new URL("../images/logo.png", import.meta.url).href;

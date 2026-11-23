@@ -1,6 +1,6 @@
 import { alertDialog } from "./dialog.js?v=20261006-nobrand";
 import { openPortal, closePortal } from "./router.js?v=20260915-msauth";
-import { initTheme } from "./theme.js?v=20261120-hourly-sleigh";
+import { initTheme } from "./theme.js?v=20261123-slate-linen";
 import {
   consumeAuthError,
   getDisplayName,
